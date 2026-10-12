@@ -8,6 +8,7 @@ import { BrandMark } from "@/components/BrandMark";
 import { toast } from "sonner";
 import { completeSurvivorOnboarding } from "@/lib/legal-consent.functions";
 import { useServerFn } from "@tanstack/react-start";
+import { SESSION_KEYS } from "@/lib/app-storage";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   component: Onboarding,
@@ -54,8 +55,8 @@ function Onboarding() {
       // If they arrived from an invite link, take them back to finish it.
       let returnTo: string | null = null;
       try {
-        returnTo = sessionStorage.getItem("pp_return_to");
-        sessionStorage.removeItem("pp_return_to");
+        returnTo = sessionStorage.getItem(SESSION_KEYS.returnTo);
+        sessionStorage.removeItem(SESSION_KEYS.returnTo);
       } catch {
         returnTo = null;
       }

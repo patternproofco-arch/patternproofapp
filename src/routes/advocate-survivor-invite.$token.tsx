@@ -12,6 +12,7 @@ import {
   acceptAdvocateSurvivorInvite,
   declineAdvocateSurvivorInvite,
 } from "@/lib/advocate-survivor-invites.functions";
+import { SESSION_KEYS } from "@/lib/app-storage";
 
 export const Route = createFileRoute("/advocate-survivor-invite/$token")({
   head: () => ({
@@ -160,7 +161,7 @@ function AdvocateSurvivorInvitePage() {
 
   const goFinishWelcome = () => {
     try {
-      sessionStorage.setItem("pp_return_to", `/advocate-survivor-invite/${token}`);
+      sessionStorage.setItem(SESSION_KEYS.returnTo, `/advocate-survivor-invite/${token}`);
     } catch {
       /* sessionStorage unavailable — the survivor can reopen the invite link */
     }

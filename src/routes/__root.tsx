@@ -19,12 +19,14 @@ import { ProfessionalReadinessKitCapture } from "@/components/ProfessionalReadin
 import { GlobalHeader } from "@/components/GlobalHeader";
 import { GlobalFooter } from "@/components/GlobalFooter";
 import { LeaveADotLoader } from "@/components/LeaveADotLoader";
+import { INLINE_WIPE_CONFIG } from "@/lib/app-storage";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? "";
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "";
 const quickExitFallbackScript = `(function () {
   var SUPABASE_URL = ${JSON.stringify(SUPABASE_URL)};
   var SUPABASE_KEY = ${JSON.stringify(SUPABASE_PUBLISHABLE_KEY)};
+  var WIPE = ${JSON.stringify(INLINE_WIPE_CONFIG)};
 
   function getExitUrl() {
     try {
@@ -37,37 +39,76 @@ const quickExitFallbackScript = `(function () {
     return "https://weather.com";
   }
 
+  function isOwned(k) {
+    for (var i = 0; i < WIPE.prefixes.length; i++) if (k.indexOf(WIPE.prefixes[i]) === 0) return true;
+    return false;
+  }
+
+  function wipe(store) {
+    try {
+      var keys = [];
+      for (var i = 0; i < store.length; i++) {
+        var k = store.key(i);
+        if (k && isOwned(k) && WIPE.preserve.indexOf(k) === -1) keys.push(k);
+      }
+      for (var j = 0; j < keys.length; j++) store.removeItem(keys[j]);
+    } catch (e) {}
+  }
+
+  function wipeCookies() {
+    try {
+      var host = location.hostname;
+      var parts = host.split(".");
+      var domains = ["", host, "." + host];
+      if (parts.length > 2) domains.push("." + parts.slice(-2).join("."));
+      var pairs = document.cookie ? document.cookie.split(";") : [];
+      for (var i = 0; i < pairs.length; i++) {
+        var name = pairs[i].split("=")[0].trim();
+        var owned = false;
+        for (var p = 0; p < WIPE.cookiePrefixes.length; p++) if (name.indexOf(WIPE.cookiePrefixes[p]) === 0) owned = true;
+        if (!owned) continue;
+        for (var d = 0; d < domains.length; d++) {
+          document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/" + (domains[d] ? "; domain=" + domains[d] : "");
+        }
+      }
+    } catch (e) {}
+  }
+
+  function wipeAsync() {
+    try { for (var i = 0; i < WIPE.indexedDbs.length; i++) indexedDB.deleteDatabase(WIPE.indexedDbs[i]); } catch (e) {}
+    try {
+      caches.keys().then(function (names) {
+        names.forEach(function (n) { if (n.indexOf(WIPE.cachePrefix) === 0) caches.delete(n); });
+      }).catch(function () {});
+    } catch (e) {}
+    try {
+      navigator.serviceWorker.getRegistrations().then(function (regs) {
+        regs.forEach(function (r) { r.unregister(); });
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
   function quickExit() {
     var url = getExitUrl();
     var accessToken = null;
-    var authKeys = [];
     try {
       for (var i = 0; i < localStorage.length; i++) {
         var k = localStorage.key(i);
-        if (k && k.indexOf("sb-") === 0 && k.indexOf("auth-token") !== -1) authKeys.push(k);
-      }
-      for (var j = 0; j < authKeys.length; j++) {
-        var raw = localStorage.getItem(authKeys[j]);
-        if (raw) {
+        if (k && k.indexOf("sb-") === 0 && k.indexOf("auth-token") !== -1) {
           try {
-            var parsed = JSON.parse(raw);
+            var parsed = JSON.parse(localStorage.getItem(k));
             accessToken = (parsed && parsed.access_token) || (parsed && parsed.currentSession && parsed.currentSession.access_token) || accessToken;
           } catch (e) {}
         }
       }
     } catch (e) {}
+    // Same wipe as src/lib/app-storage.ts (prefix list injected from there).
+    try { wipe(localStorage); } catch (e) {}
+    try { wipe(sessionStorage); } catch (e) {}
+    wipeCookies();
+    wipeAsync();
     try {
-      for (var m = 0; m < authKeys.length; m++) localStorage.removeItem(authKeys[m]);
-    } catch (e) {}
-    try {
-      var sessionKeys = [];
-      for (var n = 0; n < sessionStorage.length; n++) {
-        var sk = sessionStorage.key(n);
-        if (sk && (sk.indexOf("pp.") === 0 || sk.indexOf("pp_") === 0)) sessionKeys.push(sk);
-      }
-      for (var p = 0; p < sessionKeys.length; p++) sessionStorage.removeItem(sessionKeys[p]);
-    } catch (e) {}
-    try {
+      // Global revoke — deliberate; see src/lib/quick-exit.ts.
       if (accessToken && SUPABASE_URL && SUPABASE_KEY) {
         fetch(SUPABASE_URL + "/auth/v1/logout?scope=global", {
           method: "POST",
@@ -352,8 +393,12 @@ function RootComponent() {
             </FolioPageFrame>
           </div>
           <GlobalFooter />
+          {/* Inside the layout (same visual spot, after the footer) so the sticky header — and its
+              Exit safely button — stays on screen all the way to the bottom of the page. */}
+          <div>
+            <ProfessionalReadinessKitCapture />
+          </div>
         </div>
-        <ProfessionalReadinessKitCapture />
         <Toaster
           position="top-center"
           toastOptions={{

@@ -15,8 +15,9 @@ import {
 } from "@/lib/pin-lock.functions";
 
 import { withAccessTimeout } from "@/lib/portal-access";
+import { SESSION_KEYS } from "@/lib/app-storage";
 
-const UNLOCK_TOKEN_KEY = "pp_unlock_token_v2";
+const UNLOCK_TOKEN_KEY = SESSION_KEYS.unlockToken;
 
 interface Ctx {
   appLockEnabled: boolean;

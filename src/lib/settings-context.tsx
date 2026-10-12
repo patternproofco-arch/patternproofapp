@@ -2,9 +2,9 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { useAuth } from "@/lib/auth-context";
 import {
   SETTINGS_KEY,
-  accountSettingsKey,
   hydrateScopedSettings,
   splitSettings,
+  writeAccountSettings,
 } from "@/lib/settings-scope";
 
 export interface PpSettings {
@@ -40,7 +40,6 @@ const DEFAULTS: PpSettings = {
 };
 
 const KEY = SETTINGS_KEY;
-const accountKey = accountSettingsKey;
 
 function write(key: string, value: Partial<PpSettings>) {
   try {
@@ -87,7 +86,14 @@ export function SettingsProvider({
       const next = { ...prev, ...patch };
       const { device, account } = splitSettings(next);
       write(KEY, device);
-      if (userId) write(accountKey(userId), account);
+      // Account settings live under one non-identifying key; the id never appears in a key name.
+      if (userId) {
+        try {
+          writeAccountSettings(localStorage, userId, account);
+        } catch {
+          /* ignore */
+        }
+      }
       return next;
     });
   };

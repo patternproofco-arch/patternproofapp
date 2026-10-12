@@ -38,6 +38,7 @@ describe("advocate → survivor invite requires survivor onboarding first", () =
     const acceptIndex = invitePage.indexOf("Accept & share");
     expect(gateIndex).toBeGreaterThan(-1);
     expect(acceptIndex).toBeGreaterThan(gateIndex);
-    expect(invitePage).toContain('sessionStorage.setItem("pp_return_to"');
+    // Key name centralized in src/lib/app-storage.ts (SESSION_KEYS.returnTo = "pp_return_to").
+    expect(invitePage).toContain("sessionStorage.setItem(SESSION_KEYS.returnTo");
   });
 });

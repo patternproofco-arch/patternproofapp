@@ -423,6 +423,15 @@
     height: auto;
     min-height: 56px;
     padding: 14px 16px 0;
+    /* Exit safely stays on screen while she scrolls a public page on a phone. */
+    position: sticky;
+    top: 0;
+  }
+
+  .pp-global-exit {
+    min-height: 44px;
+    min-width: 44px;
+    height: auto;
   }
 
   .pp-global-nav {
@@ -884,7 +893,39 @@ textarea.input-pp {
 }
 .collapse-inner {
   overflow: hidden;
+  /* clip: same visual collapse, but not a scroll container, so a sticky save bar inside the
+     entry form sticks to the screen instead of to this box. Older Safari falls back to hidden. */
+  overflow: clip;
   min-height: 0;
+}
+
+/* Entry form save action: stays on screen while she types — above the bottom tab bar, above the
+   on-screen keyboard (--pp-kb-inset from visualViewport), and clear of the home indicator.
+   --pp-tabbar-h is measured by BottomTabBar (includes its safe-area padding). */
+.pp-sticky-save {
+  /* Default: sticky above the bottom tab bar while she scrolls the form. */
+  position: sticky;
+  bottom: calc(var(--pp-tabbar-h, calc(92px + env(safe-area-inset-bottom, 0px))) + 8px);
+  z-index: 95; /* above the tab bar (z=90), below Quick Exit (z=9999) */
+  margin-inline: -8px;
+  padding: 8px;
+  /* Match the entry card (linen), not the page paper, so the seam doesn't flash. */
+  background: var(--linen, var(--paper, var(--pp-ground)));
+  border-top: 1px solid var(--rule, var(--border));
+  box-shadow: 0 -6px 16px -10px rgba(26, 18, 36, 0.18);
+}
+/* On-screen keyboard (iOS: layout viewport does not shrink). Sticky cannot sit above a
+   keyboard that still covers the layout viewport; switch to fixed and use the inset. */
+html[data-pp-kb="1"] .pp-sticky-save {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--pp-kb-inset, 0px) + 8px);
+  margin-inline: 0;
+  padding-inline: max(16px, env(safe-area-inset-left, 0px));
+  max-width: 430px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .print-only {
@@ -1431,6 +1472,10 @@ textarea.input-pp {
 
 .pp-app-shell {
   background: var(--pp-ground);
+  /* Defence in depth for phones: nothing inside the signed-in shell may widen the page. A wider
+     page grows the layout viewport, and position:fixed controls (Quick Exit) follow it off-screen.
+     `clip` (not `hidden`) so position:sticky inside still works. Root causes are fixed at source. */
+  overflow-x: clip;
 }
 .pp-shell-header {
   min-height: 44px;
@@ -1453,6 +1498,10 @@ textarea.input-pp {
 }
 .pp-app-main > * {
   min-width: 0;
+}
+/* Long unbroken text (URLs, file names) wraps instead of setting a min-content wider than the phone. */
+.pp-app-main {
+  overflow-wrap: anywhere;
 }
 
 .pp-hub-tabs {

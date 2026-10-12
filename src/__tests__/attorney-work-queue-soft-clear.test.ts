@@ -134,7 +134,11 @@ describe("attorney Soft CLEAR work-queue cards", () => {
 
 describe("attorney lastOpened + expiry fields (main-only, no #135)", () => {
   it("records lastOpened on client detail for since-you-looked", () => {
-    expect(clientDetail).toContain("pp.attorney.lastOpened");
+    // Key name is centralized in src/lib/app-storage.ts (wiped on sign-out / Quick Exit).
+    expect(clientDetail).toContain("LOCAL_KEYS.attorneyLastOpened");
+    expect(readFileSync(new URL("../lib/app-storage.ts", import.meta.url), "utf8")).toContain(
+      'attorneyLastOpened: "pp.attorney.lastOpened"',
+    );
   });
 
   it("selects expires_at/revoked_at for work-queue chips", () => {

@@ -3,12 +3,13 @@ import { useEffect, useRef } from "react";
 import { useSettings } from "@/lib/settings-context";
 import { useDraggable } from "@/hooks/use-draggable";
 import { quickExit } from "@/lib/quick-exit";
+import { LOCAL_KEYS } from "@/lib/app-storage";
 
 type ExitPos = { right?: number; bottom?: number; left?: number; top?: number };
 
 export function QuickExitButton({
   defaultPosition = { right: 16, top: 70 },
-  storageKey = "pp.exit.pos",
+  storageKey = LOCAL_KEYS.exitPos,
 }: {
   /** Default dock when the user hasn't dragged the control yet. */
   defaultPosition?: ExitPos;
@@ -58,7 +59,8 @@ export function QuickExitButton({
       aria-label="Quick exit"
       title="Quick exit — signs you out and leaves. Drag to move, double-press Esc to exit"
       data-quick-exit="true"
-      className="no-print fixed z-[9999] inline-flex items-center gap-1.5 rounded-[3px] px-3 py-1.5 text-[12px] font-bold"
+      // fixed + clamped by useDraggable: always inside the visible viewport. min 44x44 tap target.
+      className="pp-quick-exit no-print fixed z-[9999] inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 rounded-[3px] px-3 py-1.5 text-[12px] font-bold"
       style={{
         background: "#B7D8B0" /* pastel green */,
         color: "#1F3A1B",

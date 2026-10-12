@@ -1,6 +1,8 @@
+import { SESSION_KEYS } from "@/lib/app-storage";
+
 /** Client-only flag so a recovery link still lands on the set-password form
  * after Supabase consumes the tokens from the URL. */
-export const RECOVERY_FLAG = "pp_password_recovery";
+export const RECOVERY_FLAG = SESSION_KEYS.passwordRecovery;
 
 export function markPasswordRecovery(): void {
   try {

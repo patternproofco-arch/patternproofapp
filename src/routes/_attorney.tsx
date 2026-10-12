@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
-import { supabase } from "@/integrations/supabase/client";
 import { getMyRole, getAttorneyProfile } from "@/lib/attorney-portal.functions";
 import { getClioAvailability, getClioStatus } from "@/lib/clio.functions";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -24,6 +23,8 @@ import { BrandMark } from "@/components/BrandMark";
 import { FocusModeProvider } from "@/components/survivor/focus-mode";
 import { useMfaGate } from "@/hooks/use-mfa-gate";
 import { attorneyPathExemptFromRequiredMfa, attorneyPathWithoutPortalChrome } from "@/lib/mfa";
+import { signOutAndClearDevice } from "@/lib/sign-out";
+import { SESSION_KEYS } from "@/lib/app-storage";
 
 export const Route = createFileRoute("/_attorney")({
   head: () => ({
@@ -383,7 +384,7 @@ function AttorneyTopBar({ firmName }: { firmName: string | null }) {
       </div>
       <button
         onClick={async () => {
-          await supabase.auth.signOut();
+          await signOutAndClearDevice();
           navigate({ to: "/signin" });
         }}
         className="att-btn-ghost"
@@ -434,7 +435,7 @@ function SecurityBannerInner() {
   const caseId = clientId ? `PP-${clientId.slice(0, 4).toUpperCase()}` : "—";
   const [dismissed, setDismissed] = useState(false);
   useEffect(() => {
-    setDismissed(sessionStorage.getItem("att-security-dismissed") === "1");
+    setDismissed(sessionStorage.getItem(SESSION_KEYS.attorneySecurityDismissed) === "1");
   }, []);
   if (dismissed) return null;
   return (
@@ -446,7 +447,7 @@ function SecurityBannerInner() {
       </span>
       <button
         onClick={() => {
-          sessionStorage.setItem("att-security-dismissed", "1");
+          sessionStorage.setItem(SESSION_KEYS.attorneySecurityDismissed, "1");
           setDismissed(true);
         }}
         className="att-btn-ghost"

@@ -43,15 +43,15 @@ export function RecentActivityFeed({ items }: { items: ActivityItem[] | null }) 
   }
 
   return (
-    <ul className="grid gap-2">
+    <ul className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2">
       {items.map((it) => {
         const m = META[it.kind];
         const Icon = m.icon;
         return (
-          <li key={`${it.kind}-${it.id}`}>
+          <li key={`${it.kind}-${it.id}`} className="min-w-0">
             <Link
               to={m.to}
-              className="flex items-start gap-3 px-4 py-3 transition-shadow"
+              className="flex min-w-0 items-start gap-3 px-4 py-3 transition-shadow"
               style={{
                 background: "var(--pp-card)",
                 borderRadius: "var(--pp-r-lg)",
@@ -61,6 +61,7 @@ export function RecentActivityFeed({ items }: { items: ActivityItem[] | null }) 
               <Icon
                 size={16}
                 strokeWidth={1.75}
+                className="shrink-0"
                 style={{ marginTop: 2, color: "var(--muted-foreground)" }}
               />
               <span className="min-w-0 flex-1">

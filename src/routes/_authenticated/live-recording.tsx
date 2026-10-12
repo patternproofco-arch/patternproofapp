@@ -11,6 +11,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { checkAccidental } from "@/lib/accidental-check.functions";
 import { transcribeRecording } from "@/lib/transcribe-recording.functions";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { LOCAL_KEYS } from "@/lib/app-storage";
 
 export const Route = createFileRoute("/_authenticated/live-recording")({
   component: LiveRecording,
@@ -70,12 +71,12 @@ function LiveRecording() {
 
   // Remember the user accepted the legal warning across sessions.
   useEffect(() => {
-    if (typeof window !== "undefined" && localStorage.getItem("pp_record_warned") === "1") {
+    if (typeof window !== "undefined" && localStorage.getItem(LOCAL_KEYS.recordWarned) === "1") {
       setWarned(true);
     }
   }, []);
   useEffect(() => {
-    if (warned && typeof window !== "undefined") localStorage.setItem("pp_record_warned", "1");
+    if (warned && typeof window !== "undefined") localStorage.setItem(LOCAL_KEYS.recordWarned, "1");
   }, [warned]);
 
   // PWA shortcut: /live-recording?auto=1 → start immediately if already warned.

@@ -6,6 +6,7 @@ import { ensureSurvivorRole } from "@/lib/roles.functions";
 import { getMyRole } from "@/lib/attorney-portal.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { markPasswordRecovery, urlLooksLikeRecovery } from "@/lib/password-recovery";
+import { SESSION_KEYS } from "@/lib/app-storage";
 
 export const Route = createFileRoute("/auth/callback")({
   ssr: false,
@@ -23,7 +24,7 @@ export const Route = createFileRoute("/auth/callback")({
   component: AuthCallback,
 });
 
-const RETURN_KEY = "pp_oauth_return";
+const RETURN_KEY = SESSION_KEYS.oauthReturn;
 
 function readTokens(): {
   access_token?: string;

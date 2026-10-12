@@ -38,6 +38,7 @@ import {
   buildAttorneyWorkQueueCards,
   summarizeSinceLastVisit,
 } from "@/components/attorney/AttorneyWorkQueue";
+import { LOCAL_KEYS } from "@/lib/app-storage";
 
 export const Route = createFileRoute("/_attorney/clients/")({
   component: ClientsIndex,
@@ -124,7 +125,7 @@ function ClientsIndex() {
               })),
               lastOpenedByClient: (() => {
                 try {
-                  return JSON.parse(localStorage.getItem("pp.attorney.lastOpened") || "{}") as Record<
+                  return JSON.parse(localStorage.getItem(LOCAL_KEYS.attorneyLastOpened) || "{}") as Record<
                     string,
                     string
                   >;

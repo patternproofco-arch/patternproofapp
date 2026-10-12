@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
 import { Home, NotebookPen, Scale, BookOpen } from "lucide-react";
 import { DotCirclePatternIcon } from "@/components/icons/PpIcons";
 
@@ -67,9 +68,27 @@ const TABS: Tab[] = [
  */
 export function BottomTabBar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navRef = useRef<HTMLElement | null>(null);
+
+  // Publish the bar's real height (incl. safe-area padding) so sticky actions sit above it.
+  useEffect(() => {
+    const el = navRef.current;
+    if (!el || typeof window === "undefined") return;
+    const root = document.documentElement;
+    const publish = () => root.style.setProperty("--pp-tabbar-h", `${Math.ceil(el.getBoundingClientRect().height)}px`);
+    publish();
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(publish) : null;
+    ro?.observe(el);
+    window.addEventListener("resize", publish);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener("resize", publish);
+      root.style.removeProperty("--pp-tabbar-h");
+    };
+  }, []);
 
   return (
-    <nav className="pp-bottom-tab-bar no-print" aria-label="Main">
+    <nav ref={navRef} className="pp-bottom-tab-bar no-print" aria-label="Main">
       <div className="pp-bottom-tab-inner mx-auto flex w-full max-w-2xl items-stretch">
         {TABS.map((t) => {
           const active = t.match.some((m) => pathname === m || pathname.startsWith(m + "/"));

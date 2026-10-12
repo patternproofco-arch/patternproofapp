@@ -2,7 +2,8 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
 import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import type { Session, User } from "@supabase/supabase-js";
 import { isClientSupabaseConfigured, supabase } from "@/integrations/supabase/client";
-import { finishPendingWipe, wipeLocalEvidence } from "@/lib/local-wipe";
+import { finishPendingWipe, wipeLocalEvidence, wipePending } from "@/lib/local-wipe";
+import { clearAppStorageAsync } from "@/lib/app-storage";
 
 interface AuthCtx {
   user: User | null;
@@ -83,6 +84,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // Finish a device wipe that Quick Exit started but the page change cut short.
+    // Quick Exit's Cache Storage / service-worker removal can be cut short the same way.
+    try {
+      if (wipePending(window.localStorage)) void clearAppStorageAsync().catch(() => undefined);
+    } catch {
+      /* storage unavailable */
+    }
     void finishPendingWipe();
 
     try {

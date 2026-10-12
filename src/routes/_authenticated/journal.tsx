@@ -1141,7 +1141,8 @@ function JournalPage() {
                   {draftStatusText(entryDraft.status)}
                 </p>
 
-                <div className="flex items-center gap-2 pt-1">
+                {/* Sticky: stays above the tab bar and the keyboard while she types (see .pp-sticky-save). */}
+                <div className="pp-sticky-save flex items-center gap-2" data-testid="journal-save-bar">
                   <button type="submit" disabled={busy} className="btn-primary">
                     {busy ? "Saving…" : editingId ? "Save changes" : "Save privately"}
                   </button>
