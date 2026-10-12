@@ -96,7 +96,9 @@ describe("sharing never reaches forward in time", () => {
       scope_incidents: ["inc-1"],
       scope_evidence: ["ev-1"],
     });
-    expect(gap.incidents.sort()).toEqual(["inc-2", "inc-private"].sort());
+    // "Add these too" offers only OK-to-share; the kept-private entry is held back.
+    expect(gap.incidents.sort()).toEqual(["inc-2"]);
+    expect(gap.heldBack.incidents).toEqual(["inc-private"]);
     expect(gap.evidence).toEqual([]);
   });
 

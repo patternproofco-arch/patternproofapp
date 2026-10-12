@@ -12,6 +12,7 @@ import { PublicQuickExit } from "@/components/PublicQuickExit";
 import {
   peekSurvivorInvite,
   acceptSurvivorInvite,
+  previewSurvivorInviteScope,
 } from "@/lib/attorney-survivor-invites.functions";
 
 export const Route = createFileRoute("/survivor-invite/$token")({
@@ -32,6 +33,7 @@ function SurvivorInvitePage() {
   const navigate = useNavigate();
   const peek = useServerFn(peekSurvivorInvite);
   const accept = useServerFn(acceptSurvivorInvite);
+  const previewScope = useServerFn(previewSurvivorInviteScope);
 
   const [peeked, setPeeked] = useState<Peek | null>(null);
   const [mode, setMode] = useState<"signup" | "login">("signup");
@@ -67,6 +69,8 @@ function SurvivorInvitePage() {
   >([]);
   const [selectedIncidents, setSelectedIncidents] = useState<string[]>([]);
   const [selectedEvidence, setSelectedEvidence] = useState<string[]>([]);
+  // What accepting would really share, from the same server function the accept uses.
+  const [preview, setPreview] = useState<{ incidents: number; files: number } | null>(null);
 
   // If the user is already signed in when they land here, skip straight to scope.
   useEffect(() => {
@@ -213,6 +217,36 @@ function SurvivorInvitePage() {
     !(incidentMode === "specific" && selectedIncidents.length > 0) &&
     !(evidenceMode === "specific" && selectedEvidence.length > 0);
 
+  const buildScope = () => ({
+    include_all_incidents: incidentMode === "all",
+    include_all_evidence: evidenceMode === "all",
+    include_patterns: sharePatterns,
+    scope_incidents: incidentMode === "specific" ? selectedIncidents : [],
+    scope_evidence: evidenceMode === "specific" ? selectedEvidence : [],
+  });
+
+  useEffect(() => {
+    if (!user || step !== "scope" || nothingShared) {
+      setPreview(null);
+      return;
+    }
+    let cancelled = false;
+    const t = setTimeout(() => {
+      previewScope({ data: { token, scope: buildScope() } })
+        .then((r) => {
+          if (!cancelled) setPreview(r.shared);
+        })
+        .catch(() => {
+          if (!cancelled) setPreview(null);
+        });
+    }, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, step, token, incidentMode, evidenceMode, sharePatterns, selectedIncidents, selectedEvidence]);
+
   const confirmScope = async () => {
     if (nothingShared) {
       toast("Choose at least one thing to share before accepting.");
@@ -220,19 +254,13 @@ function SurvivorInvitePage() {
     }
     setBusy(true);
     try {
-      const scope = {
-        include_all_incidents: incidentMode === "all",
-        include_all_evidence: evidenceMode === "all",
-        include_patterns: sharePatterns,
-        scope_incidents: incidentMode === "specific" ? selectedIncidents : [],
-        scope_evidence: evidenceMode === "specific" ? selectedEvidence : [],
-      };
+      const scope = buildScope();
       const res = await accept({ data: { token, scope } });
       setDone(true);
       const left = res.excluded.length;
       const keptPrivate = res.excluded.filter((x) => x.reason === "kept_private").length;
       const parts = [
-        `Connected. Your attorney can see ${res.shared.incidents} ${res.shared.incidents === 1 ? "entry" : "entries"} and ${res.shared.files} ${res.shared.files === 1 ? "file" : "files"}.`,
+        `Connected. Your attorney can see ${res.shared.incidents} ${res.shared.incidents === 1 ? "entry" : "entries"} and ${res.shared.files} ${res.shared.files === 1 ? "file" : "files"}.${res.include_patterns ? " Pattern analysis shows for them only when every entry is shared." : ""}`,
       ];
       if (left > 0) {
         parts.push(
@@ -614,6 +642,13 @@ function SurvivorInvitePage() {
             </p>
           </div>
 
+          {preview && (
+            <p data-testid="invite-share-preview" style={{ fontSize: 12.5, margin: 0 }}>
+              Your attorney will see {preview.incidents}{" "}
+              {preview.incidents === 1 ? "entry" : "entries"} and {preview.files}{" "}
+              {preview.files === 1 ? "file" : "files"}.
+            </p>
+          )}
           <button
             type="button"
             onClick={confirmScope}

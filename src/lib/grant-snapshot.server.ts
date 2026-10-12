@@ -214,23 +214,43 @@ export async function snapshotShareScope<T extends ShareScope>(
 
 /**
  * Items the survivor has documented since this grant was made, which the
- * professional therefore cannot see. Counts only — used to offer the survivor
- * an explicit "add these too" choice, never to share anything automatically.
+ * professional therefore cannot see. Used to offer the survivor an explicit
+ * "add these too" choice, never to share anything automatically.
+ *
+ * "Add these too" is a broad action, so it follows the same rule as "Share all":
+ * only items marked OK to share (NULL readiness grandfathered, pre-migration) are
+ * offered in `incidents` / `evidence`. Items she marked Keep private or Still
+ * deciding are reported separately in `heldBack` and are never added in bulk; to
+ * share one she has to pick it herself, for that one person.
  */
 export async function unsharedSinceGrant(
   admin: Admin,
   clientUserId: string,
   link: ShareScope,
-): Promise<{ incidents: string[]; evidence: string[] }> {
+): Promise<{
+  incidents: string[];
+  evidence: string[];
+  heldBack: { incidents: string[]; evidence: string[] };
+}> {
   const shownIncidents = new Set(link.scope_incidents ?? []);
   const shownEvidence = new Set(link.scope_evidence ?? []);
-  const [allIncidents, allEvidence] = await Promise.all([
+  const [allIncidents, allEvidence, okIncidents, okEvidence] = await Promise.all([
     ownedIds(admin, "incidents", clientUserId),
     ownedIds(admin, "evidence", clientUserId),
+    shareableIds(admin, "incidents", clientUserId),
+    shareableIds(admin, "evidence", clientUserId),
   ]);
+  const okInc = new Set(okIncidents);
+  const okEv = new Set(okEvidence);
+  const gapInc = allIncidents.filter((id) => !shownIncidents.has(id));
+  const gapEv = allEvidence.filter((id) => !shownEvidence.has(id));
   return {
-    incidents: allIncidents.filter((id) => !shownIncidents.has(id)),
-    evidence: allEvidence.filter((id) => !shownEvidence.has(id)),
+    incidents: gapInc.filter((id) => okInc.has(id)),
+    evidence: gapEv.filter((id) => okEv.has(id)),
+    heldBack: {
+      incidents: gapInc.filter((id) => !okInc.has(id)),
+      evidence: gapEv.filter((id) => !okEv.has(id)),
+    },
   };
 }
 
