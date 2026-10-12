@@ -14,12 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      incident_revisions: {
-        Row: { id: string; incident_id: string; user_id: string; changed_at: string; changed_by: string | null; prior_record: Json }
-        Insert: { id?: string; incident_id: string; user_id: string; changed_at?: string; changed_by?: string | null; prior_record: Json }
-        Update: { prior_record?: Json }
-        Relationships: []
-      }
       _reconcile_secdef_acl_snapshot: {
         Row: {
           captured_at: string
@@ -709,7 +703,6 @@ export type Database = {
           kind: string
           link_id: string
           response_evidence_ids: string[]
-          response_outcome: string | null
           response_note: string | null
           status: string
           submitted_at: string | null
@@ -728,7 +721,6 @@ export type Database = {
           kind?: string
           link_id: string
           response_evidence_ids?: string[]
-          response_outcome?: string | null
           response_note?: string | null
           status?: string
           submitted_at?: string | null
@@ -747,7 +739,6 @@ export type Database = {
           kind?: string
           link_id?: string
           response_evidence_ids?: string[]
-          response_outcome?: string | null
           response_note?: string | null
           status?: string
           submitted_at?: string | null
@@ -4652,10 +4643,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      respond_to_evidence_request: {
-        Args: { p_request_id: string; p_action: string; p_note?: string; p_evidence_ids?: string[] }
-        Returns: Json
-      }
       accept_attorney_share: {
         Args: {
           _actor_id: string
