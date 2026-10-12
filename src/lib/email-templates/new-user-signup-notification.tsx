@@ -12,13 +12,14 @@ import {
 import type { TemplateEntry } from "./registry";
 
 interface Props {
-  email?: string;
   role?: string;
   signedUpAt?: string;
 }
 
-// Operational metadata only — never incident, evidence, journal or case content.
-const Email = ({ email, role, signedUpAt }: Props) => (
+// Guardian rule: ops alerts carry ONLY the account's role and a timestamp.
+// Never a name, email, user id, or any incident, evidence, journal or case content —
+// for survivors and professionals alike. Look accounts up in /admin/operations.
+const Email = ({ role, signedUpAt }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
     <Preview>{`New ${role ?? "account"} signup`}</Preview>
@@ -27,11 +28,6 @@ const Email = ({ email, role, signedUpAt }: Props) => (
         <Text style={eyebrow}>PATTERNPROOF · NEW ACCOUNT</Text>
         <Heading style={h1}>Someone just joined</Heading>
         <Section style={meta}>
-          {email && (
-            <Text style={row}>
-              <strong>Account email:</strong> {email}
-            </Text>
-          )}
           <Text style={row}>
             <strong>Role:</strong> {role ?? "Unknown"}
           </Text>
@@ -40,7 +36,8 @@ const Email = ({ email, role, signedUpAt }: Props) => (
           </Text>
         </Section>
         <Text style={body}>
-          This alert never includes anything the person has written or uploaded.
+          This alert carries only the role and time. It never includes who the person is or anything
+          they have written or uploaded.
         </Text>
       </Container>
     </Body>
@@ -53,7 +50,6 @@ export const template = {
   displayName: "New user signup notification",
   to: "patternproofco@gmail.com",
   previewData: {
-    email: "jordan@example.com",
     role: "survivor",
     signedUpAt: new Date().toISOString(),
   },

@@ -31,8 +31,9 @@ export async function notifyNewSignup(input: {
     const { data, error } = await supabaseAdmin.auth.admin.getUserById(input.userId);
     if (error || !data?.user?.email || !data.user.email_confirmed_at)
       throw new Error("Account lookup failed");
+    // Role and timestamp only. The account lookup gates on a confirmed email but the
+    // address itself never enters the alert, whatever the role.
     const props = {
-      email: input.role === "survivor" ? undefined : data.user.email,
       role: input.role,
       signedUpAt: data?.user?.created_at ?? new Date().toISOString(),
     };
