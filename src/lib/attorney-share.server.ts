@@ -8,7 +8,14 @@ type Scope = {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Admin = any;
 
-type LiveLink = { id: string; scope_incidents: string[] | null; scope_evidence: string[] | null };
+type LiveLink = {
+  id: string;
+  status?: string | null;
+  revoked_at?: string | null;
+  expires_at?: string | null;
+  scope_incidents: string[] | null;
+  scope_evidence: string[] | null;
+};
 
 /** The pair's current (not revoked) grant, if any, before acceptance changes it. */
 async function currentLink(
@@ -18,7 +25,7 @@ async function currentLink(
 ): Promise<LiveLink | null> {
   const { data, error } = await admin
     .from("attorney_client_links")
-    .select("id,status,revoked_at,scope_incidents,scope_evidence")
+    .select("id,status,revoked_at,expires_at,scope_incidents,scope_evidence")
     .eq("attorney_user_id", attorneyUserId)
     .eq("client_user_id", survivorUserId)
     .is("revoked_at", null)
@@ -67,6 +74,9 @@ export async function acceptAttorneyShare(
   // Copy the previous counts now: the row object may be the one that gets updated.
   const previousCounts = before
     ? {
+        status: before.status ?? null,
+        revoked_at: before.revoked_at ?? null,
+        expires_at: before.expires_at ?? null,
         incidents: (before.scope_incidents ?? []).length,
         files: (before.scope_evidence ?? []).length,
       }
@@ -89,44 +99,25 @@ export async function acceptAttorneyShare(
   const result = data[0] as { id: string; client_user_id: string };
   const replaced = before && before.id === result.id ? before : null;
 
-  const audit = (event: string, meta: Record<string, unknown>) =>
-    admin.rpc("record_audit_event", {
-      p_user_id: result.client_user_id,
-      p_event_type: event,
-      p_subject_kind: "attorney_client_links",
-      p_subject_id: result.id,
-      p_actor_kind: input.direction,
-      p_actor_id: input.actorId,
-      p_meta: meta,
-    });
-
-  let receiptRecorded = true;
-  const receipt = await audit("share_consent_receipt", {
-    invitation_id: input.invitationId,
+  // The SQL sets the expiry from the invitation; read it back for the receipt.
+  const { data: written } = await admin
+    .from("attorney_client_links")
+    .select("expires_at")
+    .eq("id", result.id)
+    .maybeSingle();
+  const { recordShareConsent } = await import("@/lib/sharing/consent-receipt.server");
+  const receiptRecorded = await recordShareConsent(admin, {
+    table: "attorney_client_links",
+    linkId: result.id,
+    survivorUserId: result.client_user_id,
+    actorKind: input.direction,
+    actorId: input.actorId,
+    invitationId: input.invitationId,
     direction: input.direction,
-    accepted_at: new Date().toISOString(),
-    scope_incidents: nextScope.scope_incidents,
-    scope_evidence: nextScope.scope_evidence,
-    include_patterns: nextScope.include_patterns,
-    counts: { incidents: nextScope.scope_incidents.length, files: nextScope.scope_evidence.length },
-    replaced_previous_scope: Boolean(replaced),
-    previous_link_id: before?.id ?? null,
+    scope: nextScope,
+    expiresAt: (written?.expires_at as string | null | undefined) ?? null,
+    replaced: replaced && previousCounts ? { id: replaced.id, ...previousCounts } : null,
   });
-  if (receipt?.error) {
-    receiptRecorded = false;
-    console.error("[consent] receipt write failed", receipt.error);
-  }
-  if (replaced) {
-    const r = await audit("share_grant_scope_replaced", {
-      invitation_id: input.invitationId,
-      previous: previousCounts,
-      next: { incidents: nextScope.scope_incidents.length, files: nextScope.scope_evidence.length },
-    });
-    if (r?.error) {
-      receiptRecorded = false;
-      console.error("[consent] replace audit write failed", r.error);
-    }
-  }
 
   return { ...result, replaced_link_id: replaced?.id ?? null, receipt_recorded: receiptRecorded };
 }

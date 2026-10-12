@@ -614,3 +614,111 @@ describe("re-accept replaces scope; revoked grants are never re-armed; receipt +
     });
   });
 });
+
+describe("consent receipt + audit on FIRST accept and RE-accept (attorney and advocate)", () => {
+  const events = (name: string) =>
+    state.admin.rpcCalls.filter(
+      (c: any) => c.name === "record_audit_event" && c.args.p_event_type === name,
+    );
+
+  it("attorney first accept (no prior grant): receipt + share_grant_created, no replace event", async () => {
+    await acceptSurvivorInvite({
+      data: { token: TOKEN, scope: { ...none, scope_incidents: [incId(6)] } },
+    });
+    const link = tables.attorney_client_links![0]!;
+    const receipts = events("share_consent_receipt");
+    expect(receipts).toHaveLength(1);
+    expect(receipts[0].args).toMatchObject({
+      p_user_id: SURV,
+      p_subject_kind: "attorney_client_links",
+      p_subject_id: link.id,
+      p_actor_kind: "survivor",
+      p_actor_id: SURV,
+    });
+    expect(receipts[0].args.p_meta).toMatchObject({
+      scope_incidents: [incId(6)],
+      replaced_previous_scope: false,
+      expires_at: tables.attorney_survivor_invites![0]!.expires_at,
+    });
+    expect(events("share_grant_created")).toHaveLength(1);
+    expect(events("share_grant_scope_replaced")).toHaveLength(0);
+  });
+
+  it("advocate first accept: receipt written, no replace event", async () => {
+    await acceptAdvocateSurvivorInvite({
+      data: {
+        token: TOKEN,
+        acknowledgements: { who: true, scope: true, revoke: true },
+        scope: { ...none, include_all_incidents: true },
+      },
+    });
+    const link = tables.advocate_client_links![0]!;
+    const receipts = events("share_consent_receipt");
+    expect(receipts).toHaveLength(1);
+    expect(receipts[0].args).toMatchObject({
+      p_subject_kind: "advocate_client_links",
+      p_subject_id: link.id,
+      p_user_id: SURV,
+    });
+    expect([...receipts[0].args.p_meta.scope_incidents].sort()).toEqual(
+      [incId(6), incId(7)].sort(),
+    );
+    expect(events("share_grant_scope_replaced")).toHaveLength(0);
+  });
+
+  it("advocate re-accept of a REVOKED 10-id row: replaced entirely, re-armed deliberately, receipt + replace audit", async () => {
+    const OLD_IDS = Array.from({ length: 10 }, (_, i) => incId(200 + i));
+    for (const i of OLD_IDS) tables.incidents!.push(row(i, "ok_to_share"));
+    const ROW = "99999999-9999-4999-8999-999999999999";
+    tables.advocate_client_links!.push({
+      id: ROW,
+      advocate_user_id: ADV,
+      client_user_id: SURV,
+      status: "revoked",
+      revoked_at: "2026-10-01T00:00:00Z",
+      expires_at: "2026-10-02T00:00:00Z",
+      include_all_incidents: false,
+      include_all_evidence: false,
+      include_patterns: true,
+      case_id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      invitation_id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+      org_admin_visibility: true,
+      org_visibility_updated_at: "2026-09-01T00:00:00Z",
+      scope_incidents: [...OLD_IDS],
+      scope_evidence: [evId(3)],
+    });
+    await acceptAdvocateSurvivorInvite({
+      data: {
+        token: TOKEN,
+        acknowledgements: { who: true, scope: true, revoke: true },
+        scope: { ...none, scope_incidents: [incId(6), incId(7)] },
+      },
+    });
+    expect(tables.advocate_client_links).toHaveLength(1);
+    const link = tables.advocate_client_links![0]!;
+    expect(link.id).toBe(ROW);
+    expect([...(link.scope_incidents as string[])].sort()).toEqual([incId(6), incId(7)].sort());
+    expect(link.scope_evidence).toEqual([]);
+    expect(link.include_patterns).toBe(false);
+    expect(link.include_all_incidents).toBe(false);
+    expect(link.status).toBe("active");
+    expect(link.revoked_at).toBeNull();
+    expect(link.expires_at).toBe(tables.advocate_survivor_invites![0]!.expires_at);
+    expect(link.case_id).toBeNull();
+    expect(link.invitation_id).toBeNull();
+    expect(link.org_admin_visibility).toBe(false);
+
+    const replaced = events("share_grant_scope_replaced");
+    expect(replaced).toHaveLength(1);
+    expect(replaced[0].args.p_meta).toMatchObject({
+      previous: { incidents: 10, files: 1, status: "revoked", revoked_at: "2026-10-01T00:00:00Z" },
+      next: { incidents: 2, files: 0 },
+    });
+    const receipts = events("share_consent_receipt");
+    expect(receipts).toHaveLength(1);
+    expect(receipts[0].args.p_meta).toMatchObject({
+      replaced_previous_scope: true,
+      previous_link_id: ROW,
+    });
+  });
+});
