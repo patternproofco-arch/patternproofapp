@@ -8,6 +8,19 @@ import * as access from "@/lib/attorney-access.server";
 /* ------------------------- shared helpers ------------------------- */
 
 /**
+ * True only when the account's auth email is CONFIRMED and on the internal
+ * fictional test domain. Reads auth.users through the admin client; a value
+ * typed into any form is never consulted.
+ */
+async function hasVerifiedTestDomainEmail(userId: string): Promise<boolean> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
+  const email = data?.user?.email?.trim().toLowerCase();
+  if (error || !email || !data?.user?.email_confirmed_at) return false;
+  return email.endsWith("@patternproof.test");
+}
+
+/**
  * Entitlement was previously enforced only in the UI (getAttorneyEntitlement
  * driving a paywall screen) and on the two ZIP-export endpoints. Every other
  * case-data server function trusted the client to have already checked —
@@ -181,7 +194,10 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
 
     // Founding-nine trial: the first nine attorneys who finish setup get 90
     // days of full portal access. Internal test accounts are comped and don't
-    // take one of the nine spots.
+    // take one of the nine spots. The comp decision uses the VERIFIED account
+    // email from auth (confirmed address only), never the email typed into the
+    // form. Trial fields are written only here, with the server role; the
+    // database refuses them from a user session (20261011210000).
     const { data: profile } = await supabaseAdmin
       .from("attorney_profiles")
       .select("trial_ends_at")
@@ -189,7 +205,7 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (!profile?.trial_ends_at) {
-      const comped = data.email.trim().toLowerCase().endsWith("@patternproof.test");
+      const comped = await hasVerifiedTestDomainEmail(context.userId);
       let eligible = comped;
       if (!comped) {
         const { count } = await supabaseAdmin
@@ -202,15 +218,29 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
       if (eligible) {
         const now = new Date();
         const ends = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
-        await supabaseAdmin
+        const { data: started, error: trialError } = await supabaseAdmin
           .from("attorney_profiles")
           .update({
             trial_started_at: now.toISOString(),
             trial_ends_at: ends.toISOString(),
             trial_comped: comped,
           })
-          .eq("user_id", context.userId);
-        return { ok: true, trial_ends_at: ends.toISOString() };
+          .eq("user_id", context.userId)
+          .is("trial_ends_at", null)
+          .select("user_id");
+        if (trialError) throw new Error("Could not start your trial. Try again in a moment.");
+        if (started && started.length > 0) {
+          await (supabaseAdmin as any).rpc("record_audit_event", {
+            p_user_id: context.userId,
+            p_event_type: "attorney_trial_started",
+            p_subject_kind: "attorney_profiles",
+            p_subject_id: context.userId,
+            p_actor_kind: "system",
+            p_actor_id: null,
+            p_meta: { source: "onboarding", comped, trial_ends_at: ends.toISOString() },
+          });
+          return { ok: true, trial_ends_at: ends.toISOString() };
+        }
       }
     }
 
