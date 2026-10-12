@@ -34,6 +34,7 @@ import {
 } from "@/lib/survivor-attorney-notes.functions";
 import { Download } from "lucide-react";
 import { ChangePasswordCard } from "@/components/ChangePasswordCard";
+import { TwoFactorCard } from "@/components/TwoFactorCard";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
@@ -496,6 +497,10 @@ function SettingsPage() {
             </button>
           ) : null}
         </div>
+      </div>
+
+      <div id="two-step" className="scroll-mt-24">
+        <TwoFactorCard variant="survivor" />
       </div>
 
       <div className="card-pp mt-6">

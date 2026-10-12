@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Shield, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Link } from "@tanstack/react-router";
 import { dropUnverifiedTotpFactors } from "@/lib/mfa";
 
 type Factor = { id: string; status: string; friendly_name?: string };
@@ -10,11 +11,15 @@ export function TwoFactorCard({
   className = "card-pp mt-6",
   headingClassName = "font-serif text-[19px]",
   required = false,
+  variant = "default",
 }: {
   className?: string;
   headingClassName?: string;
   required?: boolean;
+  /** "survivor": optional, plain-language safety and recovery notes. Copy pending Experience review. */
+  variant?: "default" | "survivor";
 }) {
+  const survivor = variant === "survivor" && !required;
   const [loading, setLoading] = useState(true);
   const [factors, setFactors] = useState<Factor[]>([]);
   const [enrolling, setEnrolling] = useState(false);
@@ -84,7 +89,7 @@ export function TwoFactorCard({
       setSecret(null);
       setFactorId(null);
       setCode("");
-      toast("Two-factor authentication is on.");
+      toast(survivor ? "Two-step sign-in is on." : "Two-factor authentication is on.");
       await refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "That code didn't match. Try the next one.");
@@ -124,7 +129,7 @@ export function TwoFactorCard({
       const { error: unenrollError } = await supabase.auth.mfa.unenroll({ factorId: factor.id });
       if (unenrollError) throw unenrollError;
       setDisableCode("");
-      toast("Two-factor authentication is off.");
+      toast(survivor ? "Two-step sign-in is off." : "Two-factor authentication is off.");
       await refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "We couldn't turn that off. Check the code.");
@@ -137,13 +142,37 @@ export function TwoFactorCard({
     <div className={className}>
       <div className="flex items-center gap-2">
         <Smartphone size={18} style={{ color: "var(--primary)" }} />
-        <h2 className={headingClassName}>Two-factor authentication</h2>
+        <h2 className={headingClassName}>
+          {survivor ? "Two-step sign-in (optional)" : "Two-factor authentication"}
+        </h2>
       </div>
+      {survivor ? (
+        <div className="mt-2 space-y-2 text-[13px]" style={{ color: "var(--muted-foreground)" }} data-testid="survivor-2fa-notes">
+          <p>
+            This is off unless you turn it on. When it's on, signing in needs your password and a
+            6-digit code from an authenticator app. It helps if someone else knows or guesses your
+            password.
+          </p>
+          <p>
+            Think about who can see your phone. If someone can open it, they may see the
+            authenticator app. PatternProof never sends codes by text or email.
+          </p>
+          <p>
+            If you lose the phone with the app, you won't be able to sign in on your own. You can{" "}
+            <Link to="/support" style={{ color: "var(--accent)", textDecoration: "underline" }}>
+              contact support
+            </Link>{" "}
+            and we'll confirm it's you before turning it off.
+          </p>
+          <p>Quick Exit still works on every screen, including the code screen.</p>
+        </div>
+      ) : (
       <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
         {required
           ? "An authenticator app is required before this account can open shared case files, downloads, or exports. PatternProof does not send codes by text."
           : "After your password, PatternProof asks for a 6-digit code from an authenticator app (Authy, Google Authenticator, 1Password, iCloud Keychain). We don't use text messages — a shared or stolen phone number shouldn't be able to open this account."}
       </p>
+      )}
 
       {loading ? (
         <p className="mt-4 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
@@ -217,7 +246,7 @@ export function TwoFactorCard({
                 </p>
               ) : null}
               <button type="submit" disabled={busy} className="btn-ghost">
-                {busy ? "One moment…" : "Turn off two-factor"}
+                {busy ? "One moment…" : survivor ? "Turn off two-step sign-in" : "Turn off two-factor"}
               </button>
             </form>
           ) : (
@@ -235,8 +264,13 @@ export function TwoFactorCard({
             </p>
           ) : null}
           <button type="button" disabled={busy} onClick={() => void startEnroll()} className="btn-primary">
-            {busy ? "One moment…" : "Set up authenticator"}
+            {busy ? "One moment…" : survivor ? "Turn on two-step sign-in" : "Set up authenticator"}
           </button>
+          {survivor ? (
+            <p className="mt-2 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
+              Status: off.
+            </p>
+          ) : null}
         </div>
       )}
     </div>

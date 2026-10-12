@@ -19,7 +19,7 @@ function SecurityPage() {
           Back to settings
         </Link>
       </p>
-      <TwoFactorCard />
+      <TwoFactorCard variant="survivor" />
     </div>
   );
 }

@@ -95,6 +95,7 @@ function MfaChallengePage() {
   if (!ready) {
     return (
       <div className="flex min-h-screen items-center justify-center" data-pp-paper="">
+        <PublicQuickExit />
         <p className="text-[13px]" style={{ color: "var(--muted-foreground)" }}>
           One moment…
         </p>
