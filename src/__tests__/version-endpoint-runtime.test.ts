@@ -22,11 +22,13 @@ describe("/version.json runtime contract", () => {
 
     expect(body.commit).toBeTruthy();
     expect(typeof body.commit).toBe("string");
-    // Fail-closed builds always embed a full 40-char SHA — never "unknown" or a stamp lag.
+    // This test runs in a git checkout; hosted copies can verify the source digest.
     expect(/^[0-9a-f]{40}$/.test(body.commit)).toBe(true);
     expect(body.commit).not.toBe("unknown");
     expect(body.commit_short).toBe(body.commit.slice(0, 12));
     expect(body.commit_source).toBeTruthy();
+    expect(body.source_digest).toMatch(/^[a-f0-9]{64}$/);
+    expect(body.source_digest_algorithm).toBe("patternproof-source-v1-sha256");
     expect(body.build_id).toBeTruthy();
     expect(Number.isNaN(Date.parse(body.built_at))).toBe(false);
   });

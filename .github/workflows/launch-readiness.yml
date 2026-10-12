@@ -42,6 +42,9 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-not-a-secret
         run: NODE_OPTIONS=--max-old-space-size=4096 npm run build
 
+      - name: Record source provenance
+        run: node scripts/source-digest.mjs
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium webkit
 

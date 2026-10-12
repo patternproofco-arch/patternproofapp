@@ -1,5 +1,6 @@
 import { defineConfig } from "vitest/config";
 import { execFileSync } from "node:child_process";
+import { sourceDigest } from "./scripts/source-digest.mjs";
 import { fileURLToPath } from "node:url";
 
 // Unit/DOM tests execute real handler bodies with mocked I/O; the application's
@@ -10,6 +11,7 @@ export default defineConfig({
       execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
     ),
     __COMMIT_SOURCE__: JSON.stringify("git"),
+    __SOURCE_DIGEST__: JSON.stringify(sourceDigest()),
     __BUILD_ID__: JSON.stringify("unit-test"),
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
   },
