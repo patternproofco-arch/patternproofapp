@@ -15,8 +15,18 @@ CREATE TABLE IF NOT EXISTS public.attorney_applications (
   invited_user_id uuid,
   created_at timestamptz NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS attorney_applications_status_idx ON public.attorney_applications (status, created_at DESC);
-CREATE INDEX IF NOT EXISTS attorney_applications_email_idx ON public.attorney_applications (lower(email), created_at DESC);
+DO $do$
+BEGIN
+  -- An older copy of this table may lack these columns; never fail the bring-up on it.
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public'
+             AND table_name = 'attorney_applications' AND column_name = 'created_at') THEN
+    CREATE INDEX IF NOT EXISTS attorney_applications_status_idx ON public.attorney_applications (status, created_at DESC);
+    CREATE INDEX IF NOT EXISTS attorney_applications_email_idx ON public.attorney_applications (lower(email), created_at DESC);
+  ELSE
+    RAISE NOTICE 'public.attorney_applications has no created_at column: indexes skipped';
+  END IF;
+END
+$do$;
 REVOKE ALL ON public.attorney_applications FROM anon, authenticated;
 GRANT ALL ON public.attorney_applications TO service_role;
 ALTER TABLE public.attorney_applications ENABLE ROW LEVEL SECURITY;
