@@ -237,10 +237,31 @@ export async function unsharedSinceGrant(
 /**
  * Legacy grants created before scope freezing still carry blanket
  * include_all_* flags. The first time one is resolved we freeze it in place:
- * it keeps exactly the items that existed when the survivor granted access,
- * and stops absorbing anything documented since. Narrowing only — it can
- * never widen what a professional can see.
+ * it keeps the items that existed when the survivor granted access, and stops
+ * absorbing anything documented since. Narrowing only — it can never widen what
+ * a professional can see.
+ *
+ * Her latest decision wins: an item she has since marked Keep private is LEFT
+ * OUT of the frozen scope, even though the old blanket grant showed it. Items
+ * marked Still deciding that were already visible stay (they were shared and she
+ * has not withdrawn them). A NULL / unknown readiness is not OK to share, so it is
+ * left out too (fail closed). Ids the grant already listed explicitly are kept:
+ * they were her own per-item choice, not swept in by "share all".
+ * If the readiness column does not exist yet (migration not applied), nobody can
+ * have marked anything Keep private, so nothing is filtered.
+ *
+ * Returns what was left out so the survivor can be shown it ("Not in this share").
  */
+export type LegacyFreezeResult = {
+  frozen: boolean;
+  leftOut: { incidents: string[]; evidence: string[] };
+};
+
+/** Readiness values a legacy blanket freeze may keep. */
+function keptByLegacyFreeze(value: unknown): boolean {
+  return value === "ok_to_share" || value === "undecided";
+}
+
 export async function freezeLegacyBlanketScope(
   admin: Admin,
   table: "attorney_client_links" | "advocate_client_links",
@@ -253,34 +274,69 @@ export async function freezeLegacyBlanketScope(
     scope_evidence?: string[] | null;
   },
   clientUserId: string,
-): Promise<void> {
-  if (!link.include_all_incidents && !link.include_all_evidence) return;
+): Promise<LegacyFreezeResult> {
+  const none: LegacyFreezeResult = { frozen: false, leftOut: { incidents: [], evidence: [] } };
+  if (!link.include_all_incidents && !link.include_all_evidence) return none;
   const cutoff = link.created_at ?? new Date().toISOString();
 
   const asOf = async (t: "incidents" | "evidence") => {
-    const rows = await selectAllPages<{ id: string }>(
-      (from, to) =>
-        admin
-          .from(t)
-          .select("id")
-          .eq("user_id", clientUserId)
-          .is("deleted_at", null)
-          .lte("created_at", cutoff)
-          .order("id", { ascending: true })
-          .range(from, to),
-      { what: t === "incidents" ? "incident" : "file" },
-    );
-    return rows.map((r) => r.id);
+    let columnMissing = false;
+    let rows: Array<{ id: string; share_readiness?: string | null }>;
+    try {
+      rows = await selectAllPages<{ id: string; share_readiness?: string | null }>(
+        (from, to) =>
+          admin
+            .from(t)
+            .select("id, share_readiness")
+            .eq("user_id", clientUserId)
+            .is("deleted_at", null)
+            .lte("created_at", cutoff)
+            .order("id", { ascending: true })
+            .range(from, to)
+            .then((r: { data: unknown; error: { message: string } | null }) => {
+              if (isMissingReadinessColumn(r.error)) columnMissing = true;
+              return r;
+            }),
+        { what: t === "incidents" ? "incident" : "file" },
+      );
+    } catch (e) {
+      if (!columnMissing) throw e;
+      // No readiness column yet: nothing can be Keep private. Old behaviour.
+      const plain = await selectAllPages<{ id: string }>(
+        (from, to) =>
+          admin
+            .from(t)
+            .select("id")
+            .eq("user_id", clientUserId)
+            .is("deleted_at", null)
+            .lte("created_at", cutoff)
+            .order("id", { ascending: true })
+            .range(from, to),
+        { what: t === "incidents" ? "incident" : "file" },
+      );
+      return { keep: plain.map((r) => r.id), leftOut: [] as string[] };
+    }
+    return {
+      keep: rows.filter((r) => keptByLegacyFreeze(r.share_readiness)).map((r) => r.id),
+      leftOut: rows.filter((r) => !keptByLegacyFreeze(r.share_readiness)).map((r) => r.id),
+    };
   };
 
-  const incidents = link.include_all_incidents
-    ? uniq([...(link.scope_incidents ?? []), ...(await asOf("incidents"))])
-    : uniq(link.scope_incidents ?? []);
-  const evidence = link.include_all_evidence
-    ? uniq([...(link.scope_evidence ?? []), ...(await asOf("evidence"))])
-    : uniq(link.scope_evidence ?? []);
+  const explicitInc = uniq(link.scope_incidents ?? []);
+  const explicitEv = uniq(link.scope_evidence ?? []);
+  const inc = link.include_all_incidents ? await asOf("incidents") : null;
+  const ev = link.include_all_evidence ? await asOf("evidence") : null;
 
-  await admin
+  const incidents = inc ? uniq([...explicitInc, ...inc.keep]) : explicitInc;
+  const evidence = ev ? uniq([...explicitEv, ...ev.keep]) : explicitEv;
+  const keptInc = new Set(incidents);
+  const keptEv = new Set(evidence);
+  const leftOut = {
+    incidents: (inc?.leftOut ?? []).filter((id) => !keptInc.has(id)),
+    evidence: (ev?.leftOut ?? []).filter((id) => !keptEv.has(id)),
+  };
+
+  const { error } = await admin
     .from(table)
     .update({
       include_all_incidents: false,
@@ -290,9 +346,66 @@ export async function freezeLegacyBlanketScope(
     })
     .eq("id", link.id)
     .eq("client_user_id", clientUserId);
+  // The in-memory link below is narrowed either way, so this read never sees more
+  // than the frozen scope; a failed write is retried on the next read.
+  if (error) console.error("[grant-snapshot] legacy freeze write failed", error.message);
+
+  if (leftOut.incidents.length || leftOut.evidence.length) {
+    await admin.rpc("record_audit_event", {
+      p_user_id: clientUserId,
+      p_event_type: "legacy_scope_frozen_left_out_private",
+      p_subject_kind: table,
+      p_subject_id: link.id,
+      p_actor_kind: "system",
+      p_actor_id: null,
+      p_meta: { left_out_incidents: leftOut.incidents, left_out_evidence: leftOut.evidence },
+    });
+  }
 
   link.include_all_incidents = false;
   link.include_all_evidence = false;
   link.scope_incidents = incidents;
   link.scope_evidence = evidence;
+  return { frozen: true, leftOut };
+}
+
+/**
+ * Items she marked Keep private that this grant does not include. Shown under
+ * "Not in this share" so she can see what a professional cannot, including anything a
+ * legacy share-all freeze left out because she had since marked it Keep private.
+ */
+export async function keptPrivateNotInGrant(
+  admin: Admin,
+  clientUserId: string,
+  link: ShareScope,
+): Promise<{ incidents: string[]; evidence: string[] }> {
+  const shownInc = new Set(link.scope_incidents ?? []);
+  const shownEv = new Set(link.scope_evidence ?? []);
+  const privateOf = async (t: "incidents" | "evidence") => {
+    try {
+      const rows = await selectAllPages<{ id: string; share_readiness?: string | null }>(
+        (from, to) =>
+          admin
+            .from(t)
+            .select("id, share_readiness")
+            .eq("user_id", clientUserId)
+            .is("deleted_at", null)
+            .order("id", { ascending: true })
+            .range(from, to),
+        { what: t === "incidents" ? "incident" : "file" },
+      );
+      // NULL reads as Keep private everywhere (normalizeShareReadiness), so it counts here.
+      return rows
+        .filter((r) => r.share_readiness === "private" || r.share_readiness == null)
+        .map((r) => r.id);
+    } catch {
+      // Informational only (never used to share anything): show nothing rather than fail.
+      return [] as string[];
+    }
+  };
+  const [inc, ev] = await Promise.all([privateOf("incidents"), privateOf("evidence")]);
+  return {
+    incidents: inc.filter((id) => !shownInc.has(id)),
+    evidence: ev.filter((id) => !shownEv.has(id)),
+  };
 }
