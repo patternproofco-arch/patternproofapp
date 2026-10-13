@@ -1,18 +1,4 @@
 import { test, expect } from "@playwright/test";
-import { readFileSync } from "node:fs";
-
-// The existing fixture harness uses the project's public ref for its local
-// session storage key. No real login or survivor record is used.
-const projectLine = readFileSync(new URL("../.env", import.meta.url), "utf8")
-  .split("\n")
-  .find((line) => line.startsWith("VITE_SUPABASE_PROJECT_ID="));
-if (projectLine)
-  process.env.VITE_SUPABASE_PROJECT_ID = projectLine
-    .split("=")
-    .slice(1)
-    .join("=")
-    .trim()
-    .replace(/^['"]|['"]$/g, "");
 
 for (const [label, path] of [
   ["Save something", "/journal"],

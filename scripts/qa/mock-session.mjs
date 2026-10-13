@@ -41,10 +41,13 @@ try {
 }
 
 // Prefer deployment env. Never fall back to a real production project ref (#59).
-const PROJECT_REF = (
+const PROJECT_REF = // The storage key must match the bundle under test: the URL it was built with
+// wins over a bare project id (a test file setting VITE_SUPABASE_PROJECT_ID from
+// .env must not move the key away from a CI build made for example.invalid).
+(
   process.env.VITE_SUPABASE_URL ||
-  process.env.VITE_SUPABASE_PROJECT_ID ||
   localBuildEnv.VITE_SUPABASE_URL ||
+  process.env.VITE_SUPABASE_PROJECT_ID ||
   "https://example.invalid"
 )
   .replace(/^https?:\/\//, "")
