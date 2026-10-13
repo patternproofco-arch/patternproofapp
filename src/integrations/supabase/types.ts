@@ -704,6 +704,7 @@ export type Database = {
           link_id: string
           response_evidence_ids: string[]
           response_note: string | null
+          response_outcome: string | null
           status: string
           submitted_at: string | null
           title: string
@@ -722,6 +723,7 @@ export type Database = {
           link_id: string
           response_evidence_ids?: string[]
           response_note?: string | null
+          response_outcome?: string | null
           status?: string
           submitted_at?: string | null
           title: string
@@ -740,6 +742,7 @@ export type Database = {
           link_id?: string
           response_evidence_ids?: string[]
           response_note?: string | null
+          response_outcome?: string | null
           status?: string
           submitted_at?: string | null
           title?: string
@@ -2524,6 +2527,41 @@ export type Database = {
           },
         ]
       }
+      evidence_revisions: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          evidence_id: string
+          id: string
+          prior_record: Json
+          user_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          evidence_id: string
+          id?: string
+          prior_record: Json
+          user_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          evidence_id?: string
+          id?: string
+          prior_record?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evidence_revisions_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "evidence"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feedback_submissions: {
         Row: {
           audience: string
@@ -2761,6 +2799,41 @@ export type Database = {
           },
           {
             foreignKeyName: "incident_evidence_links_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incident_revisions: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          id: string
+          incident_id: string
+          prior_record: Json
+          user_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          incident_id: string
+          prior_record: Json
+          user_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          incident_id?: string
+          prior_record?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_revisions_incident_id_fkey"
             columns: ["incident_id"]
             isOneToOne: false
             referencedRelation: "incidents"
@@ -4715,6 +4788,19 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      record_has_live_disclosure: {
+        Args: { owner_id: string; record_id: string; record_kind: string }
+        Returns: boolean
+      }
+      respond_to_evidence_request: {
+        Args: {
+          p_action: string
+          p_evidence_ids?: string[]
+          p_note?: string
+          p_request_id: string
+        }
+        Returns: Json
       }
       review_attorney_application: {
         Args: { _id: string; _reviewer: string; _status: string }
