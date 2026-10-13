@@ -4,6 +4,10 @@ on:
   pull_request:
     branches:
       - main
+  # Lovable commits straight to main, so PR-only CI never saw those changes.
+  push:
+    branches:
+      - main
 
 jobs:
   verify:
