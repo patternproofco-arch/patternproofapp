@@ -3,7 +3,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 /*
- * End state of 0035_lovable_sync_reconcile on a synthetic database that starts
+ * End state of 0040_lovable_sync_reconcile on a synthetic database that starts
  * in the worst state the merged history can leave behind (Lovable's looser
  * guard live, anon INSERTs and sequence rights, anon default ACLs, a scheduled
  * purge job, SECURITY DEFINER helpers callable by PUBLIC). Local PGlite only;
@@ -34,7 +34,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT EXECUTE ON FUN
 CREATE TABLE public.attorney_client_links (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), attorney_user_id uuid NOT NULL, client_user_id uuid NOT NULL,
   status text NOT NULL DEFAULT 'active', revoked_at timestamptz, expires_at timestamptz,
-  scope_incidents uuid[] NOT NULL DEFAULT '{}', clio_share_consent boolean NOT NULL DEFAULT false,
+  scope_incidents uuid[] NOT NULL DEFAULT '{}', scope_evidence uuid[] NOT NULL DEFAULT '{}', clio_share_consent boolean NOT NULL DEFAULT false,
   clio_share_consent_at timestamptz);
 ALTER TABLE public.attorney_client_links ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Participants read links" ON public.attorney_client_links FOR SELECT TO authenticated
@@ -60,6 +60,9 @@ CREATE TABLE public.user_lesson_progress (id uuid PRIMARY KEY, user_id uuid);
 CREATE FUNCTION public.has_role(_u uuid, _r text) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER
   SET search_path = '' AS $$ SELECT false $$;
 GRANT EXECUTE ON FUNCTION public.has_role(uuid, text) TO PUBLIC;
+-- Stand-in for the validated evidence-response RPC; the guard trusts its owner role.
+CREATE FUNCTION public.respond_to_evidence_request(uuid, text, text, uuid[]) RETURNS void
+  LANGUAGE sql SECURITY DEFINER SET search_path = '' AS $$ SELECT $$;
 CREATE FUNCTION public.plain_helper() RETURNS int LANGUAGE sql AS $$ SELECT 1 $$;
 CREATE FUNCTION private.attorney_is_approved(_id uuid) RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT false $$;
 CREATE FUNCTION private.has_attorney_access(_attorney_id uuid, _client_id uuid) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER
@@ -118,6 +121,12 @@ beforeAll(async () => {
     await db.exec(RECONCILE, {
       onNotice: (n: { message?: string }) => notices.push(n.message ?? ""),
     } as never);
+  await db.exec(
+    readFileSync(
+      "supabase/migrations/20261013150000_followup_trigger_fn_grants.sql",
+      "utf8",
+    ).replace(/^REVOKE EXECUTE ON FUNCTION private\.\w+\(\) FROM PUBLIC;$/gm, ""),
+  );
 }, 60_000);
 afterAll(async () => db?.close());
 
@@ -167,6 +176,49 @@ describe("Lovable sync reconcile end state (PGlite)", () => {
         ),
       ),
     ).toBe("42501");
+  });
+
+  it("only the respond_to_evidence_request owner may grow scope_evidence (live muy block)", async () => {
+    const ins = await db.query<{ id: string }>(
+      `INSERT INTO public.attorney_client_links (attorney_user_id, client_user_id, scope_evidence) VALUES ('${ATTORNEY}', '${SURVIVOR}', '{00000000-0000-4000-8000-000000000001}') RETURNING id`,
+    );
+    const id = ins.rows[0].id;
+    const asOwner = async (sql: string) => {
+      await db.exec(`SELECT set_config('request.jwt.claim.sub', '${SURVIVOR}', false);`);
+      try {
+        return await db.query(sql);
+      } finally {
+        await db.exec(`SELECT set_config('request.jwt.claim.sub', '', false);`);
+      }
+    };
+    await asOwner(
+      `UPDATE public.attorney_client_links SET scope_evidence = scope_evidence || '00000000-0000-4000-8000-000000000002'::uuid WHERE id='${id}'`,
+    );
+    const n = await db.query<{ n: number }>(
+      `SELECT cardinality(scope_evidence) AS n FROM public.attorney_client_links WHERE id='${id}'`,
+    );
+    expect(n.rows[0].n).toBe(2);
+    expect(
+      await code(
+        asOwner(`UPDATE public.attorney_client_links SET scope_evidence='{}' WHERE id='${id}'`),
+      ),
+    ).toBe("42501");
+    expect(
+      await code(
+        asOwner(
+          `UPDATE public.attorney_client_links SET scope_evidence = scope_evidence || '00000000-0000-4000-8000-000000000003'::uuid, expires_at=now() WHERE id='${id}'`,
+        ),
+      ),
+    ).toBe("42501");
+  });
+
+  it("follow-up: the guard trigger function is not executable by PUBLIC/anon/authenticated", async () => {
+    for (const r of ["anon", "authenticated"])
+      expect(
+        await priv(
+          `has_function_privilege('${r}','public.attorney_client_links_client_update_guard()','EXECUTE')`,
+        ),
+      ).toBe(false);
   });
 
   it("links: column-level UPDATE only; consent_grants: service_role writes only", async () => {

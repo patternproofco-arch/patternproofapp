@@ -1,4 +1,6 @@
+import { confirmOptionalAiProcessing } from "@/lib/optional-ai-consent";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { CorrectionHistory } from "@/components/survivor/CorrectionHistory";
 import { useCallback, useEffect, useState } from "react";
 import {
   Pencil,
@@ -32,7 +34,12 @@ import { FocusRegion } from "@/components/survivor/focus-mode";
 import { HubTabs, ARCHIVE_TABS } from "@/components/HubTabs";
 import { DraftTrustHinge } from "@/components/sharing/DraftTrustHinge";
 import type { ShareReadiness } from "@/lib/sharing/share-readiness";
-import { EMPTY_DATE_FORM, dateFormFromRow, isoDaysAgo, resolveIncidentDate } from "@/lib/incident-date";
+import {
+  EMPTY_DATE_FORM,
+  dateFormFromRow,
+  isoDaysAgo,
+  resolveIncidentDate,
+} from "@/lib/incident-date";
 import { useEntryDraft } from "@/hooks/use-entry-draft";
 import { draftStatusText, type EntryDraft } from "@/lib/entry-draft";
 import { uploadAndPreserve, type IntakeDeps } from "@/lib/evidence-intake";
@@ -51,12 +58,7 @@ export const Route = createFileRoute("/_authenticated/journal")({
 });
 
 type Precision =
-  | "exact"
-  | "approximate_month"
-  | "range"
-  | "before_anchor"
-  | "after_anchor"
-  | "unknown";
+  "exact" | "approximate_month" | "range" | "before_anchor" | "after_anchor" | "unknown";
 
 const PRECISION_OPTIONS: { value: Precision; label: string }[] = [
   { value: "exact", label: "Exact date" },
@@ -373,13 +375,19 @@ function JournalPage() {
       }
       // The entry itself is saved. Files are attached next, and each one is checked: the
       // message below only says "saved" for what was confirmed.
-      let outcome: { saved: number; failed: Array<{ file: File; message: string }> } = { saved: 0, failed: [] };
+      let outcome: { saved: number; failed: Array<{ file: File; message: string }> } = {
+        saved: 0,
+        failed: [],
+      };
       try {
         outcome = savedId && attachments.length ? await uploadAttachments(savedId) : outcome;
       } catch {
         outcome = {
           saved: 0,
-          failed: attachments.map((file) => ({ file, message: "We couldn't confirm that this saved." })),
+          failed: attachments.map((file) => ({
+            file,
+            message: "We couldn't confirm that this saved.",
+          })),
         };
       }
       if (outcome.failed.length > 0) {
@@ -493,12 +501,11 @@ function JournalPage() {
   };
 
   const autofillFromImage = async (f: File | null) => {
-    if (!user || !f) return;
+    if (!user || !f || !confirmOptionalAiProcessing()) return;
     setAiBusy(true);
     const ext = f.name.split(".").pop() ?? "bin";
     const key = `${user.id}/journal-ai/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const up = await uploadWithRetry(() =>
-        supabase.storage.from("evidence-files").upload(key, f));
+    const up = await uploadWithRetry(() => supabase.storage.from("evidence-files").upload(key, f));
     if (up.error) {
       setAiBusy(false);
       toast("We couldn't read that image. Try another.");
@@ -511,7 +518,7 @@ function JournalPage() {
       return;
     }
     const r = await extractIncident({
-      data: { signedUrl: signed.data.signedUrl, mimeType: f.type || "image/png" },
+      data: { signedUrl: signed.data.signedUrl, mimeType: f.type || "image/png", ai_consent: true },
     });
     setAiBusy(false);
     if (!r.ok) {
@@ -704,12 +711,16 @@ function JournalPage() {
                   role="alert"
                   data-testid="draft-load-failed"
                   className="mb-3 rounded-2xl p-3 text-[13px]"
-                  style={{ background: "rgba(180,60,60,0.12)", border: "1px solid rgba(180,60,60,0.35)" }}
+                  style={{
+                    background: "rgba(180,60,60,0.12)",
+                    border: "1px solid rgba(180,60,60,0.35)",
+                  }}
                 >
                   <p className="font-semibold">We couldn&apos;t check for an unfinished entry.</p>
                   <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-                    Your earlier draft may still be on your account. We are not autosaving new typing
-                    until this is cleared, so we don&apos;t overwrite something we couldn&apos;t read.
+                    Your earlier draft may still be on your account. We are not autosaving new
+                    typing until this is cleared, so we don&apos;t overwrite something we
+                    couldn&apos;t read.
                   </p>
                   <div className="mt-2 flex gap-2">
                     <button
@@ -733,12 +744,16 @@ function JournalPage() {
                 <div
                   role="status"
                   className="mb-3 rounded-2xl p-3 text-[13px]"
-                  style={{ background: "rgba(106,146,214,0.15)", border: "1px solid rgba(106,146,214,0.35)" }}
+                  style={{
+                    background: "rgba(106,146,214,0.15)",
+                    border: "1px solid rgba(106,146,214,0.35)",
+                  }}
                 >
                   <p className="font-semibold">You have an unfinished entry.</p>
                   <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
                     Saved privately to your account on{" "}
-                    {new Date(entryDraft.restored.savedAt).toLocaleString()}. It stays hidden until you choose to continue.
+                    {new Date(entryDraft.restored.savedAt).toLocaleString()}. It stays hidden until
+                    you choose to continue.
                   </p>
                   <div className="mt-2 flex gap-2">
                     <button
@@ -822,7 +837,10 @@ function JournalPage() {
                   {attachments.length > 0 && (
                     <ul className="mt-2 space-y-1">
                       {attachments.map((f, idx) => (
-                        <li key={`${f.name}-${idx}`} className="flex items-center justify-between text-[12px]">
+                        <li
+                          key={`${f.name}-${idx}`}
+                          className="flex items-center justify-between text-[12px]"
+                        >
                           <span className="truncate">{f.name}</span>
                           <button
                             type="button"
@@ -840,14 +858,46 @@ function JournalPage() {
                 <fieldset>
                   <legend className="label-eyebrow">When did this happen?</legend>
                   <p className="mt-1 mb-2 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-                    Optional. If you're not sure, leave it. It will be saved without a date and you can add one later.
+                    Optional. If you're not sure, leave it. It will be saved without a date and you
+                    can add one later.
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {[
-                      { id: "today", label: "Today", on: form.date_precision === "exact" && form.date === isoDaysAgo(0), set: () => setForm({ ...form, date_precision: "exact", date: isoDaysAgo(0) }) },
-                      { id: "yesterday", label: "Yesterday", on: form.date_precision === "exact" && form.date === isoDaysAgo(1), set: () => setForm({ ...form, date_precision: "exact", date: isoDaysAgo(1) }) },
-                      { id: "pick", label: "Pick a date", on: form.date_precision === "exact" && !!form.date && form.date !== isoDaysAgo(0) && form.date !== isoDaysAgo(1), set: () => setForm({ ...form, date_precision: "exact", date: form.date_precision === "exact" ? form.date : "" }) },
-                      { id: "unsure", label: "Not sure yet", on: form.date_precision === "unknown", set: () => setForm({ ...form, date_precision: "unknown", date: "" }) },
+                      {
+                        id: "today",
+                        label: "Today",
+                        on: form.date_precision === "exact" && form.date === isoDaysAgo(0),
+                        set: () =>
+                          setForm({ ...form, date_precision: "exact", date: isoDaysAgo(0) }),
+                      },
+                      {
+                        id: "yesterday",
+                        label: "Yesterday",
+                        on: form.date_precision === "exact" && form.date === isoDaysAgo(1),
+                        set: () =>
+                          setForm({ ...form, date_precision: "exact", date: isoDaysAgo(1) }),
+                      },
+                      {
+                        id: "pick",
+                        label: "Pick a date",
+                        on:
+                          form.date_precision === "exact" &&
+                          !!form.date &&
+                          form.date !== isoDaysAgo(0) &&
+                          form.date !== isoDaysAgo(1),
+                        set: () =>
+                          setForm({
+                            ...form,
+                            date_precision: "exact",
+                            date: form.date_precision === "exact" ? form.date : "",
+                          }),
+                      },
+                      {
+                        id: "unsure",
+                        label: "Not sure yet",
+                        on: form.date_precision === "unknown",
+                        set: () => setForm({ ...form, date_precision: "unknown", date: "" }),
+                      },
                     ].map((o) => (
                       <button
                         key={o.id}
@@ -892,7 +942,9 @@ function JournalPage() {
                       More ways to say when
                     </summary>
                     <div className="mt-2">
-                      {PRECISION_OPTIONS.filter((o) => o.value !== "exact" && o.value !== "unknown").map((o) => (
+                      {PRECISION_OPTIONS.filter(
+                        (o) => o.value !== "exact" && o.value !== "unknown",
+                      ).map((o) => (
                         <button
                           key={o.value}
                           type="button"
@@ -950,16 +1002,21 @@ function JournalPage() {
                         </div>
                       </div>
                     )}
-                    {(form.date_precision === "before_anchor" || form.date_precision === "after_anchor") && (
+                    {(form.date_precision === "before_anchor" ||
+                      form.date_precision === "after_anchor") && (
                       <div className="mt-2 space-y-3">
                         <div>
                           <label htmlFor="entry-anchor" className="label-eyebrow">
-                            {form.date_precision === "before_anchor" ? "Before which event?" : "After which event?"}
+                            {form.date_precision === "before_anchor"
+                              ? "Before which event?"
+                              : "After which event?"}
                           </label>
                           <select
                             id="entry-anchor"
                             value={form.anchor_incident_id}
-                            onChange={(e) => setForm({ ...form, anchor_incident_id: e.target.value })}
+                            onChange={(e) =>
+                              setForm({ ...form, anchor_incident_id: e.target.value })
+                            }
                             className="input-pp mt-1"
                           >
                             <option value="">— pick one of your entries —</option>
@@ -985,7 +1042,10 @@ function JournalPage() {
                             className="input-pp mt-1"
                             placeholder={`e.g. "before my son's second birthday" or "after the move"`}
                           />
-                          <p className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
+                          <p
+                            className="mt-1 text-[11px]"
+                            style={{ color: "var(--muted-foreground)" }}
+                          >
                             This is labelled approximate. The app never invents a date for you.
                           </p>
                         </div>
@@ -994,8 +1054,13 @@ function JournalPage() {
                   </details>
                 </fieldset>
 
-                <details className="rounded-2xl border p-3" style={{ borderColor: "var(--border)" }}>
-                  <summary className="cursor-pointer text-[13px] font-semibold">Add details later</summary>
+                <details
+                  className="rounded-2xl border p-3"
+                  style={{ borderColor: "var(--border)" }}
+                >
+                  <summary className="cursor-pointer text-[13px] font-semibold">
+                    Add details later
+                  </summary>
                   <div className="mt-3 space-y-3">
                     <div>
                       <label htmlFor="entry-time" className="label-eyebrow">
@@ -1136,7 +1201,9 @@ function JournalPage() {
                   aria-live="polite"
                   data-testid="journal-draft-status"
                   className="text-[12px]"
-                  style={{ color: entryDraft.status === "failed" ? "#9B2C3E" : "var(--muted-foreground)" }}
+                  style={{
+                    color: entryDraft.status === "failed" ? "#9B2C3E" : "var(--muted-foreground)",
+                  }}
                 >
                   {draftStatusText(entryDraft.status)}
                 </p>
@@ -1152,8 +1219,11 @@ function JournalPage() {
                   )}
                 </div>
                 <p className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-                  Saving keeps this private. Sharing with anyone is a separate step you choose.
+                  {editingId
+                    ? "Earlier words are kept in your correction history. End sharing and pending invitations before changing a shared entry, or add a separate private correction."
+                    : "Saving keeps this private. Sharing with anyone is a separate step you choose."}
                 </p>
+                {editingId && <CorrectionHistory key={editingId} incidentId={editingId} />}
               </form>
             </section>
           </div>
@@ -1173,7 +1243,8 @@ function JournalPage() {
               {loadError ? (
                 <div className="card-pp" role="alert">
                   <p className="text-[14px]">
-                    We couldn&apos;t load your entries. They are not gone. Reload the page to try again.
+                    We couldn&apos;t load your entries. They are not gone. Reload the page to try
+                    again.
                   </p>
                 </div>
               ) : list.length === 0 ? (

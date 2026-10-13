@@ -1,3 +1,4 @@
+import { fetchReviewedAi } from "@/lib/ai-processing-policy.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -153,9 +154,7 @@ async function shareIncidentWithLink(
       .single();
     const currentInc = (fresh?.scope_incidents ?? link.scope_incidents ?? []) as string[];
     const currentEv = (fresh?.scope_evidence ?? link.scope_evidence ?? []) as string[];
-    const nextInc = currentInc.includes(incidentId)
-      ? currentInc
-      : [...currentInc, incidentId];
+    const nextInc = currentInc.includes(incidentId) ? currentInc : [...currentInc, incidentId];
     const ownedEv = evidenceIds.filter(Boolean);
     const nextEv = [...new Set([...currentEv, ...ownedEv])];
     const incChanged = nextInc.length !== currentInc.length;
@@ -373,7 +372,7 @@ export const proposeTimelineFromEvidence = createServerFn({ method: "POST" })
 
     const userMessage = `Here are the materials the survivor has uploaded. Produce a chronologically ordered set of draft incident entries. Use only what is present. Return JSON only.\n\n${JSON.stringify(contextPayload, null, 2)}`;
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetchReviewedAi("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -651,7 +650,6 @@ export const acceptProposedIncident = createServerFn({ method: "POST" })
 
     return { ok: true as const, incident_id: incident.id, shared: sharedWithProfessional };
   });
-
 
 /** Soft-claim source materials for a pending draft (transcript / photo OCR). */
 export const listDraftSourceMaterials = createServerFn({ method: "POST" })

@@ -34,7 +34,7 @@ describe("muy bring-up paste", () => {
     }
     expect((BRINGUP_FILES as string[]).at(-1)).toBe("20261011200000_lovable_sync_reconcile");
     expect(read("supabase/migrations/20261011200000_lovable_sync_reconcile.sql")).toBe(
-      read("drizzle/migrations/0035_lovable_sync_reconcile.sql"),
+      read("drizzle/migrations/0040_lovable_sync_reconcile.sql"),
     );
   });
 

@@ -142,12 +142,16 @@ function Dashboard() {
           )}
         </h1>
         <p className="mt-3 max-w-[640px] text-[14px]" style={{ color: t.muted }}>
-          One thing at a time. Everything you save stays private to you.
+          Start where you need to. New items stay private until you choose to share them.
         </p>
 
         <div
           className="mt-5 flex flex-wrap items-baseline gap-x-8 gap-y-2"
-          style={{ borderTop: "1px solid var(--rule)", borderBottom: "1px solid var(--rule)", padding: "10px 0" }}
+          style={{
+            borderTop: "1px solid var(--rule)",
+            borderBottom: "1px solid var(--rule)",
+            padding: "10px 0",
+          }}
         >
           {figures.map((f) => (
             <span key={f.label} className="flex items-baseline gap-2">
@@ -176,7 +180,13 @@ function Dashboard() {
               textDecoration: "none",
             }}
           >
-            <Plus size={16} /> Add an entry
+            <Plus size={16} /> Save something
+          </Link>
+          <Link to="/timeline" className="btn-ghost ml-3 inline-flex items-center gap-2">
+            <BookOpen size={16} /> Review my record
+          </Link>
+          <Link to="/access" className="btn-ghost ml-3 inline-flex items-center gap-2">
+            <Share2 size={16} /> Get ready to share
           </Link>
           <p className="mt-3 text-[13px]" style={{ color: t.muted }}>
             Start with a note, or{" "}

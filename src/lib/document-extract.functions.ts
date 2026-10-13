@@ -1,3 +1,4 @@
+import { fetchReviewedAi } from "@/lib/ai-processing-policy.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -21,7 +22,11 @@ Rules:
 
 export const extractEvidenceDocument = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ evidence_id: z.string().uuid() }).parse(input))
+  .inputValidator((input) =>
+    z
+      .object({ evidence_id: z.string().uuid(), ai_consent: z.boolean().optional().default(false) })
+      .parse(input),
+  )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { extractDocumentText } = await import("@/lib/document-extract.server");
@@ -77,7 +82,8 @@ export const extractEvidenceDocument = createServerFn({ method: "POST" })
 
     // Scanned pages: fall back to a machine reading pass, unless the survivor
     // has withheld AI permission for this item.
-    const aiAllowed = row.ai_permission !== "none" && row.ai_permission !== "denied";
+    const aiAllowed =
+      data.ai_consent && row.ai_permission !== "none" && row.ai_permission !== "denied";
     if (result.status === "needs_ocr" && aiAllowed) {
       const readBack = await readScannedDocument(bytes, row.mime ?? "application/pdf");
       if (readBack) {
@@ -119,7 +125,7 @@ async function readScannedDocument(bytes: Uint8Array, mime: string): Promise<str
   if (bytes.byteLength > 8 * 1024 * 1024) return null;
   const dataUri = `data:${mime};base64,${Buffer.from(bytes).toString("base64")}`;
   try {
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetchReviewedAi("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
       body: JSON.stringify({

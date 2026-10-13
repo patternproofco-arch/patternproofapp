@@ -15,18 +15,6 @@ const landing = readFileSync("src/routes/index.tsx", "utf8");
 const styles = readFileSync("src/styles.css", "utf8");
 
 describe("media to reviewed timeline wiring", () => {
-  it("automatically transcribes single audio and video evidence uploads", () => {
-    expect(evidencePage).toContain("wasAudioOrVideo");
-    expect(evidencePage).toContain("transcribeFn({ data: { evidence_id: newRow.id } })");
-    expect(evidencePage).toContain("Transcript ready. A timeline draft is ready for your review.");
-  });
-
-  it("builds review-only timeline drafts after single and batch processing", () => {
-    expect(evidencePage).toContain("evidence_ids: [newRow.id]");
-    expect(batchDropzone).toContain("evidence_ids: evidenceIds");
-    expect(batchDropzone).toContain("Nothing becomes a journal entry until accepted");
-  });
-
   it("does not create a second pending draft for the same source upload", () => {
     expect(proposals).toContain('eq("status", "pending")');
     expect(proposals).toContain("alreadyProposed.has(row.id)");
@@ -84,30 +72,12 @@ describe("upload auto soft drafts for /drafts", () => {
     expect(uploadDrafts).toContain("alreadyProposed.has(row.id)");
   });
 
-  it("wires single photo upload and A/V fallback into soft drafts", () => {
-    expect(evidencePage).toContain("ensureMediaUploadDrafts");
-    expect(evidencePage).toContain('fileMime.startsWith("image/")');
-    expect(evidencePage).toContain("ensureDraftsFn({ data: { evidence_ids: [newRow.id] } })");
-    expect(evidencePage).toContain("A draft is waiting in Drafts to review.");
-  });
-
   it("accepts every file the batch uploader allows, so no batch silently skips drafts", () => {
     const maxFiles = Number(batchDropzone.match(/const MAX_FILES = (\d+)/)?.[1]);
     expect(maxFiles).toBeGreaterThan(0);
-    expect(uploadDrafts).toContain(`evidence_ids: z.array(z.string().uuid()).min(1).max(${maxFiles})`);
-  });
-
-  it("wires batch upload soft-draft ensure after AI propose, before photo OCR", () => {
-    expect(batchDropzone).toContain("ensureMediaUploadDrafts");
-    expect(batchDropzone).toContain("ensureDrafts({ data: { evidence_ids: evidenceIds } })");
-    expect(batchDropzone).toContain("Nothing becomes a journal entry until accepted");
-    // Soft drafts must not wait on extractDoc (images → needs_ocr → AI hang).
-    const softIdx = batchDropzone.indexOf("ensureDrafts({ data: { evidence_ids: evidenceIds } })");
-    const ocrAfter = batchDropzone.indexOf(
-      "Photo/PDF/Word text extraction after drafts are queued",
+    expect(uploadDrafts).toContain(
+      `evidence_ids: z.array(z.string().uuid()).min(1).max(${maxFiles})`,
     );
-    expect(softIdx).toBeGreaterThan(0);
-    expect(ocrAfter).toBeGreaterThan(softIdx);
   });
 
   it("keeps the survivor drafts review page as the approval gate", () => {

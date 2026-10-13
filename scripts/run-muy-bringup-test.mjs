@@ -81,6 +81,11 @@ CREATE TABLE public.notifications(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 GRANT ALL ON public.subscriptions,public.attorney_profiles,public.firms,public.notifications TO service_role;`);
 // Section 1 of the muy bring-up paste: #207's migrations, the kept Lovable ones and
 // the final reconcile, in order, in one transaction. Applied twice to prove re-runs are safe.
+// muy already has main's record foundation (20261010170000) live, including the
+// validated evidence-response RPC whose owner the guard trusts. Stand-in only.
+await db.exec(`CREATE OR REPLACE FUNCTION public.respond_to_evidence_request(uuid, text, text, uuid[])
+  RETURNS void LANGUAGE sql SECURITY DEFINER SET search_path = '' AS $$ SELECT $$;
+REVOKE EXECUTE ON FUNCTION public.respond_to_evidence_request(uuid, text, text, uuid[]) FROM PUBLIC, anon;`);
 // Sections 0-3 come from scripts/muy-paste.mjs, the same builder that writes the paste.
 const BRINGUP = section1();
 await db.exec(`CREATE SCHEMA IF NOT EXISTS cron; CREATE TABLE IF NOT EXISTS cron.job (jobid bigserial PRIMARY KEY, jobname text, schedule text, command text, active boolean);

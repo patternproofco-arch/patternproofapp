@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 // Lovable's lock_client_link_updates, renumbered to 0033 in the Lovable sync.
-const sql = readFileSync("drizzle/migrations/0033_lock_client_link_updates.sql", "utf8");
+const sql = readFileSync("drizzle/migrations/0038_lock_client_link_updates.sql", "utf8");
 const guard197 = readFileSync(
   "supabase/migrations/20261008120000_acl_client_update_guard_allowlist.sql",
   "utf8",

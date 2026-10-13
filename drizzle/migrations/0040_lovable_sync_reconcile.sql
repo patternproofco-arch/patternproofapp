@@ -56,6 +56,17 @@ BEGIN
   v_old := to_jsonb(OLD);
   v_new := to_jsonb(NEW);
 
+  -- Only the validated response RPC's database definer role may extend
+  -- scope_evidence. Direct JWT clients cannot impersonate that role. All
+  -- other columns stay frozen and the ordinary client allowlist stays intact.
+  IF current_user NOT IN ('authenticated', 'anon')
+    AND current_user = pg_catalog.pg_get_userbyid((SELECT proowner FROM pg_catalog.pg_proc
+      WHERE oid = 'public.respond_to_evidence_request(uuid,text,text,uuid[])'::regprocedure))
+    AND (v_new - 'scope_evidence') = (v_old - 'scope_evidence')
+    AND coalesce(NEW.scope_evidence, '{}') @> coalesce(OLD.scope_evidence, '{}') THEN
+    RETURN NEW;
+  END IF;
+
   -- No-op update.
   IF v_new = v_old THEN
     RETURN NEW;

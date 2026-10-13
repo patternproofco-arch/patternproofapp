@@ -117,141 +117,183 @@
     {
       "idx": 16,
       "version": "7",
-      "when": 1791741601000,
-      "tag": "0016_revoke_anon_mutate_keep_public_inserts",
+      "when": 1791818592164,
+      "tag": "0016_muy_paste_section1_bringup",
       "breakpoints": true
     },
     {
       "idx": 17,
       "version": "7",
-      "when": 1791741602000,
-      "tag": "0017_fix_function_search_path_mutable",
+      "when": 1791819152093,
+      "tag": "0017_attorney_trial_lock_paste2_section1",
       "breakpoints": true
     },
     {
       "idx": 18,
       "version": "7",
-      "when": 1791741603000,
-      "tag": "0018_lock_down_waitlist_signups",
+      "when": 1791819152094,
+      "tag": "0018_record_foundation",
       "breakpoints": true
     },
     {
       "idx": 19,
       "version": "7",
-      "when": 1791741604000,
-      "tag": "0019_honour_share_expiry_has_attorney_access",
+      "when": 1791819152095,
+      "tag": "0019_shared_record_corrections",
       "breakpoints": true
     },
     {
       "idx": 20,
       "version": "7",
-      "when": 1791741605000,
-      "tag": "0020_guide_chat_support_rate_limit_columns",
+      "when": 1791851740056,
+      "tag": "0020_record_foundation",
       "breakpoints": true
     },
     {
       "idx": 21,
       "version": "7",
-      "when": 1791741606000,
-      "tag": "0021_incident_share_readiness",
+      "when": 1791851741056,
+      "tag": "0021_revoke_anon_mutate_keep_public_inserts",
       "breakpoints": true
     },
     {
       "idx": 22,
       "version": "7",
-      "when": 1791741607000,
-      "tag": "0022_org_grant_report_drafts",
+      "when": 1791851742056,
+      "tag": "0022_fix_function_search_path_mutable",
       "breakpoints": true
     },
     {
       "idx": 23,
       "version": "7",
-      "when": 1791741608000,
-      "tag": "0023_exhibit_packages_and_declaration_drafts",
+      "when": 1791851743056,
+      "tag": "0023_lock_down_waitlist_signups",
       "breakpoints": true
     },
     {
       "idx": 24,
       "version": "7",
-      "when": 1791741609000,
-      "tag": "0024_clio_transfer_jobs",
+      "when": 1791851744056,
+      "tag": "0024_honour_share_expiry_has_attorney_access",
       "breakpoints": true
     },
     {
       "idx": 25,
       "version": "7",
-      "when": 1791741610000,
-      "tag": "0025_webauthn_app_lock",
+      "when": 1791851745056,
+      "tag": "0025_guide_chat_support_rate_limit_columns",
       "breakpoints": true
     },
     {
       "idx": 26,
       "version": "7",
-      "when": 1791741611000,
-      "tag": "0026_entry_drafts",
+      "when": 1791851746056,
+      "tag": "0026_incident_share_readiness",
       "breakpoints": true
     },
     {
       "idx": 27,
       "version": "7",
-      "when": 1791741612000,
-      "tag": "0027_attorney_entry_reviews",
+      "when": 1791851747056,
+      "tag": "0027_org_grant_report_drafts",
       "breakpoints": true
     },
     {
       "idx": 28,
       "version": "7",
-      "when": 1791741613000,
-      "tag": "0028_lock_reset_and_settings_lockdown",
+      "when": 1791851748056,
+      "tag": "0028_exhibit_packages_and_declaration_drafts",
       "breakpoints": true
     },
     {
       "idx": 29,
       "version": "7",
-      "when": 1791741614000,
-      "tag": "0029_entry_draft_purge",
+      "when": 1791851749056,
+      "tag": "0029_clio_transfer_jobs",
       "breakpoints": true
     },
     {
       "idx": 30,
       "version": "7",
-      "when": 1791741615000,
-      "tag": "0030_deny_revoked_expired_case_access",
+      "when": 1791851750056,
+      "tag": "0030_webauthn_app_lock",
       "breakpoints": true
     },
     {
       "idx": 31,
       "version": "7",
-      "when": 1791741616000,
-      "tag": "0031_study_profiles_and_lesson_progress",
+      "when": 1791851751056,
+      "tag": "0031_entry_drafts",
       "breakpoints": true
     },
     {
       "idx": 32,
       "version": "7",
-      "when": 1791741617000,
-      "tag": "0032_grant_report_service_dates_and_timezone",
+      "when": 1791851752056,
+      "tag": "0032_attorney_entry_reviews",
       "breakpoints": true
     },
     {
       "idx": 33,
       "version": "7",
-      "when": 1791741618000,
-      "tag": "0033_lock_client_link_updates",
+      "when": 1791851753056,
+      "tag": "0033_lock_reset_and_settings_lockdown",
       "breakpoints": true
     },
     {
       "idx": 34,
       "version": "7",
-      "when": 1791741619000,
-      "tag": "0034_attorney_applications",
+      "when": 1791851754056,
+      "tag": "0034_entry_draft_purge",
       "breakpoints": true
     },
     {
       "idx": 35,
       "version": "7",
-      "when": 1791741620000,
-      "tag": "0035_lovable_sync_reconcile",
+      "when": 1791851755056,
+      "tag": "0035_deny_revoked_expired_case_access",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1791851756056,
+      "tag": "0036_study_profiles_and_lesson_progress",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1791851757056,
+      "tag": "0037_grant_report_service_dates_and_timezone",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1791851758056,
+      "tag": "0038_lock_client_link_updates",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1791851759056,
+      "tag": "0039_attorney_applications",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1791851760056,
+      "tag": "0040_lovable_sync_reconcile",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1791851761056,
+      "tag": "0041_followup_trigger_fn_grants",
       "breakpoints": true
     }
   ]
