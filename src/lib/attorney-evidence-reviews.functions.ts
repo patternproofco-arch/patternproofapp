@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAttorneyPortalAuth } from "@/lib/attorney-portal-auth";
 import { z } from "zod";
 
 const REVIEW_STATUSES = [
@@ -19,7 +20,7 @@ async function assertActiveLink(attorneyId: string, clientId: string) {
 }
 
 export const listEvidenceReviews = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const link = await assertActiveLink(context.userId, data.clientId);
@@ -43,7 +44,7 @@ export const listEvidenceReviews = createServerFn({ method: "POST" })
   });
 
 export const upsertEvidenceReview = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) =>
     z
       .object({
