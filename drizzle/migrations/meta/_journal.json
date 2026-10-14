@@ -295,6 +295,13 @@
       "when": 1791851761056,
       "tag": "0041_followup_trigger_fn_grants",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1791985732776,
+      "tag": "0042_attorney_annotation_grant_boundaries",
+      "breakpoints": true
     }
   ]
 }

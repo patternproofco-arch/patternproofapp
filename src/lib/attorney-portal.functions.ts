@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth, requireAccountAuth } from "@/integrations/supabase/auth-middleware";
 import { requireAttorneyPortalAuth } from "@/lib/attorney-portal-auth";
 import { z } from "zod";
+import { selectInChunks } from "@/lib/in-chunks.server";
 import { PROFESSIONAL_LINK_TTL_SECONDS } from "@/lib/professional-links.server";
 import { isAttorneyEntitled } from "@/lib/payments.functions";
 import * as access from "@/lib/attorney-access.server";
@@ -1388,13 +1389,35 @@ export const listAttorneyNotes = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const link = await assertLink(context.userId, data.clientId);
     if (!link.scope_incidents?.length) return { notes: [], link_id: link.id };
-    const { data: notes } = await supabaseAdmin
-      .from("attorney_incident_notes")
-      .select("incident_id,note,flagged,reviewed")
-      .eq("link_id", link.id)
-      .eq("attorney_user_id", context.userId)
-      .in("incident_id", link.scope_incidents);
-    return { notes: notes ?? [], link_id: link.id };
+    const entries = await selectInChunks<{ id: string }>(
+      link.scope_incidents,
+      (ids) =>
+        supabaseAdmin
+          .from("incidents")
+          .select("id")
+          .eq("user_id", data.clientId)
+          .is("deleted_at", null)
+          .in("id", ids),
+      { what: "shared entry" },
+    );
+    const notes = await selectInChunks<{
+      incident_id: string;
+      note: string | null;
+      flagged: boolean;
+      reviewed: boolean;
+    }>(
+      entries.map((entry) => entry.id),
+      (ids) =>
+        supabaseAdmin
+          .from("attorney_incident_notes")
+          .select("incident_id,note,flagged,reviewed")
+          .eq("link_id", link.id)
+          .eq("attorney_user_id", context.userId)
+          .eq("client_user_id", data.clientId)
+          .in("incident_id", ids),
+      { what: "attorney note" },
+    );
+    return { notes, link_id: link.id };
   });
 
 export const upsertAttorneyNote = createServerFn({ method: "POST" })
@@ -1417,6 +1440,14 @@ export const upsertAttorneyNote = createServerFn({ method: "POST" })
     if (!link.scope_incidents?.includes(data.incidentId)) {
       throw new Error("That entry is not in the current share.");
     }
+    const { data: entry, error: entryError } = await supabaseAdmin
+      .from("incidents")
+      .select("id")
+      .eq("id", data.incidentId)
+      .eq("user_id", data.clientId)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (entryError || !entry) throw new Error("That entry is no longer in the current share.");
     type NoteUpsert = {
       link_id: string;
       attorney_user_id: string;

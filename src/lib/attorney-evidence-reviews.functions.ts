@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { selectInChunks } from "@/lib/in-chunks.server";
 import { requireAttorneyPortalAuth } from "@/lib/attorney-portal-auth";
 import { z } from "zod";
 
@@ -15,7 +16,8 @@ const REVIEW_STATUSES = [
 
 async function assertActiveLink(attorneyId: string, clientId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { assertLink } = await import("@/lib/attorney-access.server");
+  const { assertLink, assertAttorney } = await import("@/lib/attorney-access.server");
+  await assertAttorney(supabaseAdmin, attorneyId);
   return assertLink(supabaseAdmin, attorneyId, clientId);
 }
 
@@ -26,20 +28,59 @@ export const listEvidenceReviews = createServerFn({ method: "POST" })
     const link = await assertActiveLink(context.userId, data.clientId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     if (!link.scope_evidence?.length) return { reviews: [] };
-    const { data: rows } = await supabaseAdmin
-      .from("attorney_evidence_reviews")
-      .select("evidence_id,status,exhibit_label,notes,linked_incident_id,updated_at")
-      .eq("attorney_user_id", context.userId)
-      .eq("client_user_id", data.clientId)
-      .in("evidence_id", link.scope_evidence);
+    const files = await selectInChunks<{ id: string }>(
+      link.scope_evidence,
+      (ids) =>
+        supabaseAdmin
+          .from("evidence")
+          .select("id")
+          .eq("user_id", data.clientId)
+          .is("deleted_at", null)
+          .in("id", ids),
+      { what: "shared file" },
+    );
+    const rows = await selectInChunks<{
+      evidence_id: string;
+      status: string;
+      exhibit_label: string | null;
+      notes: string | null;
+      linked_incident_id: string | null;
+      updated_at: string;
+    }>(
+      files.map((file) => file.id),
+      (ids) =>
+        supabaseAdmin
+          .from("attorney_evidence_reviews")
+          .select("evidence_id,status,exhibit_label,notes,linked_incident_id,updated_at")
+          .eq("attorney_user_id", context.userId)
+          .eq("client_user_id", data.clientId)
+          .eq("link_id", link.id)
+          .in("evidence_id", ids),
+      { what: "evidence review" },
+    );
+    const references = rows.flatMap((row) =>
+      row.linked_incident_id && link.scope_incidents?.includes(row.linked_incident_id)
+        ? [row.linked_incident_id]
+        : [],
+    );
+    const currentIncidents = await selectInChunks<{ id: string }>(
+      references,
+      (ids) =>
+        supabaseAdmin
+          .from("incidents")
+          .select("id")
+          .eq("user_id", data.clientId)
+          .is("deleted_at", null)
+          .in("id", ids),
+      { what: "shared entry" },
+    );
+    const visibleReferences = new Set(currentIncidents.map((row) => row.id));
     return {
-      reviews: (rows ?? []).map((row) => ({
-        ...row,
-        linked_incident_id:
-          row.linked_incident_id && link.scope_incidents?.includes(row.linked_incident_id)
-            ? row.linked_incident_id
-            : null,
-      })),
+      // Review notes can describe the referenced entry. Hide the whole review
+      // when that entry leaves consent scope, matching the direct-read policy.
+      reviews: rows.filter(
+        (row) => !row.linked_incident_id || visibleReferences.has(row.linked_incident_id),
+      ),
     };
   });
 
@@ -67,7 +108,28 @@ export const upsertEvidenceReview = createServerFn({ method: "POST" })
       throw new Error("That record is not in the current share.");
     }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const checks = await Promise.all([
+      supabaseAdmin
+        .from("evidence")
+        .select("id")
+        .eq("id", data.evidenceId)
+        .eq("user_id", data.clientId)
+        .is("deleted_at", null)
+        .maybeSingle(),
+      data.linked_incident_id
+        ? supabaseAdmin
+            .from("incidents")
+            .select("id")
+            .eq("id", data.linked_incident_id)
+            .eq("user_id", data.clientId)
+            .is("deleted_at", null)
+            .maybeSingle()
+        : Promise.resolve({ data: { id: null }, error: null }),
+    ]);
+    if (checks.some((result) => result.error || !result.data))
+      throw new Error("That record is no longer in the current share.");
     type Payload = {
+      link_id: string;
       attorney_user_id: string;
       client_user_id: string;
       evidence_id: string;
@@ -78,6 +140,7 @@ export const upsertEvidenceReview = createServerFn({ method: "POST" })
       linked_incident_id?: string | null;
     };
     const payload: Payload = {
+      link_id: link.id,
       attorney_user_id: context.userId,
       client_user_id: data.clientId,
       evidence_id: data.evidenceId,
@@ -89,7 +152,7 @@ export const upsertEvidenceReview = createServerFn({ method: "POST" })
     if (data.linked_incident_id !== undefined) payload.linked_incident_id = data.linked_incident_id;
     const { error } = await supabaseAdmin
       .from("attorney_evidence_reviews")
-      .upsert(payload, { onConflict: "attorney_user_id,evidence_id" });
+      .upsert(payload, { onConflict: "link_id,evidence_id" });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
