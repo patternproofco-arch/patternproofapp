@@ -123,8 +123,8 @@ await db.exec(read("supabase/tests/sql/atomic_attorney_billing.test.sql"), {
 await db.exec(read("supabase/tests/sql/annotation_grant_boundaries.before.sql"), {
   onNotice: (notice) => console.log(notice.message),
 });
-await db.exec(read("supabase/migrations/20261012020454_attorney_annotation_grant_boundaries.sql"));
-await db.exec(read("supabase/migrations/20261012020454_attorney_annotation_grant_boundaries.sql"));
+await db.exec(read("supabase/migrations/20261014134914_attorney_annotation_grant_boundaries.sql"));
+await db.exec(read("supabase/migrations/20261014134914_attorney_annotation_grant_boundaries.sql"));
 await db.exec(read("supabase/tests/sql/annotation_grant_boundaries.after.sql"), {
   onNotice: (notice) => console.log(notice.message),
 });

@@ -1,3 +1,4 @@
+import { fetchReviewedAi } from "@/lib/ai-processing-policy.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -37,7 +38,7 @@ export const extractMemoryAsIncident = createServerFn({ method: "POST" })
     const key = process.env.LOVABLE_API_KEY;
     if (!key) return { ok: false as const, reason: "missing-key" };
     const ctx = `Relationship window: ${data.relationshipStart ?? "unknown"} to ${data.relationshipEnd ?? "unknown"}.\n\nUser's memory:\n${data.memory}`;
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetchReviewedAi("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
       body: JSON.stringify({

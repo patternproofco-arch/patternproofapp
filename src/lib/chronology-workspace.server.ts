@@ -38,7 +38,9 @@ type Admin = any;
 type Row = Record<string, unknown>;
 
 const INCIDENT_COLUMNS =
-  "id,title,date,date_precision,date_range_start,date_range_end,anchor_label,time,location,description,witnesses,is_draft,source,confirmed_at,created_at";
+  // No "title": the incidents table never had one. The chronology falls back to
+  // location (then "Untitled entry") on its own.
+  "id,date,date_precision,date_range_start,date_range_end,anchor_label,time,location,description,witnesses,is_draft,source,confirmed_at,created_at";
 const EVIDENCE_COLUMNS =
   "id,title,date,date_precision,date_range_start,date_range_end,description,transcript,extracted_text,transcript_verified_at,extraction_verified_at,sha256,event_at,created_at,linked_incident_id,parent_evidence_id,derivative_kind,review_status";
 

@@ -13,7 +13,7 @@ const prerequisiteFreshGrant = sql("migrations/20261011173000_fresh_attorney_gra
 )[0];
 const before = sql("tests/sql/annotation_grant_boundaries.before.sql").replace(/^BEGIN;\s*/, "");
 const after = sql("tests/sql/annotation_grant_boundaries.after.sql").split("ROLLBACK;")[0];
-const migration = sql("migrations/20261012020454_attorney_annotation_grant_boundaries.sql");
+const migration = sql("migrations/20261014134914_attorney_annotation_grant_boundaries.sql");
 const statements = [prerequisiteGate, prerequisiteFreshGrant, before, migration, migration, after];
 if (statements.some((statement) => statement.includes("$qa_statement$")))
   throw new Error("Validation SQL delimiter collision");

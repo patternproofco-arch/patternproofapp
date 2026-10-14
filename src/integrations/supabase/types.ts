@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      _reconcile_secdef_acl_snapshot: {
+        Row: {
+          captured_at: string
+          fn: string
+          had_public: boolean
+          proacl: string | null
+        }
+        Insert: {
+          captured_at?: string
+          fn: string
+          had_public: boolean
+          proacl?: string | null
+        }
+        Update: {
+          captured_at?: string
+          fn?: string
+          had_public?: boolean
+          proacl?: string | null
+        }
+        Relationships: []
+      }
       advocate_client_links: {
         Row: {
           advocate_user_id: string
@@ -441,6 +462,48 @@ export type Database = {
         }
         Relationships: []
       }
+      attorney_access_applications: {
+        Row: {
+          bar_number: string
+          created_at: string
+          email: string
+          firm_name: string | null
+          full_name: string
+          id: string
+          jurisdiction: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          bar_number: string
+          created_at?: string
+          email: string
+          firm_name?: string | null
+          full_name: string
+          id?: string
+          jurisdiction: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          bar_number?: string
+          created_at?: string
+          email?: string
+          firm_name?: string | null
+          full_name?: string
+          id?: string
+          jurisdiction?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       attorney_applications: {
         Row: {
           bar_number: string | null
@@ -641,6 +704,7 @@ export type Database = {
           link_id: string
           response_evidence_ids: string[]
           response_note: string | null
+          response_outcome: string | null
           status: string
           submitted_at: string | null
           title: string
@@ -659,6 +723,7 @@ export type Database = {
           link_id: string
           response_evidence_ids?: string[]
           response_note?: string | null
+          response_outcome?: string | null
           status?: string
           submitted_at?: string | null
           title: string
@@ -677,6 +742,7 @@ export type Database = {
           link_id?: string
           response_evidence_ids?: string[]
           response_note?: string | null
+          response_outcome?: string | null
           status?: string
           submitted_at?: string | null
           title?: string
@@ -2471,6 +2537,41 @@ export type Database = {
           },
         ]
       }
+      evidence_revisions: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          evidence_id: string
+          id: string
+          prior_record: Json
+          user_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          evidence_id: string
+          id?: string
+          prior_record: Json
+          user_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          evidence_id?: string
+          id?: string
+          prior_record?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evidence_revisions_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "evidence"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feedback_submissions: {
         Row: {
           audience: string
@@ -2613,6 +2714,36 @@ export type Database = {
         }
         Relationships: []
       }
+      founder_attorney_invites: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          token_hash: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by: string
+          token_hash: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          token_hash?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       import_batches: {
         Row: {
           created_at: string
@@ -2678,6 +2809,41 @@ export type Database = {
           },
           {
             foreignKeyName: "incident_evidence_links_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incident_revisions: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          id: string
+          incident_id: string
+          prior_record: Json
+          user_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          incident_id: string
+          prior_record: Json
+          user_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          incident_id?: string
+          prior_record?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_revisions_incident_id_fkey"
             columns: ["incident_id"]
             isOneToOne: false
             referencedRelation: "incidents"
@@ -3859,6 +4025,36 @@ export type Database = {
         }
         Relationships: []
       }
+      signup_alert_outbox: {
+        Row: {
+          attempts: number
+          completed_at: string | null
+          created_at: string
+          next_attempt_at: string
+          outcome: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          next_attempt_at?: string
+          outcome?: string | null
+          role: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          next_attempt_at?: string
+          outcome?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       study_profiles: {
         Row: {
           children_brackets: string[]
@@ -4530,6 +4726,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_attorney_share: {
+        Args: {
+          _actor_id: string
+          _direction: string
+          _invitation_id: string
+          _scope: Json
+        }
+        Returns: {
+          client_user_id: string
+          id: string
+        }[]
+      }
       accept_firm_member_invitation: {
         Args: { p_email: string; p_token_hash: string; p_user_id: string }
         Returns: string
@@ -4553,6 +4761,30 @@ export type Database = {
         Args: { _consent_id: string; p_user_id: string }
         Returns: boolean
       }
+      attorney_billing_state: {
+        Args: { _attorney_id: string; _environment?: string }
+        Returns: {
+          entitled: boolean
+          firm_seats: number
+        }[]
+      }
+      claim_founder_attorney_invite: {
+        Args: { _application: string; _hash: string }
+        Returns: undefined
+      }
+      claim_signup_alert: {
+        Args: { _enqueue?: boolean; _role: string; _user_id: string }
+        Returns: boolean
+      }
+      founder_recent_signups: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          roles: string[]
+          user_id: string
+        }[]
+      }
       is_firm_owner: { Args: { _firm_id: string }; Returns: boolean }
       is_org_owner: { Args: { _org_id: string }; Returns: boolean }
       record_audit_event: {
@@ -4566,6 +4798,32 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      record_has_live_disclosure: {
+        Args: { owner_id: string; record_id: string; record_kind: string }
+        Returns: boolean
+      }
+      respond_to_evidence_request: {
+        Args: {
+          p_action: string
+          p_evidence_ids?: string[]
+          p_note?: string
+          p_request_id: string
+        }
+        Returns: Json
+      }
+      review_attorney_application: {
+        Args: { _id: string; _reviewer: string; _status: string }
+        Returns: undefined
+      }
+      revoke_my_consent_grant: { Args: { _grant_id: string }; Returns: boolean }
+      set_my_clio_share_consent: {
+        Args: { _consent: boolean; _link_id: string }
+        Returns: boolean
+      }
+      sync_attorney_billing_access: {
+        Args: { _attorney_id: string; _environment: string }
+        Returns: number
       }
     }
     Enums: {

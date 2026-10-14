@@ -5,8 +5,10 @@ import {
   declineEvidenceRequest,
   saveEvidenceRequestDraft,
   submitEvidenceRequest,
+  respondWithoutEvidence,
   type SurvivorRequest,
 } from "@/lib/evidence-requests.functions";
+import { requestOutcomeLabel } from "@/lib/request-response";
 import {
   PipelineStatusChips,
   requestPipelineChips,
@@ -34,6 +36,7 @@ export function RequestCard({ request, evidence, onChanged }: RequestCardProps) 
   const save = useServerFn(saveEvidenceRequestDraft);
   const submit = useServerFn(submitEvidenceRequest);
   const decline = useServerFn(declineEvidenceRequest);
+  const respond = useServerFn(respondWithoutEvidence);
   const [note, setNote] = useState(request.response_note ?? "");
   const [picked, setPicked] = useState<Set<string>>(new Set(request.response_evidence_ids));
   const [busy, setBusy] = useState(false);
@@ -63,13 +66,17 @@ export function RequestCard({ request, evidence, onChanged }: RequestCardProps) 
         {request.due_at ? ` · by ${new Date(request.due_at).toLocaleDateString()}` : ""}
       </div>
       <div className="mt-2">
-        <PipelineStatusChips
-          chips={chips}
-          aria-label="Request to draft to binder status"
-        />
+        <PipelineStatusChips chips={chips} aria-label="Request to draft to binder status" />
       </div>
       <h3 className="mt-2 font-serif text-[18px]">{request.title}</h3>
       {request.details && <p className="mt-1 text-[14px]">{request.details}</p>}
+      {requestOutcomeLabel(request.response_outcome) && (
+        <p className="mt-2 text-[13px]" role="status">
+          {requestOutcomeLabel(request.response_outcome)}
+          {request.response_outcome === "help_requested" &&
+            ". They can see that you asked for help. Your draft and files stay private."}
+        </p>
+      )}
 
       {!open && (
         <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
@@ -86,6 +93,7 @@ export function RequestCard({ request, evidence, onChanged }: RequestCardProps) 
             rows={3}
             value={note}
             onChange={(e) => setNote(e.target.value)}
+            aria-label="Your answer (optional)"
             placeholder="Add a note if you'd like (optional)"
           />
           {evidence.length > 0 && (
@@ -123,7 +131,9 @@ export function RequestCard({ request, evidence, onChanged }: RequestCardProps) 
             <button
               className="btn-primary"
               disabled={busy}
-              onClick={() => run(() => submit({ data: payload }), "Sent. Only what you picked was shared.")}
+              onClick={() =>
+                run(() => submit({ data: payload }), "Sent. Only what you picked was shared.")
+              }
             >
               Send answer
             </button>
@@ -137,9 +147,38 @@ export function RequestCard({ request, evidence, onChanged }: RequestCardProps) 
             <button
               className="btn-ghost"
               disabled={busy}
-              onClick={() => run(() => decline({ data: { id: request.id } }), "Okay. We let them know you passed.")}
+              onClick={() =>
+                run(
+                  () => decline({ data: { id: request.id } }),
+                  "Okay. We let them know you passed.",
+                )
+              }
             >
-              Not now
+              Choose not to answer
+            </button>
+            <button
+              className="btn-ghost"
+              disabled={busy}
+              onClick={() =>
+                run(
+                  () => respond({ data: { id: request.id, action: "unavailable" } }),
+                  "We let them know you don't have this. No files were shared.",
+                )
+              }
+            >
+              I don't have this
+            </button>
+            <button
+              className="btn-ghost"
+              disabled={busy || request.response_outcome === "help_requested"}
+              onClick={() =>
+                run(
+                  () => respond({ data: { id: request.id, action: "help_requested" } }),
+                  "Help requested. Your draft and files stay private.",
+                )
+              }
+            >
+              Ask for help
             </button>
           </div>
         </div>

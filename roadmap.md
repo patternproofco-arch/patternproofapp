@@ -25,3 +25,20 @@
 - [x] Request answers → draft entry in Drafts to review (note + transcript/photo text, survivor approves)
 - [x] Upload auto soft drafts: photo/audio/video → pending proposed_incidents for /drafts (soft claims; survivor approves)
 - [x] Drafts accept → timeline + binder consistency; survivor transcript/OCR review tray (soft claims; no share bypass)
+
+## Oct 10
+- [x] Sharing-record lockdown (no reopen/extend/widen from browser) — verified at database level
+- [x] Remaining Sept–Oct database updates applied (marketing_leads skipped)
+- [x] Founder dashboard /admin; attorney request page /attorney-apply; approve/decline + direct invite
+- [x] Published; test help request + attorney request alerts delivered to founder Gmail
+- [ ] On-screen survivor→attorney re-check — needs Grace signed in on attorney account (2-step sign-in)
+- [ ] Signup alert proof — approve the test attorney request in /admin to trigger it
+
+## Open (Oct 12)
+- [x] Paste 1 Section 0 run (read-only), output saved to Files
+- [ ] Paste 1 Section 1 — HELD: written for PR #214 code, which is not in this project yet; running it now locks every attorney out of the live site
+- [ ] Paste 1 Section 2, Verifier smoke test, publish — after Section 1
+- [ ] Paste 2 (attorney profile lock), Paste 3 (test attorney trial) — after Paste 1 + publish
+- [ ] Approve fictional test attorneys in /admin — after all three pastes
+- [ ] End-to-end pilot for each upload format (consent, processing, Journal, revocation, privacy, survivor-approved Timeline) — after pastes
+- [ ] Grace: delete real-survivor "New survivor signup" emails in Gmail; turn on Lovable 2FA; set AI database access to ask each time; remove unneeded project members

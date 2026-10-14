@@ -1,3 +1,4 @@
+import { fetchReviewedAi } from "@/lib/ai-processing-policy.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -15,6 +16,7 @@ export const transcribeVoiceNote = createServerFn({ method: "POST" })
     z
       .object({
         voiceNoteId: z.string().uuid(),
+        ai_consent: z.literal(true),
       })
       .parse(input),
   )
@@ -76,7 +78,7 @@ export const transcribeVoiceNote = createServerFn({ method: "POST" })
       return { ok: false as const, reason: "fetch-failed" };
     }
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetchReviewedAi("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
       body: JSON.stringify({

@@ -1,4 +1,5 @@
-import type { ChangeEvent } from "react";
+import { useId, type ChangeEvent } from "react";
+import { dateFormFromRow, resolveIncidentDate } from "@/lib/incident-date";
 
 /**
  * Shared "when did this happen?" control.
@@ -23,7 +24,7 @@ export interface DateCertaintyValue {
 }
 
 export const EMPTY_DATE_CERTAINTY: DateCertaintyValue = {
-  date_precision: "exact",
+  date_precision: "unknown",
   date: "",
   approx_month: "",
   date_range_start: "",
@@ -56,10 +57,7 @@ export function deriveSortDate(v: DateCertaintyValue): string | null {
 export function toEvidenceDateFields(v: DateCertaintyValue) {
   const anchored = v.date_precision === "before_anchor" || v.date_precision === "after_anchor";
   return {
-    date: deriveSortDate(v),
-    date_precision: v.date_precision,
-    date_range_start: v.date_precision === "range" ? v.date_range_start || null : null,
-    date_range_end: v.date_precision === "range" ? v.date_range_end || null : null,
+    ...resolveIncidentDate({ ...v, anchor_date: "" }),
     anchor_label: anchored ? v.anchor_label.trim() || null : null,
   };
 }
@@ -71,7 +69,7 @@ export function fromEvidenceDateFields(row: {
   date_range_end?: string | null;
   anchor_label?: string | null;
 }): DateCertaintyValue {
-  const p = (row.date_precision as DatePrecision | null) ?? "exact";
+  const p = dateFormFromRow(row).date_precision;
   return {
     date_precision: p,
     date: p === "exact" ? (row.date ?? "") : "",
@@ -96,6 +94,7 @@ export function DateCertaintyField({
   label = "When did this happen?",
   compact,
 }: Props) {
+  const precisionId = useId();
   const set = (patch: Partial<DateCertaintyValue>) => onChange({ ...value, ...patch });
   const handle =
     (key: keyof DateCertaintyValue) => (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
@@ -106,8 +105,11 @@ export function DateCertaintyField({
   return (
     <div className="space-y-2">
       <div>
-        <label className="label-eyebrow">{label}</label>
+        <label htmlFor={precisionId} className="label-eyebrow">
+          {label}
+        </label>
         <select
+          id={precisionId}
           value={value.date_precision}
           onChange={handle("date_precision")}
           className="input-pp mt-1"
@@ -127,8 +129,11 @@ export function DateCertaintyField({
 
       {value.date_precision === "exact" && (
         <div>
-          <label className="label-eyebrow" htmlFor="datecertaintyfield-date">Date</label>
-          <input id="datecertaintyfield-date"
+          <label className="label-eyebrow" htmlFor="datecertaintyfield-date">
+            Date
+          </label>
+          <input
+            id="datecertaintyfield-date"
             type="date"
             value={value.date}
             onChange={handle("date")}
@@ -139,8 +144,11 @@ export function DateCertaintyField({
 
       {value.date_precision === "approximate_month" && (
         <div>
-          <label className="label-eyebrow" htmlFor="datecertaintyfield-month">Month</label>
-          <input id="datecertaintyfield-month"
+          <label className="label-eyebrow" htmlFor="datecertaintyfield-month">
+            Month
+          </label>
+          <input
+            id="datecertaintyfield-month"
             type="month"
             value={value.approx_month}
             onChange={handle("approx_month")}
@@ -152,8 +160,11 @@ export function DateCertaintyField({
       {value.date_precision === "range" && (
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="label-eyebrow" htmlFor="datecertaintyfield-from">From</label>
-            <input id="datecertaintyfield-from"
+            <label className="label-eyebrow" htmlFor="datecertaintyfield-from">
+              From
+            </label>
+            <input
+              id="datecertaintyfield-from"
               type="date"
               value={value.date_range_start}
               onChange={handle("date_range_start")}
@@ -161,8 +172,11 @@ export function DateCertaintyField({
             />
           </div>
           <div>
-            <label className="label-eyebrow" htmlFor="datecertaintyfield-to">To</label>
-            <input id="datecertaintyfield-to"
+            <label className="label-eyebrow" htmlFor="datecertaintyfield-to">
+              To
+            </label>
+            <input
+              id="datecertaintyfield-to"
               type="date"
               value={value.date_range_end}
               onChange={handle("date_range_end")}
