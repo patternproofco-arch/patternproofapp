@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "crypto";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAttorneyPortalAuth } from "@/lib/attorney-portal-auth";
 
 /**
  * Firm matter records: an attorney creates and names a matter, optionally
@@ -56,7 +57,7 @@ async function assertOwnedLink(userId: string, linkId: string) {
 }
 
 export const listMatters = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [mattersRes, linksRes] = await Promise.all([
@@ -92,7 +93,7 @@ export const listMatters = createServerFn({ method: "GET" })
   });
 
 export const createMatter = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => matterInput.parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -124,7 +125,7 @@ export const createMatter = createServerFn({ method: "POST" })
   });
 
 export const updateMatter = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) =>
     matterInput
       .partial()
@@ -161,7 +162,7 @@ export const updateMatter = createServerFn({ method: "POST" })
   });
 
 export const getMatter = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -196,7 +197,7 @@ export const getMatter = createServerFn({ method: "POST" })
   });
 
 export const inviteAdvocateToMatter = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) =>
     z
       .object({
@@ -230,12 +231,13 @@ export const inviteAdvocateToMatter = createServerFn({ method: "POST" })
       })
       .select("id,advocate_email,advocate_name,status,expires_at,created_at,accepted_at")
       .single();
-    if (error || !invitation) throw new Error(error?.message ?? "We couldn't send that invitation.");
+    if (error || !invitation)
+      throw new Error(error?.message ?? "We couldn't send that invitation.");
     return { invitation, acceptPath: `/matter-invite/${token}` };
   });
 
 export const revokeMatterInvitation = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -249,7 +251,7 @@ export const revokeMatterInvitation = createServerFn({ method: "POST" })
   });
 
 export const revokeMatterAdvocate = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

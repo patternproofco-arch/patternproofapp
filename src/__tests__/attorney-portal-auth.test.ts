@@ -86,6 +86,35 @@ describe("strict attorney-portal gate (Guardian condition 2, PR #232)", () => {
     payments: ["generateAttorneyCourtPacket", "generateCaseManagementPackage"],
     "evidence-requests": ["createEvidenceRequest", "listClientEvidenceRequests"],
   };
+  GATED["matters"] = [
+    "listMatters",
+    "createMatter",
+    "updateMatter",
+    "getMatter",
+    "inviteAdvocateToMatter",
+    "revokeMatterInvitation",
+    "revokeMatterAdvocate",
+  ];
+  GATED["cross-references"] = ["findClientCrossReferences"];
+  it("attorney-sent invitation email checks strict attorney approval", () => {
+    const src = readFileSync("src/lib/email/invitation-email.functions.ts", "utf8");
+    const branch = src.slice(src.indexOf('templateName === "attorney-survivor-invitation"'));
+    expect(branch.slice(0, 600)).toContain(
+      "assertAttorneyRoleApproved(supabaseAdmin, context.userId)",
+    );
+  });
+  it("survivor-side functions keep the general gate", () => {
+    for (const [file, name] of [
+      ["time-entries", "listMyAttorneyBilling"],
+      ["cross-references", "findCrossReferences"],
+      ["evidence-requests", "respondWithoutEvidence"],
+    ])
+      expect(readFileSync(`src/lib/${file}.functions.ts`, "utf8")).toMatch(
+        new RegExp(
+          `export const ${name} = createServerFn\\([^)]*\\)\\s*\\.middleware\\(\\[requireSupabaseAuth\\]\\)`,
+        ),
+      );
+  });
   for (const [file, names] of Object.entries(GATED))
     it.each(names)(`${file}: %s uses requireAttorneyPortalAuth`, (name) => {
       const src = readFileSync(`src/lib/${file}.functions.ts`, "utf8");
