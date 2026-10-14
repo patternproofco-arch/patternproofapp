@@ -285,8 +285,13 @@ export async function mockServerFunctions(page, { persona = "survivor", handlers
     } catch {
       /* not a recognizable descriptor — fall through to the generic default */
     }
-    const result = exportName && all[exportName] ? all[exportName]() : {};
-    const body = await encodeServerFnResult({ result });
+    let response;
+    try {
+      response = { result: exportName && all[exportName] ? await all[exportName]() : {} };
+    } catch (error) {
+      response = { error };
+    }
+    const body = await encodeServerFnResult(response);
     return route.fulfill({
       status: 200,
       headers: { "content-type": "application/json", "x-tss-serialized": "true" },

@@ -217,6 +217,9 @@ function Dashboard() {
               {a.label}
             </Link>
           ))}
+          <Link to="/settings" hash="connected-apps" style={{ fontSize: 13, color: "var(--ink)", textDecoration: "none" }}>
+            AI assistance
+          </Link>
         </nav>
       </FocusRegion>
 
