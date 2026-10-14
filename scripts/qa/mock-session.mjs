@@ -42,16 +42,16 @@ try {
 
 // Prefer deployment env. Never fall back to a real production project ref (#59).
 const PROJECT_REF = // The storage key must match the bundle under test: the URL it was built with
-// wins over a bare project id (a test file setting VITE_SUPABASE_PROJECT_ID from
-// .env must not move the key away from a CI build made for example.invalid).
-(
-  process.env.VITE_SUPABASE_URL ||
-  localBuildEnv.VITE_SUPABASE_URL ||
-  process.env.VITE_SUPABASE_PROJECT_ID ||
-  "https://example.invalid"
-)
-  .replace(/^https?:\/\//, "")
-  .split(".")[0];
+  // wins over a bare project id (a test file setting VITE_SUPABASE_PROJECT_ID from
+  // .env must not move the key away from a CI build made for example.invalid).
+  (
+    process.env.VITE_SUPABASE_URL ||
+    localBuildEnv.VITE_SUPABASE_URL ||
+    process.env.VITE_SUPABASE_PROJECT_ID ||
+    "https://example.invalid"
+  )
+    .replace(/^https?:\/\//, "")
+    .split(".")[0];
 const STORAGE_KEY = `sb-${PROJECT_REF}-auth-token`;
 
 function b64url(obj) {
@@ -123,20 +123,53 @@ export async function seedAuth(page, user = fakeUser()) {
  *  caller override specific REST tables by name; everything else gets a
  *  safe empty-array/empty-object default (GET → [], everything else → {}). */
 export async function mockSupabaseNetwork(page, { session, handlers = {} } = {}) {
+  // Keep fictional SDK calls on the local origin before HTTP interception.
+  // WebKit can otherwise make cross-origin checks outside the route mock and
+  // hit the deliberately unreachable CI hostname. This affects fixtures only.
+  await page.addInitScript(() => {
+    const nativeFetch = window.fetch.bind(window);
+    window.fetch = (input, init) => {
+      const raw = input instanceof Request ? input.url : String(input);
+      const target = new URL(raw, window.location.href);
+      if (
+        target.origin !== window.location.origin &&
+        /^\/(auth|rest)\/v1(\/|$)/.test(target.pathname)
+      ) {
+        const local = `${window.location.origin}${target.pathname}${target.search}`;
+        input = input instanceof Request ? new Request(local, input) : local;
+      }
+      return nativeFetch(input, init);
+    };
+  });
+  // Model Supabase's CORS response and preflight. WebKit enforces these even
+  // when the HTTP response comes from a Playwright route instead of a server.
+  const cors = (route) => ({
+    "access-control-allow-origin": route.request().headers().origin || "*",
+    "access-control-allow-methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+    "access-control-allow-headers":
+      route.request().headers()["access-control-request-headers"] ||
+      "authorization,apikey,content-type,x-client-info,prefer",
+  });
   await page.route("**/auth/v1/**", async (route) => {
+    const headers = cors(route);
+    if (route.request().method() === "OPTIONS") return route.fulfill({ status: 204, headers });
     const url = new URL(route.request().url());
-    if (url.pathname.endsWith("/user")) return route.fulfill({ status: 200, json: session.user });
-    if (url.pathname.includes("/token")) return route.fulfill({ status: 200, json: session });
-    return route.fulfill({ status: 200, json: {} });
+    if (url.pathname.endsWith("/user"))
+      return route.fulfill({ status: 200, headers, json: session.user });
+    if (url.pathname.includes("/token"))
+      return route.fulfill({ status: 200, headers, json: session });
+    return route.fulfill({ status: 200, headers, json: {} });
   });
 
   await page.route("**/rest/v1/**", async (route) => {
+    const headers = cors(route);
     const req = route.request();
+    if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers });
     const url = new URL(req.url());
     const table = url.pathname.split("/").pop() || "";
     if (handlers[table]) return handlers[table](route, url);
-    if (req.method() === "GET") return route.fulfill({ status: 200, json: [] });
-    return route.fulfill({ status: 200, json: {} });
+    if (req.method() === "GET") return route.fulfill({ status: 200, headers, json: [] });
+    return route.fulfill({ status: 200, headers, json: {} });
   });
 
   // Realtime websockets just hang retrying against the blocked host

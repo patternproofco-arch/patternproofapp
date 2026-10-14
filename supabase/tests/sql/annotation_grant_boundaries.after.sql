@@ -50,6 +50,12 @@ BEGIN
  IF n<>0 THEN RAISE EXCEPTION 'Revoked approval retained cached-token review access'; END IF;
  EXECUTE 'RESET ROLE'; PERFORM set_config('request.jwt.claim.sub','',true);
  UPDATE public.attorney_access_applications SET status='approved' WHERE user_id=attorney;
+ DELETE FROM public.user_roles WHERE user_id=attorney AND role='attorney';
+ PERFORM set_config('request.jwt.claim.sub',attorney::text,true); EXECUTE 'SET LOCAL ROLE authenticated';
+ SELECT count(*) INTO n FROM public.attorney_evidence_reviews WHERE client_user_id=owner;
+ IF n<>0 THEN RAISE EXCEPTION 'Removed role retained cached-token review access'; END IF;
+ EXECUTE 'RESET ROLE'; PERFORM set_config('request.jwt.claim.sub','',true);
+ INSERT INTO public.user_roles(user_id,role) VALUES(attorney,'attorney');
  UPDATE public.evidence SET deleted_at=now() WHERE id=file_a;
  PERFORM set_config('request.jwt.claim.sub',attorney::text,true);
  EXECUTE 'SET LOCAL ROLE authenticated';

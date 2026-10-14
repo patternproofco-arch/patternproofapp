@@ -13,6 +13,8 @@ vi.mock("@/integrations/supabase/auth-middleware", () => ({
   requireAccountAuth: {},
 }));
 vi.mock("@/lib/payments.functions", () => ({ isAttorneyEntitled: vi.fn() }));
+vi.mock("@/lib/attorney-portal-auth", () => ({ requireAttorneyPortalAuth: {} }));
+
 vi.mock("@tanstack/react-start", () => ({
   createServerFn: () => {
     const builder = {
@@ -200,6 +202,22 @@ describe("access after fresh sharing", () => {
         },
       }),
     ).rejects.toThrow("current share");
+  });
+  it("denies review reads and edits after the attorney role is removed", async () => {
+    state.admin.tables.user_roles = [];
+    await expect(listEvidenceReviews({ data: { clientId: "survivor" } })).rejects.toThrow(
+      "Attorney role required",
+    );
+    await expect(
+      upsertEvidenceReview({
+        data: {
+          clientId: "survivor",
+          evidenceId: "current-file",
+          notes: "Forged",
+        },
+      }),
+    ).rejects.toThrow("Attorney role required");
+    expect(state.admin.tables.attorney_evidence_reviews[1].notes).toBe("Current review");
   });
   it("denies review access once the current grant expires", async () => {
     state.admin.tables.attorney_client_links[1].expires_at = "2000-01-01";

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { selectInChunks } from "@/lib/in-chunks.server";
+import { requireAttorneyPortalAuth } from "@/lib/attorney-portal-auth";
 import { z } from "zod";
 
 const REVIEW_STATUSES = [
@@ -15,12 +16,13 @@ const REVIEW_STATUSES = [
 
 async function assertActiveLink(attorneyId: string, clientId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { assertLink } = await import("@/lib/attorney-access.server");
+  const { assertLink, assertAttorney } = await import("@/lib/attorney-access.server");
+  await assertAttorney(supabaseAdmin, attorneyId);
   return assertLink(supabaseAdmin, attorneyId, clientId);
 }
 
 export const listEvidenceReviews = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const link = await assertActiveLink(context.userId, data.clientId);
@@ -83,7 +85,7 @@ export const listEvidenceReviews = createServerFn({ method: "POST" })
   });
 
 export const upsertEvidenceReview = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) =>
     z
       .object({

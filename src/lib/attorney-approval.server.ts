@@ -12,7 +12,11 @@ export async function assertApprovedAttorney(db: any, userId: string) {
 export async function assertApprovedAttorneyAccount(db: any, userId: string) {
   const { data, error } = await db.from("user_roles").select("role").eq("user_id", userId);
   if (error || !data) throw new Error("Could not verify account access.");
-  if (data.some((r: { role: string }) => r.role === "attorney")) {
+  const roles = data.map((r: { role: string }) => r.role);
+  // Admin is a database-owned role (user_roles, service role read). A founder
+  // account that also holds an unreviewed attorney role keeps its survivor and
+  // staff access; attorney-only endpoints still call assertApprovedAttorney.
+  if (roles.includes("attorney") && !roles.includes("admin")) {
     await assertApprovedAttorney(db, userId);
   }
 }
