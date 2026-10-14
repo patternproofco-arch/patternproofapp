@@ -1,0 +1,918 @@
+{
+  "grants": [
+    {
+      "grantee": "authenticated",
+      "privilege_type": "INSERT",
+      "table_name": "clio_matter_links"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "SELECT",
+      "table_name": "clio_matter_links"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "UPDATE",
+      "table_name": "clio_matter_links"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "DELETE",
+      "table_name": "clio_matter_links"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "REFERENCES",
+      "table_name": "clio_matter_links"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "TRIGGER",
+      "table_name": "clio_matter_links"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "INSERT",
+      "table_name": "clio_matter_links"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "SELECT",
+      "table_name": "clio_matter_links"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "UPDATE",
+      "table_name": "clio_matter_links"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "DELETE",
+      "table_name": "clio_matter_links"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "TRUNCATE",
+      "table_name": "clio_matter_links"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "REFERENCES",
+      "table_name": "clio_matter_links"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "TRIGGER",
+      "table_name": "clio_matter_links"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "INSERT",
+      "table_name": "attorney_incident_notes"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "SELECT",
+      "table_name": "attorney_incident_notes"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "UPDATE",
+      "table_name": "attorney_incident_notes"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "DELETE",
+      "table_name": "attorney_incident_notes"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "REFERENCES",
+      "table_name": "attorney_incident_notes"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "TRIGGER",
+      "table_name": "attorney_incident_notes"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "INSERT",
+      "table_name": "attorney_incident_notes"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "SELECT",
+      "table_name": "attorney_incident_notes"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "UPDATE",
+      "table_name": "attorney_incident_notes"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "DELETE",
+      "table_name": "attorney_incident_notes"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "TRUNCATE",
+      "table_name": "attorney_incident_notes"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "REFERENCES",
+      "table_name": "attorney_incident_notes"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "TRIGGER",
+      "table_name": "attorney_incident_notes"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "INSERT",
+      "table_name": "attorney_missing_evidence_checklist"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "SELECT",
+      "table_name": "attorney_missing_evidence_checklist"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "UPDATE",
+      "table_name": "attorney_missing_evidence_checklist"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "DELETE",
+      "table_name": "attorney_missing_evidence_checklist"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "REFERENCES",
+      "table_name": "attorney_missing_evidence_checklist"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "TRIGGER",
+      "table_name": "attorney_missing_evidence_checklist"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "INSERT",
+      "table_name": "attorney_missing_evidence_checklist"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "SELECT",
+      "table_name": "attorney_missing_evidence_checklist"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "UPDATE",
+      "table_name": "attorney_missing_evidence_checklist"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "DELETE",
+      "table_name": "attorney_missing_evidence_checklist"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "TRUNCATE",
+      "table_name": "attorney_missing_evidence_checklist"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "REFERENCES",
+      "table_name": "attorney_missing_evidence_checklist"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "TRIGGER",
+      "table_name": "attorney_missing_evidence_checklist"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "INSERT",
+      "table_name": "attorney_evidence_reviews"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "SELECT",
+      "table_name": "attorney_evidence_reviews"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "UPDATE",
+      "table_name": "attorney_evidence_reviews"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "DELETE",
+      "table_name": "attorney_evidence_reviews"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "REFERENCES",
+      "table_name": "attorney_evidence_reviews"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "TRIGGER",
+      "table_name": "attorney_evidence_reviews"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "INSERT",
+      "table_name": "attorney_evidence_reviews"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "SELECT",
+      "table_name": "attorney_evidence_reviews"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "UPDATE",
+      "table_name": "attorney_evidence_reviews"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "DELETE",
+      "table_name": "attorney_evidence_reviews"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "TRUNCATE",
+      "table_name": "attorney_evidence_reviews"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "REFERENCES",
+      "table_name": "attorney_evidence_reviews"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "TRIGGER",
+      "table_name": "attorney_evidence_reviews"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "INSERT",
+      "table_name": "court_dates"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "SELECT",
+      "table_name": "court_dates"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "UPDATE",
+      "table_name": "court_dates"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "DELETE",
+      "table_name": "court_dates"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "REFERENCES",
+      "table_name": "court_dates"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "TRIGGER",
+      "table_name": "court_dates"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "INSERT",
+      "table_name": "court_dates"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "SELECT",
+      "table_name": "court_dates"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "UPDATE",
+      "table_name": "court_dates"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "DELETE",
+      "table_name": "court_dates"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "TRUNCATE",
+      "table_name": "court_dates"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "REFERENCES",
+      "table_name": "court_dates"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "TRIGGER",
+      "table_name": "court_dates"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "INSERT",
+      "table_name": "attorney_messages"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "SELECT",
+      "table_name": "attorney_messages"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "UPDATE",
+      "table_name": "attorney_messages"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "DELETE",
+      "table_name": "attorney_messages"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "TRUNCATE",
+      "table_name": "attorney_messages"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "REFERENCES",
+      "table_name": "attorney_messages"
+    },
+    {
+      "grantee": "service_role",
+      "privilege_type": "TRIGGER",
+      "table_name": "attorney_messages"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "INSERT",
+      "table_name": "attorney_messages"
+    },
+    {
+      "grantee": "authenticated",
+      "privilege_type": "SELECT",
+      "table_name": "attorney_messages"
+    }
+  ],
+  "policies": [
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "Attorneys manage their own evidence reviews",
+      "qual": "((auth.uid() = attorney_user_id) AND private.has_attorney_access(auth.uid(), client_user_id))",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "attorney_evidence_reviews",
+      "with_check": "((auth.uid() = attorney_user_id) AND private.has_attorney_access(auth.uid(), client_user_id))"
+    },
+    {
+      "cmd": "DELETE",
+      "permissive": "PERMISSIVE",
+      "policyname": "Attorney deletes own notes",
+      "qual": "((auth.uid() = attorney_user_id) AND (EXISTS ( SELECT 1\n   FROM attorney_client_links l\n  WHERE ((l.id = attorney_incident_notes.link_id) AND (l.attorney_user_id = auth.uid()) AND (l.client_user_id = attorney_incident_notes.client_user_id) AND (l.status = 'active'::text)))))",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "attorney_incident_notes",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Attorney reads own notes",
+      "qual": "((auth.uid() = attorney_user_id) AND (EXISTS ( SELECT 1\n   FROM attorney_client_links l\n  WHERE ((l.id = attorney_incident_notes.link_id) AND (l.attorney_user_id = auth.uid()) AND (l.status = 'active'::text)))))",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "attorney_incident_notes",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "permissive": "PERMISSIVE",
+      "policyname": "Attorney updates own notes",
+      "qual": "((auth.uid() = attorney_user_id) AND (EXISTS ( SELECT 1\n   FROM attorney_client_links l\n  WHERE ((l.id = attorney_incident_notes.link_id) AND (l.attorney_user_id = auth.uid()) AND (l.client_user_id = attorney_incident_notes.client_user_id) AND (l.status = 'active'::text)))))",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "attorney_incident_notes",
+      "with_check": "((auth.uid() = attorney_user_id) AND (EXISTS ( SELECT 1\n   FROM attorney_client_links l\n  WHERE ((l.id = attorney_incident_notes.link_id) AND (l.attorney_user_id = auth.uid()) AND (l.client_user_id = attorney_incident_notes.client_user_id) AND (l.status = 'active'::text)))))"
+    },
+    {
+      "cmd": "INSERT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Attorney writes own notes",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "attorney_incident_notes",
+      "with_check": "((auth.uid() = attorney_user_id) AND (EXISTS ( SELECT 1\n   FROM attorney_client_links l\n  WHERE ((l.id = attorney_incident_notes.link_id) AND (l.attorney_user_id = auth.uid()) AND (l.client_user_id = attorney_incident_notes.client_user_id) AND (l.status = 'active'::text)))))"
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Participants read messages",
+      "qual": "(EXISTS ( SELECT 1\n   FROM attorney_client_links l\n  WHERE ((l.id = attorney_messages.link_id) AND (l.status = 'active'::text) AND (l.revoked_at IS NULL) AND ((l.expires_at IS NULL) OR (l.expires_at > now())) AND ((auth.uid() = l.client_user_id) OR (auth.uid() = l.attorney_user_id)))))",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "attorney_messages",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Participants send messages",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "attorney_messages",
+      "with_check": "((auth.uid() = sender_user_id) AND (EXISTS ( SELECT 1\n   FROM attorney_client_links l\n  WHERE ((l.id = attorney_messages.link_id) AND (l.status = 'active'::text) AND (l.revoked_at IS NULL) AND ((l.expires_at IS NULL) OR (l.expires_at > now())) AND ((auth.uid() = l.client_user_id) OR (auth.uid() = l.attorney_user_id))))))"
+    },
+    {
+      "cmd": "UPDATE",
+      "permissive": "PERMISSIVE",
+      "policyname": "Recipients mark read",
+      "qual": "(EXISTS ( SELECT 1\n   FROM attorney_client_links l\n  WHERE ((l.id = attorney_messages.link_id) AND (l.status = 'active'::text) AND (l.revoked_at IS NULL) AND ((l.expires_at IS NULL) OR (l.expires_at > now())) AND ((auth.uid() = l.client_user_id) OR (auth.uid() = l.attorney_user_id)))))",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "attorney_messages",
+      "with_check": "(EXISTS ( SELECT 1\n   FROM attorney_client_links l\n  WHERE ((l.id = attorney_messages.link_id) AND (l.status = 'active'::text) AND (l.revoked_at IS NULL) AND ((l.expires_at IS NULL) OR (l.expires_at > now())) AND ((auth.uid() = l.client_user_id) OR (auth.uid() = l.attorney_user_id)))))"
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "Attorneys manage their own checklist items",
+      "qual": "((auth.uid() = attorney_user_id) AND private.has_attorney_access(auth.uid(), client_user_id))",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "attorney_missing_evidence_checklist",
+      "with_check": "((auth.uid() = attorney_user_id) AND private.has_attorney_access(auth.uid(), client_user_id))"
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Clients can view their own checklist",
+      "qual": "((auth.uid() = client_user_id) AND (EXISTS ( SELECT 1\n   FROM attorney_client_links l\n  WHERE ((l.attorney_user_id = attorney_missing_evidence_checklist.attorney_user_id) AND (l.client_user_id = attorney_missing_evidence_checklist.client_user_id) AND (l.status = 'active'::text) AND (l.revoked_at IS NULL)))))",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "attorney_missing_evidence_checklist",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Attorneys link matters with consent",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "clio_matter_links",
+      "with_check": "((linked_by = auth.uid()) AND (EXISTS ( SELECT 1\n   FROM attorney_client_links l\n  WHERE ((l.id = clio_matter_links.attorney_client_link_id) AND (l.attorney_user_id = auth.uid()) AND (l.status = 'active'::text) AND (l.revoked_at IS NULL) AND (l.clio_share_consent = true)))))"
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Attorneys read own clio matter links",
+      "qual": "(EXISTS ( SELECT 1\n   FROM attorney_client_links l\n  WHERE ((l.id = clio_matter_links.attorney_client_link_id) AND (l.attorney_user_id = auth.uid()) AND (l.status = 'active'::text) AND (l.revoked_at IS NULL))))",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "clio_matter_links",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "permissive": "PERMISSIVE",
+      "policyname": "Attorneys update own clio matter links",
+      "qual": "(EXISTS ( SELECT 1\n   FROM attorney_client_links l\n  WHERE ((l.id = clio_matter_links.attorney_client_link_id) AND (l.attorney_user_id = auth.uid()) AND (l.status = 'active'::text) AND (l.revoked_at IS NULL))))",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "clio_matter_links",
+      "with_check": "(EXISTS ( SELECT 1\n   FROM attorney_client_links l\n  WHERE ((l.id = clio_matter_links.attorney_client_link_id) AND (l.attorney_user_id = auth.uid()) AND (l.status = 'active'::text) AND (l.revoked_at IS NULL))))"
+    },
+    {
+      "cmd": "SELECT",
+      "permissive": "PERMISSIVE",
+      "policyname": "Linked attorneys can view client court dates",
+      "qual": "private.has_attorney_access(auth.uid(), user_id)",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "court_dates",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "permissive": "PERMISSIVE",
+      "policyname": "Survivors manage their own court dates",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "authenticated"
+      ],
+      "schemaname": "public",
+      "tablename": "court_dates",
+      "with_check": "(auth.uid() = user_id)"
+    }
+  ],
+  "tables": [
+    {
+      "columns": [
+        {
+          "default": "gen_random_uuid()",
+          "name": "id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "attorney_user_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "client_user_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "evidence_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": "'unreviewed'::text",
+          "name": "status",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "exhibit_label",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "notes",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "linked_incident_id",
+          "notnull": false,
+          "type": "uuid"
+        },
+        {
+          "default": "now()",
+          "name": "created_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": "now()",
+          "name": "updated_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        }
+      ],
+      "name": "attorney_evidence_reviews"
+    },
+    {
+      "columns": [
+        {
+          "default": "gen_random_uuid()",
+          "name": "id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "link_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "attorney_user_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "client_user_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "incident_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "note",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": "false",
+          "name": "flagged",
+          "notnull": true,
+          "type": "boolean"
+        },
+        {
+          "default": "false",
+          "name": "reviewed",
+          "notnull": true,
+          "type": "boolean"
+        },
+        {
+          "default": "now()",
+          "name": "created_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": "now()",
+          "name": "updated_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        }
+      ],
+      "name": "attorney_incident_notes"
+    },
+    {
+      "columns": [
+        {
+          "default": "gen_random_uuid()",
+          "name": "id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "link_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "sender_user_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "sender_role",
+          "notnull": true,
+          "type": "app_role"
+        },
+        {
+          "default": null,
+          "name": "content",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "read_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": "now()",
+          "name": "created_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        }
+      ],
+      "name": "attorney_messages"
+    },
+    {
+      "columns": [
+        {
+          "default": "gen_random_uuid()",
+          "name": "id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "attorney_user_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "client_user_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "item_label",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "notes",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": "false",
+          "name": "is_resolved",
+          "notnull": true,
+          "type": "boolean"
+        },
+        {
+          "default": null,
+          "name": "resolved_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": "now()",
+          "name": "created_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": "now()",
+          "name": "updated_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": "'manual'::text",
+          "name": "source",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "link_id",
+          "notnull": false,
+          "type": "uuid"
+        }
+      ],
+      "name": "attorney_missing_evidence_checklist"
+    },
+    {
+      "columns": [
+        {
+          "default": "gen_random_uuid()",
+          "name": "id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "attorney_client_link_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "clio_matter_id",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "clio_matter_display_number",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "clio_matter_description",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "linked_by",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": "now()",
+          "name": "linked_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "unlinked_at",
+          "notnull": false,
+          "type": "timestamp with time zone"
+        }
+      ],
+      "name": "clio_matter_links"
+    },
+    {
+      "columns": [
+        {
+          "default": "gen_random_uuid()",
+          "name": "id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "user_id",
+          "notnull": true,
+          "type": "uuid"
+        },
+        {
+          "default": null,
+          "name": "court_name",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "hearing_type",
+          "notnull": true,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "hearing_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": null,
+          "name": "location",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": null,
+          "name": "notes",
+          "notnull": false,
+          "type": "text"
+        },
+        {
+          "default": "now()",
+          "name": "created_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        },
+        {
+          "default": "now()",
+          "name": "updated_at",
+          "notnull": true,
+          "type": "timestamp with time zone"
+        }
+      ],
+      "name": "court_dates"
+    }
+  ]
+}

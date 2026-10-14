@@ -76,6 +76,32 @@ CREATE TABLE public.attorney_profiles(user_id uuid PRIMARY KEY,full_name text NO
 CREATE TABLE public.firms(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),name text NOT NULL,created_by uuid NOT NULL,seats_included integer DEFAULT 1,updated_at timestamptz DEFAULT now());
 CREATE TABLE public.notifications(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),user_id uuid NOT NULL,kind text NOT NULL,title text NOT NULL,body text,metadata jsonb DEFAULT '{}');
 GRANT ALL ON public.subscriptions,public.attorney_profiles,public.firms,public.notifications TO service_role;`);
+// Additional live catalog metadata only; no production records are copied.
+const annotationSnapshot = JSON.parse(read("supabase/tests/annotation-policy-snapshot.json"));
+for (const table of annotationSnapshot.tables) {
+  const columns = table.columns.map(
+    (column) =>
+      `${quote(column.name)} ${column.type}${column.default ? ` DEFAULT ${column.default}` : ""}${column.notnull ? " NOT NULL" : ""}`,
+  );
+  columns.push("PRIMARY KEY (id)");
+  if (table.name === "attorney_evidence_reviews")
+    columns.push(
+      "CONSTRAINT attorney_evidence_reviews_attorney_user_id_evidence_id_key UNIQUE (attorney_user_id,evidence_id)",
+    );
+  await db.exec(
+    `CREATE TABLE public.${quote(table.name)} (${columns.join(",")}); ALTER TABLE public.${quote(table.name)} ENABLE ROW LEVEL SECURITY;`,
+  );
+}
+for (const grant of annotationSnapshot.grants)
+  await db.exec(
+    `GRANT ${grant.privilege_type} ON public.${quote(grant.table_name)} TO ${quote(grant.grantee)};`,
+  );
+for (const policy of annotationSnapshot.policies) {
+  const roles = policy.roles.map((role) => (role === "public" ? "PUBLIC" : quote(role))).join(",");
+  await db.exec(
+    `CREATE POLICY ${quote(policy.policyname)} ON public.${quote(policy.tablename)} AS ${policy.permissive} FOR ${policy.cmd} TO ${roles}${policy.qual ? ` USING (${policy.qual})` : ""}${policy.with_check ? ` WITH CHECK (${policy.with_check})` : ""};`,
+  );
+}
 for (const file of [
   "20261011173000_fresh_attorney_grants.sql",
   "20261011174000_preserve_unfinished_entries.sql",
@@ -93,6 +119,14 @@ await db.exec(read("supabase/tests/sql/fresh_grants_and_signup_alerts.test.sql")
 });
 await db.exec(read("supabase/tests/sql/atomic_attorney_billing.test.sql"), {
   onNotice: (n) => console.log(n.message),
+});
+await db.exec(read("supabase/tests/sql/annotation_grant_boundaries.before.sql"), {
+  onNotice: (notice) => console.log(notice.message),
+});
+await db.exec(read("supabase/migrations/20261014134914_attorney_annotation_grant_boundaries.sql"));
+await db.exec(read("supabase/migrations/20261014134914_attorney_annotation_grant_boundaries.sql"));
+await db.exec(read("supabase/tests/sql/annotation_grant_boundaries.after.sql"), {
+  onNotice: (notice) => console.log(notice.message),
 });
 console.log(
   "PASS: SQL isolation suite (Postgres 17 via PGlite; live policy snapshot, synthetic data only).",
