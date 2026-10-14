@@ -9,6 +9,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({
   },
 }));
 vi.mock("@/integrations/supabase/auth-middleware", () => ({ requireSupabaseAuth: {} }));
+vi.mock("@/lib/attorney-portal-auth", () => ({ requireAttorneyPortalAuth: {} }));
 vi.mock("@tanstack/react-start", () => ({
   createServerFn: () => {
     const builder = {

@@ -7,10 +7,11 @@ export function resolvePortal(result: {
 }) {
   // Dual-role accounts may use their survivor space, with the same survivor lock.
   if (result.is_survivor && result.roles.includes("survivor")) return "survivor" as const;
-  if (result.roles.includes("attorney"))
-    return result.attorney_approved === false
-      ? ("/attorney-apply" as const)
-      : ("/clients" as const);
+  if (result.roles.includes("attorney")) {
+    if (result.attorney_approved !== false) return "/clients" as const;
+    // The unreviewed-attorney intake must not hijack a staff account.
+    return result.roles.includes("admin") ? ("/admin" as const) : ("/attorney-apply" as const);
+  }
   if (result.roles.includes("advocate"))
     return result.is_org_partner ? ("/org-portal" as const) : ("/advocate-cases" as const);
   throw new Error("No supported portal role was verified.");

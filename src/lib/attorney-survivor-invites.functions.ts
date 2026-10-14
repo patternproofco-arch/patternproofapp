@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAttorneyPortalAuth } from "@/lib/attorney-portal-auth";
 import { z } from "zod";
 
 export { peekSurvivorInvite, acceptSurvivorInvite } from "./attorney-survivor-invites.peek";
@@ -10,7 +11,7 @@ async function admin() {
 }
 
 export const createSurvivorInvite = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) =>
     z.object({
       survivor_email: z.string().email().max(255),
@@ -34,7 +35,7 @@ export const createSurvivorInvite = createServerFn({ method: "POST" })
   });
 
 export const createSurvivorInvitesBulk = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) =>
     z.object({
       rows: z.array(z.object({
@@ -73,7 +74,7 @@ export const createSurvivorInvitesBulk = createServerFn({ method: "POST" })
   });
 
 export const listSurvivorInvites = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .handler(async ({ context }) => {
     const supabaseAdmin = await admin();
     const { data, error } = await supabaseAdmin.from("attorney_survivor_invites").select("id,survivor_email,survivor_name,personal_note,invite_token,status,expires_at,accepted_at,opened_at,created_at").eq("attorney_user_id", context.userId).order("created_at", { ascending: false });
@@ -83,7 +84,7 @@ export const listSurvivorInvites = createServerFn({ method: "GET" })
   });
 
 export const revokeSurvivorInvite = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const supabaseAdmin = await admin();
@@ -93,7 +94,7 @@ export const revokeSurvivorInvite = createServerFn({ method: "POST" })
   });
 
 export const resendSurvivorInvite = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => z.object({ id: z.string().uuid(), expires_days: z.number().int().min(1).max(365).default(30) }).parse(input))
   .handler(async ({ data, context }) => {
     const supabaseAdmin = await admin();

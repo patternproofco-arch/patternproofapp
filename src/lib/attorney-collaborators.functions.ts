@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAttorneyPortalAuth } from "@/lib/attorney-portal-auth";
 import { z } from "zod";
 import { isAttorneyEntitled } from "@/lib/payments.functions";
 
@@ -20,7 +21,7 @@ async function assertOwnerLink(userId: string, clientId: string) {
 }
 
 export const listCaseCollaborators = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const link = await assertOwnerLink(context.userId, data.clientId);
@@ -37,7 +38,7 @@ export const listCaseCollaborators = createServerFn({ method: "POST" })
   });
 
 export const inviteCaseCollaborator = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) =>
     z
       .object({
@@ -88,7 +89,7 @@ export const inviteCaseCollaborator = createServerFn({ method: "POST" })
   });
 
 export const revokeCaseCollaborator = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

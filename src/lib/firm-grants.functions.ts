@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "crypto";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAttorneyPortalAuth } from "@/lib/attorney-portal-auth";
 import { z } from "zod";
 import {
   canChangeMemberRole,
@@ -430,7 +431,7 @@ export const changeFirmMemberRole = createServerFn({ method: "POST" })
   });
 
 export const removeFirmMember = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => z.object({ user_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -494,7 +495,7 @@ export const listFirmColleagues = createServerFn({ method: "POST" })
   });
 
 export const listCaseGrants = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const link = await assertOwnerLink(data.clientId, context.userId);
@@ -524,7 +525,7 @@ export const listCaseGrants = createServerFn({ method: "POST" })
   });
 
 export const grantCaseAccess = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) =>
     z.object({ clientId: z.string().uuid(), attorney_user_id: z.string().uuid() }).parse(input),
   )
@@ -574,7 +575,7 @@ export const grantCaseAccess = createServerFn({ method: "POST" })
   });
 
 export const revokeCaseGrant = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -602,7 +603,7 @@ export const revokeCaseGrant = createServerFn({ method: "POST" })
 
 /** Cases explicitly granted to the current verified firm member. */
 export const listGrantedToMe = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: grants, error } = await supabaseAdmin

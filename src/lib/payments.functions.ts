@@ -3,6 +3,7 @@ import { toSafeCsv } from "@/lib/csv-safe";
 import { assertSafeReturnUrl } from "@/lib/return-url";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAttorneyPortalAuth } from "@/lib/attorney-portal-auth";
 import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib/stripe.server";
 import JSZip from "jszip";
 import { createHash } from "crypto";
@@ -354,7 +355,7 @@ function sha256(buf: ArrayBuffer | Uint8Array): string {
 }
 
 export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) =>
     z
       .object({
@@ -867,7 +868,7 @@ export const generateAttorneyCourtPacket = createServerFn({ method: "POST" })
 /* ------------------ Case management import package (ZIP) ------------------ */
 
 export const generateCaseManagementPackage = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const ent = await isAttorneyEntitled(context.userId, data.clientId);

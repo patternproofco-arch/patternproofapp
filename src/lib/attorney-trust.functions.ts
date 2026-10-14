@@ -1,9 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAttorneyPortalAuth } from "@/lib/attorney-portal-auth";
 
 export const getTrustPanel = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => z.object({}).parse(input ?? {}))
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

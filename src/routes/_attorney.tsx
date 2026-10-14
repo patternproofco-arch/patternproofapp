@@ -76,7 +76,11 @@ function AttorneyLayout() {
           return;
         }
         if (r.role === "attorney" && !r.attorney_approved) {
-          navigate({ to: "/attorney-apply", replace: true });
+          // Staff accounts with an unreviewed attorney role go to /admin, not intake.
+          navigate({
+            to: r.roles.includes("admin") ? "/admin" : "/attorney-apply",
+            replace: true,
+          });
           return;
         }
         setUserRole(r.role);
