@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 // files and generated output are deliberately outside these source roots.
 const ROOTS = ["src", "public", "scripts", "supabase/migrations", "drizzle/migrations"];
 const FILES = [
+  ".lovable/mcp/manifest.json",
   "package.json",
   "package-lock.json",
   "bun.lock",
@@ -28,7 +29,10 @@ export function sourceDigest(root = process.cwd()) {
     const stat = lstatSync(absolute);
     if (stat.isSymbolicLink()) throw new Error(`Source provenance cannot follow symlink: ${path}`);
     if (stat.isDirectory()) {
-      for (const name of readdirSync(absolute).sort()) visit(`${path}/${name}`);
+      for (const name of readdirSync(absolute).sort()) {
+        if (/^\.env(?:\.|$)/.test(name)) continue;
+        visit(`${path}/${name}`);
+      }
     } else if (stat.isFile()) files.push(path);
     else throw new Error(`Unsupported source entry: ${path}`);
   }

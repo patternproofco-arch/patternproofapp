@@ -20,6 +20,7 @@ describe("source provenance on hosts without git", () => {
     const original = fixture();
     const copy = fixture();
     writeFileSync(join(original, ".env"), "SECRET=fictional-private-value");
+    writeFileSync(join(original, "src/.env.local"), "SECRET=fictional-private-value");
     mkdirSync(join(original, ".output"));
     writeFileSync(join(original, ".output/build.json"), '{"time":"different"}');
     expect(sourceDigest(original)).toMatch(/^[a-f0-9]{64}$/);
@@ -36,6 +37,13 @@ describe("source provenance on hosts without git", () => {
     expect(added).not.toBe(edited);
     renameSync(join(root, "src/other.ts"), join(root, "src/renamed.ts"));
     expect(sourceDigest(root)).not.toBe(added);
+  });
+  it("includes the MCP build manifest in provenance", () => {
+    const root = fixture();
+    const original = sourceDigest(root);
+    mkdirSync(join(root, ".lovable/mcp"), { recursive: true });
+    writeFileSync(join(root, ".lovable/mcp/manifest.json"), '{"issuer":"https://example.invalid"}');
+    expect(sourceDigest(root)).not.toBe(original);
   });
   it("refuses incomplete trees and symbolic links outside the source tree", () => {
     const root = fixture();

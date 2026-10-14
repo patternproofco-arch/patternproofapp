@@ -91,7 +91,12 @@ function OperationsPage() {
           <h1 className="font-serif text-3xl">Founder operations</h1>
           <p className="mt-2">Review attorney access and follow up on support requests.</p>
         </div>
-        <Button onClick={() => void load()}>Refresh</Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline">
+            <Link to="/admin/org-requests">DV organization requests</Link>
+          </Button>
+          <Button onClick={() => void load()}>Refresh</Button>
+        </div>
       </div>
       {error && <p role="alert">{error}</p>}
       {!data && !error && <p role="status">Loading operations…</p>}

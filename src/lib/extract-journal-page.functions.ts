@@ -1,3 +1,4 @@
+import { fetchReviewedAi } from "@/lib/ai-processing-policy.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -56,7 +57,7 @@ export const ocrJournalImage = createServerFn({ method: "POST" })
     } catch {
       return { ok: false as const, reason: "fetch-failed" };
     }
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetchReviewedAi("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
       body: JSON.stringify({
@@ -93,7 +94,7 @@ export const splitJournalIntoIncidents = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const key = process.env.LOVABLE_API_KEY;
     if (!key) return { ok: false as const, reason: "missing-key" };
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetchReviewedAi("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
       body: JSON.stringify({

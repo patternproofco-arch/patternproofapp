@@ -1,3 +1,4 @@
+import { fetchReviewedAi } from "@/lib/ai-processing-policy.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -49,7 +50,7 @@ export const extractIncidentFromTranscript = createServerFn({ method: "POST" })
       return { ok: false as const, reason: "no-transcript" };
     }
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetchReviewedAi("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

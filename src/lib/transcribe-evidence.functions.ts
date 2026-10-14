@@ -1,3 +1,7 @@
+import {
+  fetchReviewedAi,
+  assertAiProcessingPolicyReviewed,
+} from "@/lib/ai-processing-policy.server";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -40,15 +44,18 @@ function labelSpeakers(raw: Array<{ start: number; end: number; text: string }>)
 
 export const transcribeEvidence = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ evidence_id: z.string().uuid() }).parse(input))
+  .inputValidator((input) =>
+    z.object({ evidence_id: z.string().uuid(), ai_consent: z.literal(true) }).parse(input),
+  )
   .handler(async ({ data, context }) => {
+    assertAiProcessingPolicyReviewed();
     const { supabase, userId } = context;
     const key = process.env.LOVABLE_API_KEY;
     if (!key) throw new Error("Transcription is not available right now.");
 
     const rowRes = await supabase
       .from("evidence")
-      .select("id, file_url, mime, original_filename, transcript_status")
+      .select("id, file_url, mime, original_filename, transcript_status, is_sealed, ai_permission")
       .eq("id", data.evidence_id)
       .eq("user_id", userId)
       .is("deleted_at", null)
@@ -60,7 +67,12 @@ export const transcribeEvidence = createServerFn({ method: "POST" })
       mime: string | null;
       original_filename: string | null;
       transcript_status: string;
+      is_sealed: boolean | null;
+      ai_permission: string | null;
     };
+    if (row.is_sealed || row.ai_permission === "none" || row.ai_permission === "denied") {
+      throw new Error("This file is kept out of AI processing. Review it manually.");
+    }
     const mime = row.mime ?? "";
     if (!mime.startsWith("audio/") && !mime.startsWith("video/")) {
       throw new Error("This file has no audio track to transcribe.");
@@ -89,19 +101,20 @@ export const transcribeEvidence = createServerFn({ method: "POST" })
       // never read back. Segment timestamps are simply not offered here.
       form.append("response_format", "json");
 
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
+      const res = await fetchReviewedAi("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
         method: "POST",
         headers: { Authorization: `Bearer ${key}` },
         body: form,
       });
       if (!res.ok) {
-        const errText = await res.text().catch(() => "");
         await supabase
           .from("evidence")
           .update({ transcript_status: "failed" })
           .eq("id", row.id)
           .eq("user_id", userId);
-        throw new Error(`Transcription failed (${res.status}): ${errText.slice(0, 200)}`);
+        throw new Error(
+          `Transcription failed (${res.status}). Your upload is preserved; you can retry or review it manually.`,
+        );
       }
       const json = (await res.json()) as {
         text?: string;
@@ -142,7 +155,9 @@ export const transcribeEvidence = createServerFn({ method: "POST" })
 
 export const verifyTranscript = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ evidence_id: z.string().uuid() }).parse(input))
+  .inputValidator((input) =>
+    z.object({ evidence_id: z.string().uuid(), ai_consent: z.literal(true) }).parse(input),
+  )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await supabase

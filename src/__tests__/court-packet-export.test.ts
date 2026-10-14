@@ -156,6 +156,42 @@ function world(): Tables {
 }
 
 describe("case packet export", () => {
+  it("excludes attached unconfirmed accounts and suggested files", async () => {
+    const tables = world();
+    tables.incidents[0].source = "ai_extracted";
+    tables.incidents[0].confirmed_at = null;
+    tables.incidents[1].source = "ai_extracted";
+    tables.incidents[1].confirmed_at = "2026-10-10T00:00:00Z";
+    tables.evidence[0].review_status = "suggested";
+    const packet = await buildCasePacket(fakeAdmin(tables), { caseId: CASE_A, userId: SURV_A });
+    expect(packet.counts.incidents).toBe(1);
+    expect(packet.counts.evidence).toBe(0);
+  });
+
+  it("reads every page of a long attached conversation", async () => {
+    const tables = world();
+    tables.thread_messages = Array.from({ length: 1001 }, (_, n) => ({
+      id: `message-${n}`,
+      thread_id: "th-1",
+      user_id: SURV_A,
+      position: n,
+      sender: "Fictional sender",
+      body: `Fictional message ${n}`,
+      sent_on: null,
+      sent_at_time: null,
+    }));
+    const db = fakeAdmin(tables, {}, { maxRows: 1000, maxInIds: 100 });
+    await buildCasePacket(db, { caseId: CASE_A, userId: SURV_A });
+    expect(db.queries.filter((q) => q.table === "thread_messages")).toHaveLength(2);
+  });
+
+  it("fails the packet when a selected read fails", async () => {
+    const db = fakeAdmin(world(), {}, { maxInIds: 0 });
+    await expect(buildCasePacket(db, { caseId: CASE_A, userId: SURV_A })).rejects.toThrow(
+      /couldn't load every/,
+    );
+  });
+
   it("produces a real, non-empty PDF with the expected sections", async () => {
     const db = fakeAdmin(world());
     const packet = await buildCasePacket(db, { caseId: CASE_A, userId: SURV_A });

@@ -56,8 +56,11 @@ export function FocusModeProvider({
         <div
           className="no-print"
           style={{
-            position: "sticky",
-            top: 8,
+            // Focusing a link happens on pointer-down. Keep this control out
+            // of layout so it cannot move that link before pointer-up.
+            position: "fixed",
+            top: 80,
+            right: 20,
             zIndex: 5,
             display: "flex",
             justifyContent: "flex-end",
