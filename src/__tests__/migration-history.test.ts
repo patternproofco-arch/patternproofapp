@@ -36,6 +36,7 @@ describe("reconciled custom migration history", () => {
         "0042_attorney_annotation_grant_boundaries",
         "20261014134914_attorney_annotation_grant_boundaries",
       ],
+      ["0043_accept_share_confirmed_email", "20261014220000_accept_share_confirmed_email"],
     ]) {
       expect(readFileSync(`drizzle/migrations/${drizzle}.sql`, "utf8")).toBe(
         readFileSync(`supabase/migrations/${supabase}.sql`, "utf8"),
@@ -64,7 +65,8 @@ describe("reconciled custom migration history", () => {
     expect(tags[39]).toBe("0039_attorney_applications");
     expect(tags[40]).toBe("0040_lovable_sync_reconcile");
     expect(tags[41]).toBe("0041_followup_trigger_fn_grants");
-    expect(tags.at(-1)).toBe("0042_attorney_annotation_grant_boundaries");
+    expect(tags[42]).toBe("0042_attorney_annotation_grant_boundaries");
+    expect(tags.at(-1)).toBe("0043_accept_share_confirmed_email");
     const when: number[] = journal.entries.map((e: { when: number }) => e.when);
     for (let i = 1; i < when.length; i++) expect(when[i]).toBeGreaterThan(when[i - 1]);
   });
@@ -72,12 +74,13 @@ describe("reconciled custom migration history", () => {
     const files = readdirSync("supabase/migrations")
       .filter((f) => f.endsWith(".sql"))
       .sort();
-    expect(files.slice(-5)).toEqual([
+    expect(files.slice(-6)).toEqual([
       "20261011190000_lock_client_link_updates.sql",
       "20261011191000_attorney_applications.sql",
       "20261011200000_lovable_sync_reconcile.sql",
       "20261013150000_followup_trigger_fn_grants.sql",
       "20261014134914_attorney_annotation_grant_boundaries.sql",
+      "20261014220000_accept_share_confirmed_email.sql",
     ]);
   });
   it("neutralises the Lovable copies that would undo main's fixes", () => {
