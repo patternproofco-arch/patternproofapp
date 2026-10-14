@@ -4,7 +4,6 @@ import { AlertTriangle, DoorOpen, FileCheck, Scale, Smartphone } from "lucide-re
 import { useSettings } from "@/lib/settings-context";
 import { supabase } from "@/integrations/supabase/client";
 import { QuickExitButton } from "@/components/QuickExitButton";
-import { onboardingQuickExitDock } from "@/lib/quick-exit-dock";
 import { BrandMark } from "@/components/BrandMark";
 import { toast } from "sonner";
 import { completeSurvivorOnboarding } from "@/lib/legal-consent.functions";
@@ -82,15 +81,13 @@ function Onboarding() {
   return (
     <div className="relative mx-auto max-w-2xl px-5 py-10 md:py-14">
       <div
-        className="sticky top-0 z-30 -mx-5 mb-6 flex items-center justify-between px-5 py-2 sm:static sm:mx-0 sm:px-0 sm:py-0"
+        className="sticky top-0 z-30 -mx-5 mb-6 flex min-h-[60px] items-center justify-between px-5 py-2 sm:static sm:mx-0 sm:px-0 sm:py-0"
         style={{ background: "var(--background)" }}
       >
         <BrandMark size={40} />
-        <QuickExitButton
-          defaultPosition={onboardingQuickExitDock(
-            typeof window === "undefined" ? undefined : window.innerWidth,
-          )}
-        />
+        {/* Phones: Quick Exit docks over this reserved top-right slot. */}
+        <span aria-hidden className="pp-qe-slot" />
+        <QuickExitButton phoneDock />
       </div>
 
       <div className="mb-6 text-center">

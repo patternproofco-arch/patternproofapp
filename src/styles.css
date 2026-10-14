@@ -2003,15 +2003,41 @@ textarea.input-pp {
   }
 }
 
-/* Phones: the survivor header is sticky and opaque so content scrolls beneath it,
-   and Quick Exit docks in its empty left slot (src/lib/quick-exit-dock.ts). The
-   floating button therefore never covers a form field. */
+/* Quick Exit docking (src/lib/quick-exit-dock.ts). Phones: the survivor shell
+   and onboarding headers are sticky and opaque, 60px tall, and reserve their
+   top-right slot; Quick Exit docks there in both, so it never covers a form
+   field. `.pp-qe-dock` places it before mount (first paint); afterwards
+   QuickExitButton sets the same coordinates inline. */
+.pp-qe-dock {
+  right: 16px;
+  top: 70px;
+}
+.pp-qe-slot {
+  display: none;
+}
 @media (max-width: 639.98px) {
+  .pp-qe-dock {
+    top: 8px;
+  }
+  .pp-qe-slot {
+    display: block;
+    flex: 0 0 auto;
+    width: 116px;
+    height: 44px;
+  }
   .pp-app-shell .pp-shell-header {
     position: sticky;
     top: 0;
     z-index: 30;
+    min-height: 60px;
+    padding-top: 0;
     background: var(--pp-ground);
-    padding-bottom: 8px;
+  }
+  .pp-app-shell .pp-shell-header-spacer {
+    display: none;
+  }
+  /* Utility icons move left to make room for Quick Exit top-right. */
+  .pp-app-shell .pp-shell-utility {
+    order: -1;
   }
 }

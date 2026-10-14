@@ -4,7 +4,6 @@ import { useSettings } from "@/lib/settings-context";
 import { GuideHelper } from "@/components/survivor/GuideHelper";
 import { FloatingRecordButton } from "@/components/FloatingRecordButton";
 import { QuickExitButton } from "@/components/QuickExitButton";
-import { shellQuickExitDock } from "@/lib/quick-exit-dock";
 import { AmbientBackground } from "@/components/AmbientBackground";
 import { BottomTabBar } from "@/components/BottomTabBar";
 import { UtilityBar } from "@/components/UtilityBar";
@@ -46,9 +45,13 @@ export function AppShell() {
       <AmbientBackground />
 
       <header className="pp-shell-header pp-app-chrome no-print app-surface mx-auto flex w-full max-w-[430px] items-center justify-between gap-3 px-4 pt-3">
-        <span aria-hidden style={{ width: 1 }} />
+        <span aria-hidden className="pp-shell-header-spacer" style={{ width: 1 }} />
         <BrandMark size={30} variant="ink" />
-        <UtilityBar />
+        <div className="pp-shell-utility">
+          <UtilityBar />
+        </div>
+        {/* Phones: Quick Exit docks over this reserved top-right slot. */}
+        <span aria-hidden className="pp-qe-slot" />
       </header>
 
       <NotificationBanner />
@@ -71,11 +74,7 @@ export function AppShell() {
       <BottomTabBar />
       <GuideHelper />
       <FloatingRecordButton />
-      <QuickExitButton
-        defaultPosition={shellQuickExitDock(
-          typeof window === "undefined" ? undefined : window.innerWidth,
-        )}
-      />
+      <QuickExitButton phoneDock />
     </div>
   );
 }

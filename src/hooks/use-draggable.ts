@@ -9,6 +9,10 @@ import { useEffect, useRef, useState } from "react";
 export function useDraggable(
   storageKey: string,
   initial: { right?: number; bottom?: number; left?: number; top?: number },
+  options: {
+    /** Maps the saved position to what is shown (e.g. clamp on phones). */
+    display?: (pos: { left: number; top: number }) => { left: number; top: number };
+  } = {},
 ) {
   const [pos, setPos] = useState<{ left: number; top: number } | null>(() => {
     if (typeof window === "undefined") return null;
@@ -92,9 +96,17 @@ export function useDraggable(
     },
   };
 
-  const style: React.CSSProperties = pos
-    ? { left: pos.left, top: pos.top, right: "auto", bottom: "auto" }
+  const shown = pos && options.display ? options.display(pos) : pos;
+  const style: React.CSSProperties = shown
+    ? { left: shown.left, top: shown.top, right: "auto", bottom: "auto" }
     : { ...initial };
 
-  return { ref, style, dragHandlers, wasDragged: () => moved.current };
+  return {
+    ref,
+    style,
+    dragHandlers,
+    wasDragged: () => moved.current,
+    hasSavedPosition: !!pos,
+    setPos,
+  };
 }
