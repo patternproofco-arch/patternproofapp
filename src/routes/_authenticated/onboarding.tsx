@@ -80,9 +80,14 @@ function Onboarding() {
 
   return (
     <div className="relative mx-auto max-w-2xl px-5 py-10 md:py-14">
-      <div className="mb-6 flex items-center justify-between">
+      <div
+        className="sticky top-0 z-30 -mx-5 mb-6 flex min-h-[60px] items-center justify-between px-5 py-2 sm:static sm:mx-0 sm:px-0 sm:py-0"
+        style={{ background: "var(--background)" }}
+      >
         <BrandMark size={40} />
-        <QuickExitButton />
+        {/* Phones: Quick Exit docks over this reserved top-right slot. */}
+        <span aria-hidden className="pp-qe-slot" />
+        <QuickExitButton phoneDock />
       </div>
 
       <div className="mb-6 text-center">
@@ -120,9 +125,9 @@ function Onboarding() {
 
         <StepCard icon={<AlertTriangle size={20} />} title="If you are in danger right now">
           <p>
-            <strong>Call 911</strong> (US). National DV Hotline: <strong>1-800-799-7233</strong>,
-            or text START to 88788. PatternProof is not a crisis service and not a law firm. It
-            helps you keep a record.
+            <strong>Call 911</strong> (US). National DV Hotline: <strong>1-800-799-7233</strong>, or
+            text START to 88788. PatternProof is not a crisis service and not a law firm. It helps
+            you keep a record.
           </p>
         </StepCard>
 
@@ -147,9 +152,8 @@ function Onboarding() {
               className="mt-1"
             />
             <span>
-              I understand that what I record here may be used in a legal case, and could be seen
-              by the other side, their attorney, or a judge if I share it or it becomes part of a
-              case.
+              I understand that what I record here may be used in a legal case, and could be seen by
+              the other side, their attorney, or a judge if I share it or it becomes part of a case.
             </span>
           </label>
           <label className="flex cursor-pointer items-start gap-2 text-[14px]">
@@ -161,7 +165,12 @@ function Onboarding() {
             />
             <span>
               I have read and agree to the{" "}
-              <a href="/privacy" target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>
+              <a
+                href="/privacy"
+                target="_blank"
+                rel="noreferrer"
+                style={{ color: "var(--accent)" }}
+              >
                 Privacy Policy
               </a>
               .
@@ -198,7 +207,11 @@ function Onboarding() {
           className="btn-primary w-full"
           style={{ opacity: busy || !ready ? 0.6 : 1 }}
         >
-          {busy ? "One moment…" : ready ? "Open my space" : "Check the three boxes above to continue"}
+          {busy
+            ? "One moment…"
+            : ready
+              ? "Open my space"
+              : "Check the three boxes above to continue"}
         </button>
       </div>
     </div>

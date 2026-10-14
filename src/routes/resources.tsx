@@ -157,7 +157,7 @@ function ResourcesPage() {
 
   return (
     <div style={{ background: PAPER, color: INK, minHeight: "100vh", fontFamily: SANS }}>
-      <QuickExitButton />
+      <QuickExitButton phoneDock />
       {user ? <BottomTabBar /> : null}
 
       <div style={{ maxWidth: 780, margin: "0 auto", padding: "clamp(40px,8vw,88px) 24px 140px" }}>

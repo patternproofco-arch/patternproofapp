@@ -42,11 +42,11 @@ export function PinScreen() {
 
   return (
     <div
-      className="flex min-h-screen items-center justify-center px-6"
+      className="pp-qe-page flex min-h-screen items-center justify-center px-6"
       style={{ background: "var(--background)" }}
     >
       {/* Always reachable, even locked — same control as the rest of the app. */}
-      <QuickExitButton />
+      <QuickExitButton phoneDock />
       <div className="w-full max-w-sm">
         <h1 className="font-serif text-[28px] text-center">{settings.disguiseName}</h1>
         {forgot ? (

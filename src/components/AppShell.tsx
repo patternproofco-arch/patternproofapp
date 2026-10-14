@@ -39,13 +39,19 @@ export function AppShell() {
       data-pp-paper=""
       style={{ background: "var(--paper)" }}
     >
-      <a href="#main-content" className="skip-link">Skip to main content</a>
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
       <AmbientBackground />
 
       <header className="pp-shell-header pp-app-chrome no-print app-surface mx-auto flex w-full max-w-[430px] items-center justify-between gap-3 px-4 pt-3">
-        <span aria-hidden style={{ width: 1 }} />
+        <span aria-hidden className="pp-shell-header-spacer" style={{ width: 1 }} />
         <BrandMark size={30} variant="ink" />
-        <UtilityBar />
+        <div className="pp-shell-utility">
+          <UtilityBar />
+        </div>
+        {/* Phones: Quick Exit docks over this reserved top-right slot. */}
+        <span aria-hidden className="pp-qe-slot" />
       </header>
 
       <NotificationBanner />
@@ -68,7 +74,7 @@ export function AppShell() {
       <BottomTabBar />
       <GuideHelper />
       <FloatingRecordButton />
-      <QuickExitButton />
+      <QuickExitButton phoneDock />
     </div>
   );
 }
