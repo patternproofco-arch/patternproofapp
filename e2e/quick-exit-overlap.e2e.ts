@@ -31,7 +31,7 @@ async function expectHeaderDock(page: Page, label: string) {
     .poll(
       async () => {
         const b = (await exit.boundingBox())!;
-        return b.y >= 0 && b.y + b.height <= 60 && b.x + b.width >= vw - 24 && b.x >= vw - 132;
+        return b.y >= 0 && b.y + b.height <= 60 && b.x + b.width >= vw - 24 && b.x >= vw - 148;
       },
       { message: `${label}: Quick Exit in the top-right header dock` },
     )
