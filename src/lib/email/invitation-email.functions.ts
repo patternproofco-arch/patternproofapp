@@ -119,6 +119,10 @@ export const sendInvitationEmail = createServerFn({ method: "POST" })
         expiresLabel: daysLeft(inv.expires_at),
       };
     } else if (data.templateName === "attorney-survivor-invitation") {
+      // Attorney-sent template: strict approval, no admin bypass (the other two
+      // templates are sent by survivors/advocates and keep the general gate).
+      const { assertAttorneyRoleApproved } = await import("@/lib/attorney-portal-auth");
+      await assertAttorneyRoleApproved(supabaseAdmin, context.userId);
       const { data: inv } = await supabaseAdmin
         .from("attorney_survivor_invites")
         .select("survivor_name, personal_note, invite_token, expires_at")
