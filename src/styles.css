@@ -2002,3 +2002,16 @@ textarea.input-pp {
     page-break-after: avoid;
   }
 }
+
+/* Phones: the survivor header is sticky and opaque so content scrolls beneath it,
+   and Quick Exit docks in its empty left slot (src/lib/quick-exit-dock.ts). The
+   floating button therefore never covers a form field. */
+@media (max-width: 639.98px) {
+  .pp-app-shell .pp-shell-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: var(--pp-ground);
+    padding-bottom: 8px;
+  }
+}

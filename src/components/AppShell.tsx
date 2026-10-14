@@ -4,6 +4,7 @@ import { useSettings } from "@/lib/settings-context";
 import { GuideHelper } from "@/components/survivor/GuideHelper";
 import { FloatingRecordButton } from "@/components/FloatingRecordButton";
 import { QuickExitButton } from "@/components/QuickExitButton";
+import { shellQuickExitDock } from "@/lib/quick-exit-dock";
 import { AmbientBackground } from "@/components/AmbientBackground";
 import { BottomTabBar } from "@/components/BottomTabBar";
 import { UtilityBar } from "@/components/UtilityBar";
@@ -39,7 +40,9 @@ export function AppShell() {
       data-pp-paper=""
       style={{ background: "var(--paper)" }}
     >
-      <a href="#main-content" className="skip-link">Skip to main content</a>
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
       <AmbientBackground />
 
       <header className="pp-shell-header pp-app-chrome no-print app-surface mx-auto flex w-full max-w-[430px] items-center justify-between gap-3 px-4 pt-3">
@@ -68,7 +71,11 @@ export function AppShell() {
       <BottomTabBar />
       <GuideHelper />
       <FloatingRecordButton />
-      <QuickExitButton />
+      <QuickExitButton
+        defaultPosition={shellQuickExitDock(
+          typeof window === "undefined" ? undefined : window.innerWidth,
+        )}
+      />
     </div>
   );
 }
