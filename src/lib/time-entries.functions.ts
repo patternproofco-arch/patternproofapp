@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAttorneyPortalAuth } from "@/lib/attorney-portal-auth";
 import { z } from "zod";
 
 /**
@@ -31,7 +32,7 @@ async function assertTimeEntryAccess(userId: string, entryId: string): Promise<s
 }
 
 export const listTimeEntries = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { linkId, isOwner } = await assertLinkAccess(context.userId, data.clientId);
@@ -57,7 +58,7 @@ export const listTimeEntries = createServerFn({ method: "POST" })
   });
 
 export const createTimeEntry = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) =>
     z
       .object({
@@ -95,7 +96,7 @@ export const createTimeEntry = createServerFn({ method: "POST" })
   });
 
 export const updateTimeEntry = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) =>
     z
       .object({
@@ -142,7 +143,7 @@ export const updateTimeEntry = createServerFn({ method: "POST" })
   });
 
 export const deleteTimeEntry = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const linkId = await assertTimeEntryAccess(context.userId, data.id);

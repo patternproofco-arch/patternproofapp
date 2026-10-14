@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAttorneyPortalAuth } from "@/lib/attorney-portal-auth";
 
 /* Survivor toggles Clio sharing consent for one attorney relationship.
    Only the two consent columns are written — the DB trigger guard enforces
@@ -21,7 +22,7 @@ export const setClioShareConsent = createServerFn({ method: "POST" })
 
 /* Attorney: relationships whose survivor has approved Clio sharing. */
 export const listClioConsentedClients = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .handler(async ({ context }) => {
     const { data: links, error } = await context.supabase
       .from("attorney_client_links")

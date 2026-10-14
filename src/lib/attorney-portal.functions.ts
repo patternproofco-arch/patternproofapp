@@ -1,6 +1,7 @@
 import { fetchReviewedAi } from "@/lib/ai-processing-policy.server";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth, requireAccountAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAttorneyPortalAuth } from "@/lib/attorney-portal-auth";
 import { z } from "zod";
 import { PROFESSIONAL_LINK_TTL_SECONDS } from "@/lib/professional-links.server";
 import { isAttorneyEntitled } from "@/lib/payments.functions";
@@ -124,7 +125,7 @@ export const getMyRole = createServerFn({ method: "GET" })
   });
 
 export const upsertAttorneyProfile = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) =>
     z
       .object({
@@ -148,7 +149,7 @@ export const upsertAttorneyProfile = createServerFn({ method: "POST" })
   });
 
 export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) =>
     z
       .object({
@@ -219,7 +220,7 @@ export const completeAttorneyOnboarding = createServerFn({ method: "POST" })
   });
 
 export const getAttorneyProfile = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data } = await supabaseAdmin
@@ -233,7 +234,7 @@ export const getAttorneyProfile = createServerFn({ method: "GET" })
 /* ------------------------- client list ------------------------- */
 
 export const listMyClients = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .handler(async ({ context }) => {
     await assertAttorneySubscribed(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -434,7 +435,7 @@ export const listMyClients = createServerFn({ method: "GET" })
 /* ------------------------- caseload overview ------------------------- */
 
 export const getCaseloadOverview = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .handler(async ({ context }) => {
     await assertAttorneySubscribed(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -700,7 +701,7 @@ export const getCaseloadOverview = createServerFn({ method: "GET" })
 type AnyJson = Record<string, any>;
 
 export const getClientCase = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { link } = await assertCaseAccess(context.userId, data.clientId);
@@ -1098,7 +1099,7 @@ export const getClientCase = createServerFn({ method: "POST" })
 /* ------------------------- deposition prep (AI) ------------------------- */
 
 export const generateDepositionPrep = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     await assertAttorney(context.userId);
@@ -1352,7 +1353,7 @@ export const getMyUnreadCounts = createServerFn({ method: "GET" })
   });
 
 export const createDocRequest = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) =>
     z
       .object({
@@ -1380,7 +1381,7 @@ export const createDocRequest = createServerFn({ method: "POST" })
 /* ------------------------- attorney private notes ------------------------- */
 
 export const listAttorneyNotes = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     await assertAttorney(context.userId);
@@ -1397,7 +1398,7 @@ export const listAttorneyNotes = createServerFn({ method: "POST" })
   });
 
 export const upsertAttorneyNote = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) =>
     z
       .object({
@@ -1446,7 +1447,7 @@ export const upsertAttorneyNote = createServerFn({ method: "POST" })
 /* ------------------------- case-level attorney notes ------------------------- */
 
 export const getCaseNote = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     await assertAttorney(context.userId);
@@ -1463,7 +1464,7 @@ export const getCaseNote = createServerFn({ method: "POST" })
   });
 
 export const saveCaseNote = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) =>
     z
       .object({
@@ -1487,7 +1488,7 @@ export const saveCaseNote = createServerFn({ method: "POST" })
 /* ------------------------- signed evidence URLs ------------------------- */
 
 export const getSignedEvidenceUrl = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) =>
     z.object({ clientId: z.string().uuid(), evidenceId: z.string().uuid() }).parse(input),
   )
@@ -1527,7 +1528,7 @@ export const getSignedEvidenceUrl = createServerFn({ method: "POST" })
 /* ------------------------- message threads (attorney view) ------------------------- */
 
 export const listClientThreads = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) => z.object({ clientId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { link } = await assertCaseAccess(context.userId, data.clientId);
@@ -1549,7 +1550,7 @@ export const listClientThreads = createServerFn({ method: "POST" })
   });
 
 export const getClientThread = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) =>
     z.object({ clientId: z.string().uuid(), threadId: z.string().uuid() }).parse(input),
   )
@@ -1601,7 +1602,7 @@ export const getClientThread = createServerFn({ method: "POST" })
  * marker columns come back, and the matrix is computed from those.
  */
 export const getClientThreadMatrixData = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((input) =>
     z.object({ clientId: z.string().uuid(), threadId: z.string().uuid() }).parse(input),
   )
@@ -1660,7 +1661,7 @@ export const getClientThreadMatrixData = createServerFn({ method: "POST" })
 // looser than case-builder's material-change threshold since a false positive
 // here is just a prompt to double-check, not an auto-action.
 export const getFirmConflictFlags = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .handler(async () => {
     // A shared firm membership is not a case grant. The former cross-firm
     // matcher inspected ungranted case data, so it is deliberately disabled.
@@ -1679,7 +1680,7 @@ export type ConflictFlag = {
 /* --------------------- missing-evidence checklist --------------------- */
 
 export const listMissingEvidenceChecklist = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((data: { clientId: string }) =>
     z.object({ clientId: z.string().uuid() }).parse(data),
   )
@@ -1695,7 +1696,7 @@ export const listMissingEvidenceChecklist = createServerFn({ method: "GET" })
   });
 
 export const addMissingEvidenceItem = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((data: { clientId: string; itemLabel: string; notes?: string }) =>
     z
       .object({
@@ -1725,7 +1726,7 @@ export const addMissingEvidenceItem = createServerFn({ method: "POST" })
   });
 
 export const setMissingEvidenceResolved = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((data: { id: string; clientId: string; resolved: boolean }) =>
     z
       .object({ id: z.string().uuid(), clientId: z.string().uuid(), resolved: z.boolean() })
@@ -1753,7 +1754,7 @@ export const setMissingEvidenceResolved = createServerFn({ method: "POST" })
 // (attorney_user_id, client_user_id, item_label) WHERE source='ai_gap' backs the
 // no-duplicate guarantee even under concurrent syncs.
 export const syncMissingEvidenceChecklistFromGaps = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((data: { clientId: string }) =>
     z.object({ clientId: z.string().uuid() }).parse(data),
   )
