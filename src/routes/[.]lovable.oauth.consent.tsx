@@ -130,8 +130,7 @@ function ConsentPage() {
             Connect <span className="italic">{clientName}</span> to PatternProof
           </h1>
           <p className="text-sm mt-2" style={{ color: "var(--muted-foreground)" }}>
-            This lets {clientName} act as you in PatternProof — reading and writing only your own
-            private case data.
+            This lets {clientName} help document your own private case in PatternProof.
           </p>
         </div>
 
@@ -143,10 +142,10 @@ function ConsentPage() {
             <strong>What this app will be able to do:</strong>
           </div>
           <ul className="list-disc pl-5 space-y-1">
-            <li>See your documented incidents</li>
-            <li>See your evidence items</li>
-            <li>Log new incidents on your behalf</li>
-            <li>Search across your private case</li>
+            <li>Read incidents and evidence descriptions eligible for AI access</li>
+            <li>Search eligible incidents, evidence descriptions and voice-note titles</li>
+            <li>Create unconfirmed incident drafts for you to review in your journal</li>
+            <li>Incidents and evidence marked no-AI are excluded; this connection cannot confirm, edit or delete your records</li>
           </ul>
           {redirectUri && (
             <div className="pt-2 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
@@ -162,7 +161,8 @@ function ConsentPage() {
 
         <p className="text-[12px] mb-4" style={{ color: "var(--muted-foreground)" }}>
           You can revoke access anytime from your account settings. This does not bypass
-          PatternProof's permissions — the app can only see what you can see.
+          PatternProof's permissions. Information sent to this app follows its provider's privacy
+          settings. Revoking access does not erase information already sent to an outside chat.
         </p>
 
         {access && !access.on && (
