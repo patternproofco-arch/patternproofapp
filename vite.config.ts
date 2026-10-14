@@ -11,6 +11,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { loadEnv } from "vite";
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { sourceDigest } from "./scripts/source-digest.mjs";
 import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/tanstack/vite";
 
 // Server routes need non-VITE_ env vars (e.g. service role key) in process.env.
@@ -20,9 +21,9 @@ Object.assign(process.env, serverEnv);
 
 // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
 // @cloudflare/vite-plugin builds from this — wrangler.jsonc main alone is insufficient.
-// Build/version marker: MUST resolve a real full git SHA at build time.
-// Fail closed — never emit "unknown" or a lagging stamp-file revision.
-// Publish/CI must set LOVABLE_COMMIT_SHA (or another listed env) when .git is absent.
+// Use real git metadata when available; never claim a fabricated or lagging SHA.
+// REQUIRE_COMMIT_SHA=1 makes missing metadata fatal in strict release builds.
+// Hosted builds without git also report a deterministic source digest for verification.
 // A normal git checkout resolves via `git rev-parse HEAD` — no Lovable env required.
 const FULL_SHA = /^[0-9a-f]{40}$/i;
 const SHORT_SHA = /^[0-9a-f]{7,39}$/i;
@@ -106,19 +107,19 @@ function resolveCommitSha(): { sha: string; source: string } {
 
   throw new Error(
     [
-      "Build refused: cannot resolve a full 40-character git commit SHA.",
+      "Commit metadata unavailable: cannot resolve a full 40-character git commit SHA.",
       "Set LOVABLE_COMMIT_SHA / LOVABLE_GIT_COMMIT (preferred for Publish), or",
       "GITHUB_SHA / CF_PAGES_COMMIT_SHA / WORKERS_CI_COMMIT_SHA /",
       "VERCEL_GIT_COMMIT_SHA / CI_COMMIT_SHA / COMMIT_SHA / GIT_COMMIT,",
       "or build inside a git checkout (git rev-parse HEAD).",
-      "Short (7–39) hex SHAs are expanded via git when .git exists; otherwise fail closed.",
-      'Lagging stamp-file and "unknown" fallbacks are disabled so /version.json',
-      "cannot report a lagging or fabricated revision.",
+      "Short (7–39) hex SHAs are expanded only when git metadata is available.",
+      "Hosted builds report an unavailable commit and the source digest instead.",
+      "Set REQUIRE_COMMIT_SHA=1 to require commit metadata for the build.",
     ].join(" "),
   );
 }
 
-/** Unique per build from (resolved SHA + build time). SHA is always known (fail-closed). */
+/** Unique build instance; the source digest identifies its source independently of git. */
 function buildId(sha: string, time: string): string {
   return createHash("sha256").update(`${sha}|${time}`).digest("hex").slice(0, 12);
 }
@@ -128,13 +129,18 @@ let COMMIT_SOURCE: string;
 try {
   ({ sha: COMMIT_SHA, source: COMMIT_SOURCE } = resolveCommitSha());
 } catch (err) {
-  console.error(err instanceof Error ? err.message : err);
+  const message = err instanceof Error ? err.message : err;
   // Strict CI can opt into failing the build; hosted builds without git metadata
   // report the revision truthfully as unavailable instead of claiming a commit.
-  if (process.env.REQUIRE_COMMIT_SHA === "1") process.exit(1);
+  if (process.env.REQUIRE_COMMIT_SHA === "1") {
+    console.error(message);
+    process.exit(1);
+  }
+  console.warn(message);
   COMMIT_SHA = "unknown";
   COMMIT_SOURCE = "unavailable";
 }
+const SOURCE_DIGEST = sourceDigest();
 const BUILD_TIME = new Date().toISOString();
 const BUILD_ID = buildId(COMMIT_SHA, BUILD_TIME);
 
@@ -211,6 +217,7 @@ export default defineConfig({
       __BUILD_TIME__: JSON.stringify(BUILD_TIME),
       __BUILD_ID__: JSON.stringify(BUILD_ID),
       __COMMIT_SOURCE__: JSON.stringify(COMMIT_SOURCE),
+      __SOURCE_DIGEST__: JSON.stringify(SOURCE_DIGEST),
       // Publishable client configuration comes from the host only (#59 / #103).
       ...clientEnvDefines,
     },

@@ -18,7 +18,6 @@ import { GA_GUARD_INLINE_SCRIPT } from "@/lib/ga-guard";
 import { ProfessionalReadinessKitCapture } from "@/components/ProfessionalReadinessKitCapture";
 import { GlobalHeader } from "@/components/GlobalHeader";
 import { GlobalFooter } from "@/components/GlobalFooter";
-import { LeaveADotLoader } from "@/components/LeaveADotLoader";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? "";
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "";
@@ -343,7 +342,6 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <GoogleAnalyticsRouteTracker />
-        <LeaveADotLoader />
         <div className="pp-global-layout">
           <GlobalHeader />
           <div className="pp-global-page">

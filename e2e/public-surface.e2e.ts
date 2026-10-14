@@ -39,6 +39,8 @@ test("version marker identifies the running build", async ({ request }) => {
   const body = await res.json();
   expect(typeof body.commit).toBe("string");
   expect(body.commit.length).toBeGreaterThan(0);
+  expect(body.source_digest).toMatch(/^[a-f0-9]{64}$/);
+  expect(body.source_digest_algorithm).toBe("patternproof-source-v1-sha256");
 });
 
 test("signing in is required for the survivor dashboard", async ({ page }) => {
