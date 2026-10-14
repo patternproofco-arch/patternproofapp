@@ -302,6 +302,13 @@
       "when": 1791985732776,
       "tag": "0042_attorney_annotation_grant_boundaries",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1791985733776,
+      "tag": "0043_accept_share_confirmed_email",
+      "breakpoints": true
     }
   ]
 }
