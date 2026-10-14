@@ -2015,7 +2015,7 @@ textarea.input-pp {
 .pp-qe-slot {
   display: none;
 }
-@media (max-width: 639.98px) {
+@media (max-width: 639.98px), (max-height: 499.98px) {
   .pp-qe-dock {
     top: 8px;
   }
@@ -2039,5 +2039,31 @@ textarea.input-pp {
   /* Utility icons move left to make room for Quick Exit top-right. */
   .pp-app-shell .pp-shell-utility {
     order: -1;
+  }
+  .pp-qe-dock {
+    /* Above the sticky global header (z 10000) whose top-right it docks into. */
+    z-index: 10001 !important;
+  }
+  /* PIN screen, /support, /resources, onboarding: on phones the docked Quick Exit
+     replaces the global header's "Exit safely" (one control, one position);
+     desktop keeps the global header's control. The global header becomes the
+     sticky band and keeps its own controls clear of the dock. */
+  .pp-global-page:not(:has(.pp-app-chrome)) [data-quick-exit][data-phone-dock] {
+    display: inline-flex !important;
+  }
+  .pp-global-layout:has([data-phone-dock]) .pp-global-exit {
+    display: none !important;
+  }
+  .pp-global-layout:has([data-phone-dock]) > .pp-global-header {
+    position: sticky;
+    top: 0;
+    min-height: 60px;
+    grid-template-rows: 60px auto;
+    padding-top: 0;
+    padding-right: 148px;
+  }
+  /* Chrome-less PIN screen: keep the form below the dock. */
+  .pp-qe-page {
+    padding-top: 68px;
   }
 }

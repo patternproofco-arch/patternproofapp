@@ -15,6 +15,9 @@ describe("Quick Exit docking on phones", () => {
     expect(quickExitDock(639)).toEqual(PHONE_DOCK);
     expect(quickExitDock(640)).toEqual(WIDE_DOCK);
     expect(quickExitDock(undefined)).toEqual(WIDE_DOCK);
+    // Phone in landscape keeps the header dock; a desktop window does not.
+    expect(quickExitDock(844, 390)).toEqual(PHONE_DOCK);
+    expect(quickExitDock(1280, 800)).toEqual(WIDE_DOCK);
     expect(PHONE_DOCK).not.toHaveProperty("left");
   });
   it("shell and onboarding both use the shared phone dock", () => {
@@ -22,14 +25,31 @@ describe("Quick Exit docking on phones", () => {
       expect(read(f)).toMatch(/<QuickExitButton phoneDock \/>/);
       expect(read(f)).toMatch(/className="pp-qe-slot"/);
     }
+    for (const f of [
+      "src/components/PinScreen.tsx",
+      "src/routes/support.tsx",
+      "src/routes/resources.tsx",
+    ])
+      expect(read(f)).toMatch(/<QuickExitButton phoneDock \/>/);
+    // No survivor-facing Quick Exit is left on the old floating default.
+    for (const f of [
+      "src/components/PinScreen.tsx",
+      "src/routes/support.tsx",
+      "src/routes/resources.tsx",
+      "src/components/AppShell.tsx",
+      "src/routes/_authenticated/onboarding.tsx",
+    ])
+      expect(read(f)).not.toMatch(/<QuickExitButton\s*\/>/);
   });
   it("clamps a saved mid-screen position into the header band's top-right slot on phones", () => {
     const vp = { width: 390, height: 844 };
     const size = { width: 110, height: 44 };
     const p = clampSavedQuickExitPosition({ left: 40, top: 400 }, vp, size);
     expect(p.top + size.height).toBeLessThanOrEqual(60);
-    expect(p.left).toBeGreaterThanOrEqual(390 - 132);
-    expect(p.left + size.width).toBeLessThanOrEqual(390 - 4);
+    expect(p).toEqual({ left: 390 - 110 - 16, top: 8 });
+    // Narrower WebKit label still lands on the same right edge.
+    const n = clampSavedQuickExitPosition({ left: 40, top: 400 }, vp, { width: 96, height: 44 });
+    expect(n.left + 96).toBe(390 - 16);
     // Wider screens keep the saved position.
     expect(
       clampSavedQuickExitPosition({ left: 40, top: 400 }, { width: 1024, height: 800 }, size),
@@ -50,7 +70,9 @@ describe("Quick Exit docking on phones", () => {
   });
   it("headers are sticky and opaque on phones, with a first-paint CSS dock", () => {
     const css = read("src/styles.css");
-    const block = css.slice(css.indexOf("@media (max-width: 639.98px) {\n  .pp-qe-dock"));
+    const block = css.slice(
+      css.indexOf("@media (max-width: 639.98px), (max-height: 499.98px) {\n  .pp-qe-dock"),
+    );
     expect(block).toMatch(/\.pp-qe-dock \{\s*top: 8px;/);
     expect(block).toMatch(/\.pp-app-shell \.pp-shell-header \{[^}]*position: sticky;[^}]*top: 0;/);
     expect(block).toMatch(/background: var\(--pp-ground\)/);

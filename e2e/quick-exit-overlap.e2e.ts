@@ -22,8 +22,9 @@ async function setup(page: Page) {
 
 /** Quick Exit sits in the header band's top-right corner, ≥44px, labelled. */
 async function expectHeaderDock(page: Page, label: string) {
-  const exit = page.getByRole("button", { name: "Quick exit" });
+  const exit = page.locator("[data-phone-dock]");
   await expect(exit).toBeVisible();
+  await expect(exit).toHaveAccessibleName("Quick exit");
   await expect(exit).toContainText("Quick exit");
   const vw = page.viewportSize()!.width;
   await expect
@@ -41,8 +42,27 @@ async function expectHeaderDock(page: Page, label: string) {
   // Header content moved aside: no header link/button sits under Quick Exit.
   const hidden = await page.evaluate(() => {
     const qe = document.querySelector("[data-phone-dock]")!.getBoundingClientRect();
-    return Array.from(document.querySelectorAll("header a, header button"))
-      .map((el) => el.getBoundingClientRect())
+    return Array.from(document.querySelectorAll("header a, header button, header input"))
+      .filter((el) => !el.closest("[data-phone-dock]"))
+      .map((el) => {
+        // Visible part only: clip by any scrolling ancestor (e.g. the nav row).
+        const r = el.getBoundingClientRect();
+        let left = r.left,
+          right = r.right,
+          top = r.top,
+          bottom = r.bottom;
+        for (let a = el.parentElement; a; a = a.parentElement) {
+          const cs = getComputedStyle(a);
+          if (cs.overflowX !== "visible" || cs.overflowY !== "visible") {
+            const c = a.getBoundingClientRect();
+            left = Math.max(left, c.left);
+            right = Math.min(right, c.right);
+            top = Math.max(top, c.top);
+            bottom = Math.min(bottom, c.bottom);
+          }
+        }
+        return { left, right, top, bottom, width: Math.max(0, right - left) };
+      })
       .filter(
         (r) =>
           r.width > 0 &&
@@ -73,7 +93,7 @@ async function expectNoCoveredField(page: Page) {
     expect(overlaps, `Quick Exit overlaps the field at top=${targetTop}`).toBe(false);
   }
   const covered = await page.evaluate(() => {
-    const qe = document.querySelector("[data-quick-exit]")!.getBoundingClientRect();
+    const qe = document.querySelector("[data-phone-dock]")!.getBoundingClientRect();
     return Array.from(document.querySelectorAll("input, textarea, select"))
       .map((el) => el.getBoundingClientRect())
       .filter((r) => r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < innerHeight)
@@ -141,9 +161,8 @@ test("portrait → landscape → portrait keeps Quick Exit in the header dock", 
   await expectHeaderDock(page, "portrait");
   await page.setViewportSize({ width: 844, height: 390 });
   await page.evaluate(() => window.dispatchEvent(new Event("orientationchange")));
-  // Landscape on a phone is ≥640px: original wide dock (top:70, right:16).
-  const exit = page.getByRole("button", { name: "Quick exit" });
-  await expect.poll(async () => Math.round((await exit.boundingBox())!.y)).toBe(70);
+  // Landscape phone (844 wide, 390 tall) keeps the same top-right header dock.
+  await expectHeaderDock(page, "landscape");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.evaluate(() => window.dispatchEvent(new Event("orientationchange")));
   await expectHeaderDock(page, "back to portrait");
@@ -163,4 +182,81 @@ test("a saved mid-screen drag position still doesn't cover Account password", as
     await expectHeaderDock(page, `saved mid-screen (version=${version})`);
     await expectNoCoveredField(page);
   }
+});
+
+/** Scroll every visible form control to sit just under the sticky band (and
+ *  lower), and assert Quick Exit never covers any of them. */
+async function expectNoCoveredInputsAnywhere(page: Page, label: string) {
+  const result = await page.evaluate(async () => {
+    const qeEl = document.querySelector("[data-phone-dock]")!;
+    const header = Array.from(document.querySelectorAll("header")).find(
+      (h) => getComputedStyle(h).position === "sticky" && h.getBoundingClientRect().height > 0,
+    );
+    const band = Math.max(60, header ? header.getBoundingClientRect().bottom : 0);
+    const hits: string[] = [];
+    const controls = Array.from(document.querySelectorAll("input, textarea, select")).filter(
+      (el) => (el as HTMLElement).offsetParent !== null,
+    );
+    const frame = () => new Promise((r) => requestAnimationFrame(() => r(null)));
+    for (const el of controls) {
+      for (const y of [band, band + 30, 200]) {
+        window.scrollBy(0, el.getBoundingClientRect().top - y);
+        await frame();
+        const r = el.getBoundingClientRect();
+        const qe = qeEl.getBoundingClientRect();
+        if (r.left < qe.right && qe.left < r.right && r.top < qe.bottom && qe.top < r.bottom)
+          hits.push(`${el.getAttribute("name") || el.id || el.tagName}@${Math.round(r.top)}`);
+      }
+    }
+    return { count: controls.length, hits };
+  });
+  expect(result.hits, `${label}: inputs under Quick Exit`).toEqual([]);
+  return result.count;
+}
+
+const PAGES = [
+  { name: "support", path: "/support", login: false },
+  { name: "resources", path: "/resources", login: false },
+  { name: "PIN screen", path: "/settings", login: true },
+] as const;
+
+for (const vp of [
+  { name: "portrait 390x844", width: 390, height: 844 },
+  { name: "landscape 844x390", width: 844, height: 390 },
+]) {
+  for (const p of PAGES) {
+    test(`${p.name} (${vp.name}): Quick Exit top-right in the header dock, covers no input or header control`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      if (p.login) {
+        await mockLoggedIn(page, {
+          persona: "survivor",
+          serverFnHandlers: {
+            getPinLockState: () => ({
+              app_lock_enabled: true,
+              has_pin: true,
+              biometric_enabled: false,
+            }),
+            listUnseenConnections: () => [],
+          },
+        });
+      }
+      await page.goto(p.path);
+      if (p.login) await expect(page.locator(".pp-qe-page")).toBeVisible();
+      await expectHeaderDock(page, `${p.name} ${vp.name}`);
+      await expectNoCoveredInputsAnywhere(page, `${p.name} ${vp.name}`);
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await expectHeaderDock(page, `${p.name} ${vp.name} after scroll`);
+    });
+  }
+}
+
+test("survivor shell in landscape 844x390 stays in the top-right header dock", async ({ page }) => {
+  await setup(page);
+  await page.setViewportSize({ width: 844, height: 390 });
+  await page.goto("/settings#connected-apps");
+  await expectHeaderDock(page, "shell landscape");
+  await expectNoCoveredField(page);
+  await expectNoCoveredInputsAnywhere(page, "shell landscape");
 });

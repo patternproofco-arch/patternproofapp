@@ -37,7 +37,7 @@ export function QuickExitButton({
     dragHandlers,
     wasDragged,
     setPos,
-  } = useDraggable(storageKey, phoneDock ? quickExitDock(viewport?.width) : defaultPosition, {
+  } = useDraggable(storageKey, phoneDock ? quickExitDock(viewport?.width, viewport?.height) : defaultPosition, {
     display: (pos) =>
       phoneDock && viewport ? clampSavedQuickExitPosition(pos, viewport, size) : pos,
   });
