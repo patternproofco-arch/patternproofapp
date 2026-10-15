@@ -44,7 +44,7 @@ export function MarkDensityBar({ marks, weeks = 24 }: Props) {
           <div
             key={i}
             className="flex-1"
-            title={`${b.count} ${b.count === 1 ? "Mark" : "Marks"}`}
+            title={`${b.count} ${b.count === 1 ? "Note" : "Notes"}`}
             style={{
               background: `color-mix(in oklab, var(--accent) ${Math.round(12 + b.shade * 78)}%, var(--input))`,
             }}
@@ -55,8 +55,8 @@ export function MarkDensityBar({ marks, weeks = 24 }: Props) {
         className="mt-2 flex items-center justify-between text-[11px]"
         style={{ color: "var(--muted-foreground)" }}
       >
-        <span>Fewer / older Marks</span>
-        <span>More frequent / more recent Marks</span>
+        <span>Fewer / older Notes</span>
+        <span>More frequent / more recent Notes</span>
       </div>
     </div>
   );

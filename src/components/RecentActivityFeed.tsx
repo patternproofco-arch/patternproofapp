@@ -10,7 +10,7 @@ export interface ActivityItem {
 }
 
 const META: Record<ActivityItem["kind"], { icon: typeof Mic; word: string; to: string }> = {
-  mark: { icon: NotebookPen, word: "Mark", to: "/journal" },
+  mark: { icon: NotebookPen, word: "Note", to: "/journal" },
   evidence: { icon: Paperclip, word: "Evidence", to: "/evidence" },
   voice: { icon: Mic, word: "Voice note", to: "/voice-notes" },
 };

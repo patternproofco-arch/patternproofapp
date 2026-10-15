@@ -432,7 +432,7 @@ export function BulkPastIncidentsModal({ open, onClose, onSaved }: Props) {
                     <div className="font-semibold">One quick thing:</div>
                     <div>{clarifying}</div>
                     <div className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-                      You can edit this Mark later from your Archive — or include the answer in your
+                      You can edit this Note later from your Archive — or include the answer in your
                       next memory.
                     </div>
                   </div>
