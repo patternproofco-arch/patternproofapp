@@ -2,7 +2,6 @@ import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useSettings } from "@/lib/settings-context";
 import { GuideHelper } from "@/components/survivor/GuideHelper";
-import { FloatingRecordButton } from "@/components/FloatingRecordButton";
 import { QuickExitButton } from "@/components/QuickExitButton";
 import { AmbientBackground } from "@/components/AmbientBackground";
 import { BottomTabBar } from "@/components/BottomTabBar";
@@ -78,8 +77,8 @@ export function AppShell() {
           className="pp-app-main app-surface print-page mx-auto w-full max-w-[430px] px-4"
           style={{
             paddingTop: 20,
-            // Room for the fixed nav plus the recorder above it, so neither covers text.
-            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 172px)",
+            // Room for the fixed nav, so it never covers the last content.
+            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)",
           }}
         >
           <SectionSegments />
@@ -89,7 +88,6 @@ export function AppShell() {
 
       <BottomTabBar />
       <GuideHelper />
-      <FloatingRecordButton />
       <QuickExitButton phoneDock />
     </div>
   );

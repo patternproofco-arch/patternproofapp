@@ -97,15 +97,15 @@ test("expanded Home buttons: stacked, full width, 48px, 12px apart; counts plura
   expect(Math.round(boxes[1].y - (boxes[0].y + boxes[0].height))).toBe(12);
 });
 
-test("record button is hidden on Home's calm view", async ({ page }) => {
+test("there is no floating record button on Home", async ({ page }) => {
   await go(page, "/dashboard");
   await expect(page.getByTestId("home-guide-card")).toBeVisible();
-  await expect(page.locator("[data-float-record]")).toBeHidden();
+  await expect(page.locator("[data-float-record]")).toHaveCount(0);
 });
 
 for (const [path, labels, shot] of [
-  ["/journal", ["Notes", "Drafts", "Files"], "390-notes-segments"],
-  ["/timeline", ["List", "Calendar", "Patterns"], "390-timeline-segments"],
+  ["/journal", ["Notes", "Drafts", "Files"], "390-notes-final"],
+  ["/timeline", ["List", "Calendar", "Patterns"], "390-timeline-final"],
 ] as const) {
   test(`segmented control on ${path}`, async ({ page }) => {
     await go(page, path);
@@ -131,4 +131,42 @@ test("segment pages drop the old in-page tab row", async ({ page }) => {
     await expect(page.getByTestId("section-segments")).toBeVisible();
     await expect(page.locator(".pp-hub-tabs")).toHaveCount(0);
   }
+});
+
+test("Timeline List shows accepted Notes only; drafts live under Notes > Drafts", async ({
+  page,
+}) => {
+  await go(page, "/timeline");
+  await expect(page.getByText("Notes you accept show up here in date order.")).toBeVisible();
+  await expect(page.getByText("Drafts to review", { exact: true })).toHaveCount(0);
+  await go(page, "/drafts");
+  await expect(page.getByTestId("section-segments").locator("a[aria-current='page']")).toHaveText(
+    "Drafts",
+  );
+});
+
+test("Notes copy: no Mark or Archive labels", async ({ page }) => {
+  await go(page, "/journal");
+  await expect(page.locator("main")).not.toContainText(/\bMarks?\b|\bArchive\b/);
+  await expect(page.getByText("Add several past Notes")).toBeVisible();
+});
+
+test("active tab indicator sits inside the tab", async ({ page }) => {
+  await go(page, "/journal");
+  const tab = nav(page).locator("a[aria-current='page']");
+  const r = await tab.evaluate((el) => {
+    const t = el.getBoundingClientRect();
+    const b = getComputedStyle(el, "::before");
+    return {
+      top: b.top,
+      height: b.height,
+      pos: b.position,
+      tabTop: t.top,
+      navTop: el.closest("nav")!.getBoundingClientRect().top,
+    };
+  });
+  expect(r.pos).toBe("absolute");
+  expect(r.top).toBe("0px");
+  expect(r.height).toBe("3px");
+  expect(r.tabTop).toBeGreaterThanOrEqual(r.navTop);
 });

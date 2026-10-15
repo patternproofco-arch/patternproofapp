@@ -26,7 +26,7 @@ export function HubTabs({ tabs }: { tabs: HubTab[] }) {
 }
 
 export const ARCHIVE_TABS: HubTab[] = [
-  { to: "/journal", label: "Marks" },
+  { to: "/journal", label: "Notes" },
   { to: "/voice-notes", label: "Voice notes" },
   { to: "/evidence", label: "Evidence" },
   { to: "/message-threads", label: "Message threads" },
@@ -35,7 +35,7 @@ export const ARCHIVE_TABS: HubTab[] = [
 
 export const RECURLINE_TABS: HubTab[] = [
   { to: "/patterns", label: "Recurline" },
-  { to: "/calendar", label: "Marks Calendar" },
+  { to: "/calendar", label: "Notes calendar" },
 ];
 
 export const CASE_TABS: HubTab[] = [

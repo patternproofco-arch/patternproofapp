@@ -320,13 +320,21 @@
   background: transparent !important;
   font-family: var(--pp2-sans);
 }
+.pp-app-shell[data-persona="survivor"] .pp-bottom-tab {
+  position: relative;
+  border: 0 !important;
+}
 .pp-app-shell[data-persona="survivor"] .pp-bottom-tab[data-active="true"] {
   color: var(--pp2-ink) !important;
-  border-top: 3px solid var(--pp2-ink);
   min-height: 60px;
 }
-
-/* Record button: not on Home's calm view. */
-.pp-app-shell[data-persona="survivor"]:has(.pp-home[data-view="guide"]) [data-float-record] {
-  display: none !important;
+/* Active indicator: a 3px bar inside the tab, at its top edge. */
+.pp-app-shell[data-persona="survivor"] .pp-bottom-tab[data-active="true"]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 3px;
+  background: var(--pp2-ink);
 }
