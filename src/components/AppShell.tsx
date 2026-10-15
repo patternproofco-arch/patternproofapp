@@ -7,6 +7,7 @@ import { QuickExitButton } from "@/components/QuickExitButton";
 import { AmbientBackground } from "@/components/AmbientBackground";
 import { BottomTabBar } from "@/components/BottomTabBar";
 import { HeaderTools } from "@/components/survivor/HeaderTools";
+import { SectionSegments } from "@/components/survivor/SectionSegments";
 import { NotificationBanner } from "@/components/NotificationBanner";
 import { NewConnectionNotice } from "@/components/NewConnectionNotice";
 import { quickExit } from "@/lib/quick-exit";
@@ -77,9 +78,11 @@ export function AppShell() {
           className="pp-app-main app-surface print-page mx-auto w-full max-w-[430px] px-4"
           style={{
             paddingTop: 20,
-            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 108px)",
+            // Room for the fixed nav plus the recorder above it, so neither covers text.
+            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 172px)",
           }}
         >
+          <SectionSegments />
           <Outlet />
         </main>
       </FocusModeProvider>

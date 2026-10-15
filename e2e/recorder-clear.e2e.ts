@@ -20,6 +20,7 @@ for (const path of ["/journal", "/dashboard"])
           serverFnHandlers: {
             listProposedIncidents: () => [],
             listUnseenConnections: () => [],
+            findCrossReferences: () => ({ clusters: [] }),
             getDashboardStats: () => ({
               incident_count: 1,
               evidence_count: 0,
@@ -27,6 +28,8 @@ for (const path of ["/journal", "/dashboard"])
             }),
           },
         });
+        // Home hides the recorder in its calm view; check the expanded view there.
+        await page.addInitScript(() => window.localStorage.setItem("pp.home.view", "all"));
         if (saved)
           await page.addInitScript(
             (p) => window.localStorage.setItem("pp.mic.pos", JSON.stringify(p)),

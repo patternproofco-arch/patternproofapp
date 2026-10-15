@@ -416,6 +416,13 @@ function SettingsPage() {
       {/* Moved here from the header. */}
       <div className="mt-4">
         <SignOutButton className="btn-ghost inline-flex items-center gap-2" />
+        <Link
+          to="/resources"
+          className="ml-4 text-[14px]"
+          style={{ color: "var(--ink)", textDecoration: "underline" }}
+        >
+          Help &amp; resources
+        </Link>
       </div>
 
       <div className="mt-8 grid gap-5 md:grid-cols-2">

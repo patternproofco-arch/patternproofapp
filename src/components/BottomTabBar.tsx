@@ -1,68 +1,17 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, NotebookPen, Scale, BookOpen } from "lucide-react";
-import { DotCirclePatternIcon } from "@/components/icons/PpIcons";
+import { NAV_TABS } from "@/lib/nav-tabs";
+import { CalendarDays, House, NotebookPen, Users } from "lucide-react";
+import { navTabFor } from "@/lib/nav-tabs";
 
-type Tab = {
-  to: string;
-  label: string;
-  match: string[];
-  render: (color: string) => React.ReactNode;
-};
-
-const TABS: Tab[] = [
-  {
-    to: "/dashboard",
-    label: "Home",
-    match: ["/dashboard"],
-    render: (c) => <Home size={20} strokeWidth={1.75} color={c} />,
-  },
-  {
-    to: "/journal",
-    label: "Archive",
-    match: [
-      "/journal",
-      "/voice-notes",
-      "/evidence",
-      "/message-threads",
-      "/timeline",
-      "/import-messages",
-      "/evidence-review",
-      "/live-recording",
-    ],
-    render: (c) => <NotebookPen size={20} strokeWidth={1.75} color={c} />,
-  },
-  {
-    to: "/patterns",
-    label: "Recurline",
-    match: ["/patterns", "/calendar"],
-    render: (c) => <DotCirclePatternIcon size={20} strokeWidth={1.75} color={c} />,
-  },
-  {
-    to: "/case",
-    label: "Case",
-    match: [
-      "/case",
-      "/case-builder",
-      "/court-packet",
-      "/communications",
-      "/court-dates",
-      "/share-with-attorney",
-      "/share-with-advocate",
-      "/access",
-      "/legal-documents",
-    ],
-    render: (c) => <Scale size={20} strokeWidth={1.75} color={c} />,
-  },
-  {
-    to: "/resources",
-    label: "Resources",
-    match: ["/resources", "/opra-helper", "/court-systems", "/support", "/prep"],
-    render: (c) => <BookOpen size={20} strokeWidth={1.75} color={c} />,
-  },
-];
+const ICONS = {
+  home: House,
+  notes: NotebookPen,
+  timeline: CalendarDays,
+  sharing: Users,
+} as const;
 
 /**
- * Flat bottom tab bar — five destinations, cream surface, no elevation.
+ * Flat bottom tab bar — four destinations, fixed to the bottom, cream surface.
  * Deliberately quiet: it should recede, not compete with the page.
  */
 export function BottomTabBar() {
@@ -71,20 +20,22 @@ export function BottomTabBar() {
   return (
     <nav className="pp-bottom-tab-bar no-print" aria-label="Main">
       <div className="pp-bottom-tab-inner mx-auto flex w-full max-w-2xl items-stretch">
-        {TABS.map((t) => {
-          const active = t.match.some((m) => pathname === m || pathname.startsWith(m + "/"));
+        {NAV_TABS.map((t) => {
+          const active = navTabFor(pathname) === t.id;
+          const Icon = ICONS[t.id];
           const color = active ? "var(--foreground)" : "var(--muted-foreground)";
           return (
             <Link
-              key={t.to}
+              key={t.id}
               to={t.to}
               aria-label={t.label}
               aria-current={active ? "page" : undefined}
               className="pp-bottom-tab flex flex-1 flex-col items-center justify-center gap-1"
               data-active={active ? "true" : "false"}
+              data-tab={t.id}
               style={{ color }}
             >
-              {t.render(color)}
+              <Icon size={22} strokeWidth={1.5} color={color} aria-hidden />
               <span
                 style={{ fontSize: 11, fontWeight: active ? 700 : 500, letterSpacing: "0.01em" }}
               >

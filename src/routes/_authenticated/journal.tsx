@@ -1250,7 +1250,7 @@ function JournalPage() {
               ) : list.length === 0 ? (
                 <div className="card-pp">
                   <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-                    Nothing here yet — when you're ready, this is a safe place to start.
+                    Nothing here yet — when you're ready, this is a good place to start.
                   </p>
                 </div>
               ) : (

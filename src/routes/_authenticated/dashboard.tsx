@@ -24,13 +24,9 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
 });
 
-// Familiar words, and few of them. Safety stays here, always visible.
+// Places the bottom nav doesn't cover. Safety stays here, always visible.
 const QUICK_ACTIONS: QuickAction[] = [
   { label: "Search", icon: BookOpen, to: "/search" },
-  { label: "Entries", icon: BookOpen, to: "/journal" },
-  { label: "Timeline", icon: CalendarClock, to: "/timeline" },
-  { label: "Files", icon: Paperclip, to: "/evidence" },
-  { label: "Sharing", icon: Share2, to: "/access" },
   { label: "Safety", icon: ShieldCheck, to: "/safety" },
   // Moved here from the header.
   { label: "PatternProof Agent", icon: BookOpen, to: "/agent" },
@@ -163,11 +159,17 @@ function Dashboard() {
     stats.evidence_count === 0 &&
     stats.unconfirmed_ai_count === 0;
 
-  const figures: Array<{ n: number; label: string }> = [
-    { n: stats?.incident_count ?? 0, label: "notes" },
-    { n: stats?.evidence_count ?? 0, label: "files" },
-    { n: stats?.voice_note_count ?? 0, label: "voice notes" },
+  const figures: Array<{ n: number; one: string; many: string }> = [
+    { n: stats?.incident_count ?? 0, one: "note", many: "notes" },
+    { n: stats?.evidence_count ?? 0, one: "file", many: "files" },
+    { n: stats?.voice_note_count ?? 0, one: "voice note", many: "voice notes" },
   ];
+  // "1 note · 3 files"; zero counts are left out.
+  const stats_line = () =>
+    figures
+      .filter((f) => f.n > 0)
+      .map((f) => `${f.n} ${f.n === 1 ? f.one : f.many}`)
+      .join(" · ");
 
   if (view === null || !statsLoaded || !user) {
     return <div aria-busy="true" style={{ minHeight: 200 }} />;
@@ -199,85 +201,42 @@ function Dashboard() {
     return (
       <div style={{ display: "grid", gap: 28 }}>
         <div>
-          <div className="label-eyebrow">Home</div>
-          <h1 className="mt-2 max-w-[640px] font-serif text-[34px] leading-tight">
-            {isFirstTime ? (
-              <>
-                Whenever you're ready, <em>start here.</em>
-              </>
-            ) : (
-              <>
-                Add an entry, <em>then rest.</em>
-              </>
-            )}
-          </h1>
-          <p className="mt-3 max-w-[640px] text-[14px]" style={{ color: t.muted }}>
-            Start where you need to. New items stay private until you choose to share them.
-          </p>
-
-          <p className="pp-home-stats mt-4" data-testid="home-stats">
-            {figures.map((f) => `${f.n} ${f.label}`).join(" · ")}
-          </p>
-
-          {/* One main action. A note, a recording or a file can all be where an entry starts. */}
-          <div className="mt-5">
-            <Link
-              to="/journal"
-              className="btn-pp"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "12px 22px",
-                fontSize: 15,
-                textDecoration: "none",
-              }}
-            >
-              <Plus size={16} /> Save something
-            </Link>
-            <Link to="/timeline" className="btn-ghost ml-3 inline-flex items-center gap-2">
-              <BookOpen size={16} /> Review my record
-            </Link>
-            <Link to="/access" className="btn-ghost ml-3 inline-flex items-center gap-2">
-              <Share2 size={16} /> Get ready to share
-            </Link>
-            <p className="mt-3 text-[13px]" style={{ color: t.muted }}>
-              Start with a note, or{" "}
-              <Link to="/voice-notes" style={{ color: "var(--ink)", textDecoration: "underline" }}>
-                a recording
-              </Link>
-              , or{" "}
-              <Link to="/evidence" style={{ color: "var(--ink)", textDecoration: "underline" }}>
-                a file
-              </Link>
-              . Nothing is shared unless you choose to.
+          {stats_line() && (
+            <p className="pp-home-stats" data-testid="home-stats">
+              {stats_line()}
             </p>
+          )}
+          {/* Stacked, full width, 48px, 12px apart. */}
+          <div className="pp-home-actions">
+            <Link to="/journal" className="pp2-btn pp2-btn--primary">
+              Add a Note
+            </Link>
+            <Link to="/journal" className="pp2-btn pp2-btn--outline">
+              See my notes
+            </Link>
+            <Link to="/access" className="pp2-btn pp2-btn--outline">
+              Get ready to share
+            </Link>
           </div>
         </div>
 
         {/* Holds the Safety link — never dimmed. */}
         <div>
-          <nav
-            className="flex flex-wrap gap-x-6 gap-y-2"
-            style={{ borderTop: "1px solid var(--rule)", paddingTop: 12 }}
-          >
+          <div className="pp2-eyebrow" style={{ marginBottom: 4 }}>
+            More
+          </div>
+          <ul className="pp-home-more">
             {QUICK_ACTIONS.map((a) => (
-              <Link
-                key={a.label}
-                to={a.to}
-                style={{ fontSize: 13, color: "var(--ink)", textDecoration: "none" }}
-              >
-                {a.label}
-              </Link>
+              <li key={a.label}>
+                <Link to={a.to}>{a.label}</Link>
+              </li>
             ))}
-            <Link
-              to="/settings"
-              hash="connected-apps"
-              style={{ fontSize: 13, color: "var(--ink)", textDecoration: "none" }}
-            >
-              AI assistance
-            </Link>
-          </nav>
+            <li>
+              <Link to="/settings" hash="connected-apps">
+                AI assistance
+              </Link>
+            </li>
+          </ul>
         </div>
 
         {thread && thread.length > 0 && (

@@ -218,7 +218,8 @@
   content: "" !important;
   position: absolute;
   inset: 0 0 auto 0;
-  height: 132px;
+  width: auto !important;
+  height: 92px;
   z-index: -1;
   border: 0;
 }
@@ -227,3 +228,105 @@
 }
 /* Timeline (clay) and Sharing (ink, cream text) need their page headers restyled
    first: muted text on clay and ink text on ink would fail contrast. Follow-up. */
+
+/* Segmented control (Notes · Drafts · Files, List · Calendar · Patterns, Sharing). */
+.pp2-segments {
+  display: flex;
+  margin: 0 0 36px;
+  border: 1px solid var(--pp2-ink);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--pp2-paper);
+}
+.pp2-segment {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  text-align: center;
+  font: 600 14px/1.15 var(--pp2-sans);
+  color: var(--pp2-ink);
+  text-decoration: none;
+}
+.pp2-segment + .pp2-segment {
+  border-left: 1px solid var(--pp2-ink);
+}
+.pp2-segment[data-on="true"] {
+  background: var(--pp2-ink);
+  color: var(--pp2-cream);
+}
+
+/* Expanded Home actions: stacked, full width, 48px, 12px gaps. */
+.pp-home-actions {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+.pp2-btn {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font: 600 16px/1.2 var(--pp2-sans);
+  text-decoration: none;
+}
+.pp2-btn--primary {
+  background: var(--pp2-ink);
+  color: var(--pp2-cream) !important;
+}
+.pp2-btn--outline {
+  border: 1px solid var(--pp2-ink);
+  color: var(--pp2-ink) !important;
+  background: transparent;
+}
+.pp-home-more {
+  display: grid;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.pp-home-more li {
+  border-top: 1px solid var(--pp2-rule);
+}
+.pp-home-more a {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--pp2-ink);
+  font-size: 15px;
+  text-decoration: none;
+}
+
+/* Bottom nav: fixed, cream, hairline; four equal tabs. */
+.pp-app-shell[data-persona="survivor"] .pp-bottom-tab-bar {
+  position: fixed !important;
+  inset: auto 0 0 0 !important;
+  background: var(--pp2-cream) !important;
+  border-top: 1px solid var(--pp2-rule);
+  padding: 0 0 env(safe-area-inset-bottom, 0px) !important;
+}
+.pp-app-shell[data-persona="survivor"] .pp-bottom-tab-inner {
+  background: transparent !important;
+  border-radius: 0 !important;
+  max-width: 430px;
+}
+.pp-app-shell[data-persona="survivor"] .pp-bottom-tab {
+  min-height: 60px;
+  margin: 0 !important;
+  background: transparent !important;
+  font-family: var(--pp2-sans);
+}
+.pp-app-shell[data-persona="survivor"] .pp-bottom-tab[data-active="true"] {
+  color: var(--pp2-ink) !important;
+  border-top: 3px solid var(--pp2-ink);
+  min-height: 60px;
+}
+
+/* Record button: not on Home's calm view. */
+.pp-app-shell[data-persona="survivor"]:has(.pp-home[data-view="guide"]) [data-float-record] {
+  display: none !important;
+}

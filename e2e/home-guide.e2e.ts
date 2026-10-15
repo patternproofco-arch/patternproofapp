@@ -26,7 +26,11 @@ function stats(over: Record<string, unknown>) {
 
 const LISTS = {
   listProposedIncidents: () => [],
-  findCrossReferences: () => [],
+  findCrossReferences: () => ({ clusters: [] }),
+  listPendingAdvocateInvitesForMe: () => ({ invites: [] }),
+  listPendingAttorneyInvitesForMe: () => ({ invites: [] }),
+  listMyAdvocateAccess: () => ({ links: [] }),
+  listMyAccessAudit: () => ({ events: [] }),
   listUnseenConnections: () => [],
   getAssistantAccess: () => ({ on: false, hasPassword: true }),
   listMyOauthConsents: () => [],
@@ -63,7 +67,7 @@ test("new account sees Add your first Note; after saving a Note the rest card sh
   await expect(card(page)).toHaveAttribute("data-state", "first-mark");
   await expect(card(page)).toContainText("Add your first Note");
   await expect(page.getByText("Start here", { exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Save something" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "See my notes" })).toHaveCount(0);
   await noBlur(page);
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/390-first-note.png` });
 
@@ -79,12 +83,12 @@ test("new account sees Add your first Note; after saving a Note the rest card sh
 
   await page.getByRole("button", { name: "Show everything" }).click();
   await expect(page.getByRole("button", { name: "Show less" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Save something" })).toBeVisible();
-  if (SHOTS) await page.screenshot({ path: `${SHOTS}/390-expanded.png`, fullPage: true });
+  await expect(page.getByRole("link", { name: "See my notes" })).toBeVisible();
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/390-expanded.png` });
   await page.reload();
-  await expect(page.getByRole("link", { name: "Save something" })).toBeVisible(); // remembered
+  await expect(page.getByRole("link", { name: "See my notes" })).toBeVisible(); // remembered
   await page.getByRole("button", { name: "Show less" }).click();
-  await expect(page.getByRole("link", { name: "Save something" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "See my notes" })).toHaveCount(0);
 });
 
 test("draft, Not now → default; Quick Exit practice never exits and returns to Home", async ({
@@ -120,7 +124,7 @@ test("header: mark, Help, Settings and Quick Exit stay inside the viewport", asy
   await page.goto("/dashboard");
   for (const name of ["Help", "Settings", "Quick exit"]) {
     const b = (await page
-      .getByRole(name === "Settings" ? "link" : "button", { name, exact: true })
+      .getByRole(name === "Quick exit" ? "button" : "link", { name, exact: true })
       .first()
       .boundingBox())!;
     expect(b.x, name).toBeGreaterThanOrEqual(0);
