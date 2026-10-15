@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { ABUSE_TYPES, typeColor, typeLabel } from "@/lib/abuse-types";
+import { ABUSE_TYPES, typeColor, typeLabel, TIMELINE_GROUPS, timelineGroupOf } from "@/lib/abuse-types";
 import { formatIncidentDate } from "@/lib/dates";
 import { isMaterialOtherPartyChange } from "@/lib/name-match";
 import { generateCourtPacketPdf } from "@/lib/court-packet.functions";
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/case-builder")({
 const RELATIONSHIPS = ["Ex-partner", "Co-parent", "Current partner", "Family member", "Other"];
 const CASE_TYPES = ["Domestic Violence", "Custody", "Divorce", "Protective Order", "Other"];
 /** Display only; stored values stay as above. */
-const CASE_TYPE_LABEL: Record<string, string> = { "Domestic Violence": "Family safety" };
+const CASE_TYPE_LABEL: Record<string, string> = { "Domestic Violence": "Home & family" };
 
 // Fuzzy name-comparison helpers live in src/lib/name-match.ts so the
 // conflict-of-interest check reuses the same normalization + threshold.
@@ -471,11 +471,15 @@ function CaseBuilder() {
             <div className="rounded-2xl p-4" style={{ background: "var(--input)" }}>
               <div className="label-eyebrow">By type</div>
               <div className="mt-2 flex flex-wrap gap-3">
-                {ABUSE_TYPES.map((t) => (
-                  <div key={t.value} className="flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: t.color }} />
+                {TIMELINE_GROUPS.map((g) => (
+                  <div key={g.key} className="flex items-center gap-2">
                     <span className="text-[13px]">
-                      {t.label}: <strong>{typeCounts[t.value] ?? 0}</strong>
+                      {g.label}:{" "}
+                      <strong>
+                        {Object.entries(typeCounts)
+                          .filter(([v]) => timelineGroupOf(v) === g.key)
+                          .reduce((n, [, c]) => n + (c as number), 0)}
+                      </strong>
                     </span>
                   </div>
                 ))}

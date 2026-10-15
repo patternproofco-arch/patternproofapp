@@ -188,24 +188,74 @@ test("Timeline chips: six plain-language groups, ink outline, selected ink fill;
     },
   });
   await page.goto("/timeline");
-  const chips = page.locator(".pp-filter-chip");
-  await expect(chips).toHaveText(["Things said", "Things done", "Money", "Messages & calls", "Where I go", "Other"], { timeout: 15_000 });
-  await expect(page.locator("main")).not.toContainText(/abuse|violence|assault/i);
+  // Closed: the timeline itself is above the fold; filters sit behind one button.
+  const first = page.getByText("Texts all evening after I said no.");
+  await expect(first).toBeVisible({ timeout: 15_000 });
+  const fb = await first.boundingBox();
+  expect(fb!.y + fb!.height).toBeLessThan(844 - 80);
+  await expect(page.locator(".pp-filter-chip")).toHaveCount(0);
+  // Sensitive type names may appear on her own entries only, not in titles, nav or filters.
+  const SENS = /abuse|violence|assault|unwanted sexual|threats|stalking|harassment|coercive control/i;
+  for (const sel of ["main h1", "[data-testid=timeline-filter-open]", "nav", "header"])
+    for (const t of await page.locator(sel).allInnerTexts()) expect(t).not.toMatch(SENS);
+  expect(await page.title()).not.toMatch(SENS);
   await page.waitForTimeout(800);
-  // Full-page axe before interacting (focus mode dims other regions while a control has focus).
-  const full = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
-  expect(full.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
-  await chips.nth(1).click();
-  await expect(chips.nth(1)).toHaveAttribute("aria-pressed", "true");
-  await expect(chips.nth(1)).toHaveCSS("background-color", "rgb(43, 33, 52)");
-  await expect(chips.nth(0)).toHaveCSS("border-top-color", "rgb(43, 33, 52)");
-  await chips.nth(1).click();
-  await chips.nth(3).click(); // "Messages & calls" matches one Note
+  const closedAxe = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+  expect(closedAxe.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/390-timeline-closed.png` });
+
+  await page.getByTestId("timeline-filter-open").click();
+  const sheet = page.getByTestId("timeline-filter-sheet");
+  await expect(sheet).toBeVisible();
+  await expect(sheet).toHaveCSS("background-color", "rgb(245, 240, 230)");
+  const chips = sheet.locator(".pp-filter-chip");
+  await expect(chips).toHaveText(["Things said", "Things done", "Money", "Messages & calls", "Where I go", "Other"]);
+  // Six chips wrap into about two rows at 390, with 8px gaps.
+  const ys = new Set<number>();
+  for (const box of await chips.evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().top))))
+    ys.add(box);
+  expect(ys.size).toBeLessThanOrEqual(3);
+  await expect(sheet.locator(".pp-filter-chips")).toHaveCSS("column-gap", "8px");
+  // From/To on their own row, side by side, full width.
+  const [fromBox, toBox] = await sheet.locator(".pp-filter-date").evaluateAll((els) =>
+    els.map((e) => e.getBoundingClientRect().toJSON()),
+  );
+  expect(Math.abs(fromBox.top - toBox.top)).toBeLessThan(2);
+  expect(toBox.right - fromBox.left).toBeGreaterThan(300);
+  await expect(sheet.getByText("Include files from others")).toBeVisible();
+  expect(await sheet.innerText()).not.toMatch(/abuse|violence|unwanted sexual|threats|stalking|harassment|coercive control/i);
+  await expect(sheet.getByText("Include legal documents")).toHaveCount(0);
+  await chips.nth(3).click();
+  await expect(chips.nth(3)).toHaveAttribute("aria-pressed", "true");
+  await expect(chips.nth(3)).toHaveCSS("background-color", "rgb(43, 33, 52)");
+  await page.waitForTimeout(400);
+  const openAxe = await new AxeBuilder({ page }).include("[data-testid=timeline-filter-sheet]").withTags(["wcag2a", "wcag2aa"]).analyze();
+  expect(openAxe.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/390-timeline-filter-sheet.png` });
+  await page.getByTestId("timeline-filter-done").click();
+  await expect(sheet).toBeHidden();
   await expect(page.getByText("Texts all evening after I said no.")).toBeVisible();
   await expect(page.getByText("Showed up at work at lunch.")).toHaveCount(0);
-  await page.keyboard.press("Escape"); // leave focus mode so the shot isn't dimmed
-  await page.waitForTimeout(400);
-  if (SHOTS) await page.screenshot({ path: `${SHOTS}/390-timeline-chips.png` });
+});
+
+test("focus mode: 'Show everything' renders inline below the content, never fixed", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockLoggedIn(page, { persona: "survivor", serverFnHandlers: base(0) });
+  await page.goto("/journal");
+  await page.getByTestId("notes-empty-cta").click();
+  await page.locator("#entry-what").click();
+  const pill = page.getByTestId("focus-show-everything");
+  await expect(pill).toBeAttached();
+  const info = await pill.evaluate((el) => {
+    let n: Element | null = el;
+    while (n) {
+      const p = getComputedStyle(n).position;
+      if (p === "fixed" || p === "sticky") return "fixed";
+      n = n.parentElement;
+    }
+    return { inMain: !!el.closest("main"), last: el === el.parentElement!.lastElementChild };
+  });
+  expect(info).toEqual({ inMain: true, last: true });
 });
 
 test("404: app header, one Quick Exit, full-page axe clean", async ({ page }) => {

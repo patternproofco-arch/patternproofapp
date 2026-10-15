@@ -33,6 +33,7 @@ export function FocusModeProvider({
   accentColor?: string;
 }) {
   const [focusId, setFocusId] = useState<string | null>(null);
+  void accentColor;
 
   const focus = useCallback((id: string) => setFocusId(id), []);
   const clear = useCallback(() => setFocusId(null), []);
@@ -52,37 +53,6 @@ export function FocusModeProvider({
 
   return (
     <FocusModeContext.Provider value={value}>
-      {focusId ? (
-        <div
-          className="no-print"
-          style={{
-            // Focusing a link happens on pointer-down. Keep this control out
-            // of layout so it cannot move that link before pointer-up.
-            position: "fixed",
-            top: 80,
-            right: 20,
-            zIndex: 5,
-            display: "flex",
-            justifyContent: "flex-end",
-            padding: "0 20px",
-          }}
-        >
-          <button
-            type="button"
-            onClick={clear}
-            style={{
-              border: "1px solid rgba(26,18,36,0.16)",
-              background: "rgba(255,255,255,0.92)",
-              borderRadius: 999,
-              padding: "6px 14px",
-              fontSize: 12.5,
-              color: accentColor,
-            }}
-          >
-            Show everything
-          </button>
-        </div>
-      ) : null}
       {children}
     </FocusModeContext.Provider>
   );
@@ -124,5 +94,41 @@ export function FocusRegion({
     >
       {children}
     </div>
+  );
+}
+
+/** "Show everything" for focus mode: rendered inline at the end of the page
+ *  content (inside <main>, above the nav's reserved space). Never fixed. */
+export function FocusReveal() {
+  const ctx = useContext(FocusModeContext);
+  const focusId = ctx?.focusId ?? null;
+  const clear = ctx?.clear ?? (() => {});
+  return (
+    <>
+      {focusId ? (
+        // Inline, below the page content: never fixed or overlaid on controls.
+        <div
+          className="no-print pp-focus-reveal"
+          data-testid="focus-show-everything"
+          style={{ display: "flex", justifyContent: "center", padding: "24px 0 8px" }}
+        >
+          <button
+            type="button"
+            onClick={clear}
+            style={{
+              minHeight: 44,
+              border: "1px solid var(--pp2-ink, #2b2134)",
+              background: "transparent",
+              borderRadius: 999,
+              padding: "0 16px",
+              fontSize: 14,
+              color: "var(--pp2-ink, #2b2134)",
+            }}
+          >
+            Show everything
+          </button>
+        </div>
+      ) : null}
+    </>
   );
 }

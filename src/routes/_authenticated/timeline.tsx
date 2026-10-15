@@ -5,7 +5,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { TIMELINE_GROUPS, timelineGroupOf, typeLabel } from "@/lib/abuse-types";
 import { formatIncidentDate } from "@/lib/dates";
-import { FileText } from "lucide-react";
+import { FileText, SlidersHorizontal } from "lucide-react";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { MessageSquare } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { CognitiveClose } from "@/components/CognitiveClose";
@@ -130,6 +139,7 @@ function TimelinePage() {
   >({});
   const [legal, setLegal] = useState<LegalItem[]>([]);
   const [showLegal, setShowLegal] = useState(true);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [msgDays, setMsgDays] = useState<MsgDay[]>([]);
   const [showMessages, setShowMessages] = useState(true);
   const [types, setTypes] = useState<string[]>([]);
@@ -333,67 +343,74 @@ function TimelinePage() {
 
       {xrefs.length > 0 && <CorroborationSection clusters={xrefs} />}
 
-      <FocusRegion id="timeline-filters" className="card-pp mt-6">
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="flex-1 min-w-[200px]">
-            <div className="label-eyebrow mb-2">Filter by type</div>
-            <div className="flex flex-wrap gap-2">
-              {TIMELINE_GROUPS.map((t) => {
-                const on = types.includes(t.key);
-                return (
-                  <button
-                    key={t.key}
-                    type="button"
-                    onClick={() => toggleType(t.key)}
-                    aria-pressed={on}
-                    className="pp-filter-chip"
-                    data-testid={`timeline-chip-${t.key}`}
-                  >
-                    {t.label}
-                  </button>
-
-                );
-              })}
+      {(() => {
+        const active = types.length + (from ? 1 : 0) + (to ? 1 : 0) + (showLegal ? 0 : 1) + (showMessages ? 0 : 1);
+        return (
+          <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+            <div className="mt-4 flex items-center gap-3">
+              <SheetTrigger asChild>
+                <button type="button" className="pp-filter-open" data-testid="timeline-filter-open">
+                  <SlidersHorizontal size={16} aria-hidden />
+                  Filter{active > 0 ? ` · ${active}` : ""}
+                </button>
+              </SheetTrigger>
             </div>
-          </div>
-          <div>
-            <div className="label-eyebrow mb-1">From</div>
-            <input aria-label="From"
-              type="date"
-              value={from}
-              onChange={(e) => setFrom(e.target.value)}
-              className="input-pp"
-            />
-          </div>
-          <div>
-            <div className="label-eyebrow mb-1">To</div>
-            <input aria-label="To"
-              type="date"
-              value={to}
-              onChange={(e) => setTo(e.target.value)}
-              className="input-pp"
-            />
-          </div>
-          <label className="flex items-center gap-2 self-center text-[12px]">
-            <input
-              type="checkbox"
-              checked={showLegal}
-              onChange={(e) => setShowLegal(e.target.checked)}
-            />
-            Include legal documents
-          </label>
-          <label className="flex items-center gap-2 self-center text-[12px]">
-            <input
-              type="checkbox"
-              checked={showMessages}
-              onChange={(e) => setShowMessages(e.target.checked)}
-            />
-            Include imported messages
-          </label>
-        </div>
-      </FocusRegion>
+            <SheetContent side="bottom" className="pp-filter-sheet" data-testid="timeline-filter-sheet">
+              <SheetHeader>
+                <SheetTitle className="pp-filter-sheet-title">Filter</SheetTitle>
+                <SheetDescription className="pp-filter-sheet-desc">
+                  Choose what shows on your timeline.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="pp-filter-sheet-body">
+                <div className="pp2-eyebrow">Type</div>
+                <div className="pp-filter-chips">
+                  {TIMELINE_GROUPS.map((t) => {
+                    const on = types.includes(t.key);
+                    return (
+                      <button
+                        key={t.key}
+                        type="button"
+                        onClick={() => toggleType(t.key)}
+                        aria-pressed={on}
+                        className="pp-filter-chip"
+                        data-testid={`timeline-chip-${t.key}`}
+                      >
+                        {t.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="pp-filter-dates">
+                  <label>
+                    <span className="pp2-eyebrow">From</span>
+                    <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="pp-filter-date" />
+                  </label>
+                  <label>
+                    <span className="pp2-eyebrow">To</span>
+                    <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="pp-filter-date" />
+                  </label>
+                </div>
+                <label className="pp-filter-check">
+                  <input type="checkbox" checked={showLegal} onChange={(e) => setShowLegal(e.target.checked)} />
+                  Include files from others
+                </label>
+                <label className="pp-filter-check">
+                  <input type="checkbox" checked={showMessages} onChange={(e) => setShowMessages(e.target.checked)} />
+                  Include imported messages
+                </label>
+                <SheetClose asChild>
+                  <button type="button" className="pp-museum-cta pp-filter-done" data-testid="timeline-filter-done">
+                    Show timeline
+                  </button>
+                </SheetClose>
+              </div>
+            </SheetContent>
+          </Sheet>
+        );
+      })()}
 
-      <FocusRegion id="timeline-entries" className="relative mt-8 pl-8">
+      <FocusRegion id="timeline-entries" className="relative mt-6 pl-8">
         <div
           className="absolute left-2 top-0 bottom-0"
           style={{ width: 1.5, background: "var(--stitch)" }}

@@ -16,7 +16,7 @@ export const ABUSE_TYPES = [
   },
   {
     value: "physical",
-    label: "Physical contact",
+    label: "Physical harm",
     helper: "Any unwanted physical contact, restraint, or harm.",
     color: "#B85574",
   },
@@ -202,4 +202,31 @@ export function timelineGroupOf(value: string): TimelineGroupKey {
 
 export function typeLabel(value: string): string {
   return ABUSE_TYPES.find((t) => t.value === value)?.label ?? LEGACY_ALIASES[value]?.label ?? value;
+}
+
+/** Sensitive type labels: shown only in the tag picker and on her own entries. */
+export const PICKER_ONLY_LABELS = [
+  "Unwanted sexual contact",
+  "Threats",
+  "Stalking",
+  "Harassment",
+  "Coercive control",
+] as const;
+
+/**
+ * Discreet label for aggregate surfaces (summaries, observations, filter chips):
+ * accepts a stored value or any display/formal label and returns its group.
+ */
+export function groupLabelFor(valueOrLabel: string): string {
+  const k = valueOrLabel.trim().toLowerCase();
+  const hit =
+    ABUSE_TYPES.find((t) => t.value === k || t.label.toLowerCase() === k)?.value ??
+    Object.entries(FORMAL_LABELS).find(([, l]) => l.toLowerCase() === k)?.[0] ??
+    k.replace(/\s+/g, "_");
+  const key = timelineGroupOf(hit);
+  return TIMELINE_GROUPS.find((g) => g.key === key)!.label;
+}
+
+export function groupLabelByKey(key: string): string {
+  return TIMELINE_GROUPS.find((g) => g.key === key)?.label ?? "Other";
 }
