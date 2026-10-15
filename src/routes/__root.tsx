@@ -124,11 +124,24 @@ function LostScreen({ onRetry }: { onRetry?: () => void }) {
   return (
     <div
       data-persona="survivor"
-      className="pp-lost flex min-h-screen items-center justify-center px-4"
+      className="pp-app-shell pp-lost min-h-screen"
       style={{ background: "#F5F0E6", color: "#2B2134" }}
     >
-      <QuickExitButton />
-      <main className="w-full max-w-md text-center" style={{ display: "grid", gap: 16 }}>
+      {/* App header (not the public one): wordmark plus the single Quick Exit dock. */}
+      <header className="pp-shell-header pp-app-chrome no-print mx-auto flex w-full max-w-[430px] items-center gap-2">
+        <a href="/dashboard" className="pp2-wordmark" aria-label="PatternProof, Home">
+          <span aria-hidden>P</span>
+          <span aria-hidden className="pp2-wordmark-rest">
+            atternProof
+          </span>
+        </a>
+        <span aria-hidden className="pp-qe-slot" />
+      </header>
+      <QuickExitButton phoneDock />
+      <main
+        className="mx-auto w-full max-w-md px-4 text-center"
+        style={{ display: "grid", gap: 16 }}
+      >
         <Illustration name="thread-gap" className="pp-lost-illo" />
         <h1
           style={{ fontFamily: '"Source Serif 4", Georgia, serif', fontSize: 28, fontWeight: 500 }}

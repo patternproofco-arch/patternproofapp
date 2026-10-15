@@ -121,6 +121,8 @@ function JournalPage() {
   const [trustEditId, setTrustEditId] = useState<string | null>(null);
   const [pendingShareReadiness, setPendingShareReadiness] = useState<ShareReadiness>("private");
   const [loadError, setLoadError] = useState(false);
+  const [listLoaded, setListLoaded] = useState(false);
+  const [focusForm, setFocusForm] = useState(false);
   const ingestFn = useServerFn(ingestEvidenceBatch);
 
   // Unfinished entries are kept privately in her own account row as she types, so locking,
@@ -160,6 +162,7 @@ function JournalPage() {
     setLoadError(false);
     const rows = (data as FullIncident[] | null) ?? [];
     setList(rows);
+    setListLoaded(true);
     findContradictions()
       .then((r) => setContradictions(r.contradictions ?? []))
       .catch(() => setContradictions([]));
@@ -542,6 +545,41 @@ function JournalPage() {
     toast("Filled in what I could. Please review every field before saving.");
   };
 
+  useEffect(() => {
+    if (!focusForm || !logOpen) return;
+    const t = window.setTimeout(() => {
+      document.getElementById("entry-what")?.focus();
+      setFocusForm(false);
+    }, 0);
+    return () => window.clearTimeout(t);
+  }, [focusForm, logOpen]);
+
+  // Notes empty (museum): only the art, the text and one CTA. Tapping opens the
+  // form in place and moves focus to it. With 1+ Notes the normal form/list shows.
+  if (listLoaded && !loadError && list.length === 0 && !logOpen && !editingId) {
+    return (
+      <div>
+        <HubTabs tabs={ARCHIVE_TABS} />
+        <MuseumHero
+          art="threads-gather"
+          eyebrow="Notes"
+          title="Nothing here yet."
+          body="When you're ready, this is a good place to start."
+          headingLevel={1}
+          cta={{
+            label: "Add your first Note",
+            testId: "notes-empty-cta",
+            onClick: () => {
+              setLogOpen(true);
+              setFocusForm(true);
+            },
+          }}
+          testId="notes-empty"
+        />
+      </div>
+    );
+  }
+
   return (
     <div>
       <HubTabs tabs={ARCHIVE_TABS} />
@@ -689,7 +727,7 @@ function JournalPage() {
           className="btn-ghost inline-flex items-center gap-2 px-6 py-3.5 text-[15px]"
         >
           <List size={17} />
-          All entries {list.length > 0 && <span className="opacity-80">· {list.length}</span>}
+          All notes {list.length > 0 && <span className="opacity-80">· {list.length}</span>}
           <ChevronDown
             size={16}
             style={{
@@ -1249,13 +1287,9 @@ function JournalPage() {
                   </p>
                 </div>
               ) : list.length === 0 ? (
-                <MuseumHero
-                  art="threads-gather"
-                  eyebrow="Notes"
-                  title="Nothing here yet."
-                  body="When you're ready, this is a good place to start."
-                  testId="notes-empty"
-                />
+                <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
+                  Nothing here yet.
+                </p>
               ) : (
                 <div className="space-y-3">
                   {list.map((i) => (

@@ -120,7 +120,8 @@ for (const width of [390, 320]) {
         await expect(page.getByText("This page isn't here.")).toBeVisible();
         await expect(page.getByText("Your notes are still where you left them.")).toBeVisible();
         await expect(page.getByRole("link", { name: "Go to Home" })).toBeVisible();
-        await expect(page.locator("[data-quick-exit]:visible").first()).toBeVisible();
+        await expect(page.locator("[data-quick-exit]:visible")).toHaveCount(1);
+        await expect(page.locator(".pp-global-header")).toBeHidden();
       }
       const axe = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa"])
@@ -153,4 +154,71 @@ test("no art in Quick Exit practice", async ({ page }) => {
     await expect(page.getByText("Here's what happens")).toBeVisible();
     await expect(page.locator("[data-illustration]:visible")).toHaveCount(0);
   }
+});
+
+test("Notes empty: only art, text and one CTA; tapping opens the form with focus", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockLoggedIn(page, { persona: "survivor", serverFnHandlers: base(0) });
+  await page.goto("/journal");
+  const hero = page.getByTestId("notes-empty");
+  await expect(hero).toBeVisible({ timeout: 15_000 });
+  await expect(page.locator("#entry-what")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Add an entry" })).toHaveCount(0);
+  await expect(hero.getByRole("button")).toHaveCount(1);
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/390-notes-empty.png` });
+  await page.getByTestId("notes-empty-cta").click();
+  await expect(page.locator("#entry-what")).toBeFocused();
+});
+
+test("Timeline chips: six plain-language groups, ink outline, selected ink fill; full-page axe", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockLoggedIn(page, {
+    persona: "survivor",
+    serverFnHandlers: base(2),
+    restHandlers: {
+      incidents: (route: import("@playwright/test").Route) =>
+        route.fulfill({
+          status: 200,
+          headers: { "access-control-allow-origin": route.request().headers().origin || "*" },
+          json: [
+            { id: "n2", date: "2026-10-02", description: "Texts all evening after I said no.", abuse_types: ["digital_intimidation", "verbal"], date_precision: "exact" },
+            { id: "n1", date: "2026-09-20", description: "Showed up at work at lunch.", abuse_types: ["stalking"], date_precision: "exact" },
+          ],
+        }),
+    },
+  });
+  await page.goto("/timeline");
+  const chips = page.locator(".pp-filter-chip");
+  await expect(chips).toHaveText(["Things said", "Things done", "Money", "Messages & calls", "Where I go", "Other"], { timeout: 15_000 });
+  await expect(page.locator("main")).not.toContainText(/abuse|violence|assault/i);
+  await page.waitForTimeout(800);
+  // Full-page axe before interacting (focus mode dims other regions while a control has focus).
+  const full = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+  expect(full.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
+  await chips.nth(1).click();
+  await expect(chips.nth(1)).toHaveAttribute("aria-pressed", "true");
+  await expect(chips.nth(1)).toHaveCSS("background-color", "rgb(43, 33, 52)");
+  await expect(chips.nth(0)).toHaveCSS("border-top-color", "rgb(43, 33, 52)");
+  await chips.nth(1).click();
+  await chips.nth(3).click(); // "Messages & calls" matches one Note
+  await expect(page.getByText("Texts all evening after I said no.")).toBeVisible();
+  await expect(page.getByText("Showed up at work at lunch.")).toHaveCount(0);
+  await page.keyboard.press("Escape"); // leave focus mode so the shot isn't dimmed
+  await page.waitForTimeout(400);
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/390-timeline-chips.png` });
+});
+
+test("404: app header, one Quick Exit, full-page axe clean", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/this-page-does-not-exist");
+  await expect(page.getByText("This page isn't here.")).toBeVisible();
+  await expect(page.locator("[data-quick-exit]:visible")).toHaveCount(1);
+  // Docked in the app header's top-right slot.
+  const qe = await page.locator("[data-quick-exit]:visible").boundingBox();
+  const hdr = await page.locator(".pp-shell-header").boundingBox();
+  expect(qe!.y).toBeLessThan(hdr!.y + hdr!.height);
+  expect(qe!.x + qe!.width).toBeGreaterThan(390 - 24);
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/390-not-found.png` });
+  const full = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
+  expect(full.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
 });

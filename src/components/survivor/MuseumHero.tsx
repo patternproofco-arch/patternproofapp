@@ -14,6 +14,7 @@ export function MuseumHero({
   body,
   cta,
   tone = "cream",
+  headingLevel = 2,
   testId,
 }: {
   art: IllustrationName;
@@ -22,8 +23,10 @@ export function MuseumHero({
   body: ReactNode;
   cta?: { label: string; to?: string; onClick?: () => void; testId?: string };
   tone?: "cream" | "ink";
+  headingLevel?: 1 | 2;
   testId?: string;
 }) {
+  const Heading = headingLevel === 1 ? "h1" : "h2";
   return (
     <section
       className={`pp-museum ${tone === "ink" ? "pp-museum--ink" : ""}`}
@@ -33,9 +36,9 @@ export function MuseumHero({
       <Illustration name={art} />
       <div className="pp-museum-text">
         <div className="pp2-eyebrow">{eyebrow}</div>
-        <h2 id={testId ? `${testId}-title` : undefined} className="pp2-title">
+        <Heading id={testId ? `${testId}-title` : undefined} className="pp2-title">
           {title}
-        </h2>
+        </Heading>
         <p className="pp2-body">{body}</p>
       </div>
       {cta &&

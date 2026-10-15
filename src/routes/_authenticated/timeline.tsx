@@ -3,7 +3,7 @@ import { MuseumHero } from "@/components/survivor/MuseumHero";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { ABUSE_TYPES, typeLabel } from "@/lib/abuse-types";
+import { TIMELINE_GROUPS, timelineGroupOf, typeLabel } from "@/lib/abuse-types";
 import { formatIncidentDate } from "@/lib/dates";
 import { FileText } from "lucide-react";
 import { MessageSquare } from "lucide-react";
@@ -286,7 +286,8 @@ function TimelinePage() {
   const filtered = useMemo<Row[]>(() => {
     const inc: Row[] = items
       .filter((i) => {
-        if (types.length && !i.abuse_types.some((t) => types.includes(t))) return false;
+        if (types.length && !i.abuse_types.some((t) => types.includes(timelineGroupOf(t))))
+          return false;
         if (from && (i.date ?? "") < from) return false;
         if (to && (i.date ?? "9999") > to) return false;
         return true;
@@ -337,20 +338,16 @@ function TimelinePage() {
           <div className="flex-1 min-w-[200px]">
             <div className="label-eyebrow mb-2">Filter by type</div>
             <div className="flex flex-wrap gap-2">
-              {ABUSE_TYPES.map((t) => {
-                const on = types.includes(t.value);
+              {TIMELINE_GROUPS.map((t) => {
+                const on = types.includes(t.key);
                 return (
                   <button
-                    key={t.value}
-                    onClick={() => toggleType(t.value)}
+                    key={t.key}
+                    type="button"
+                    onClick={() => toggleType(t.key)}
                     aria-pressed={on}
-                    className="px-3 py-1 text-[11px] font-semibold"
-                    style={{
-                      background: on ? "var(--ink)" : "transparent",
-                      color: on ? "var(--paper)" : "var(--ink)",
-                      border: "1px solid var(--rule)",
-                      borderRadius: 3,
-                    }}
+                    className="pp-filter-chip"
+                    data-testid={`timeline-chip-${t.key}`}
                   >
                     {t.label}
                   </button>
@@ -435,7 +432,7 @@ function TimelinePage() {
                       <div className="mt-1">
                         <span
                           className="px-2 py-0.5 text-[10px] font-semibold"
-                          style={{ borderRadius: 3, border: "1px solid var(--rule)", color: "var(--ink-muted)", fontFamily: "'IBM Plex Mono', ui-monospace, monospace", letterSpacing: "0.08em" }}
+                          style={{ borderRadius: 3, border: "1px solid var(--rule)", color: "var(--ink)", fontFamily: "'IBM Plex Mono', ui-monospace, monospace", letterSpacing: "0.08em" }}
                         >
                           {LEGAL_LABEL[l.document_type] ?? "Document"}
                         </span>
@@ -482,7 +479,7 @@ function TimelinePage() {
                       <div className="mt-1">
                         <span
                           className="px-2 py-0.5 text-[10px] font-semibold"
-                          style={{ borderRadius: 3, border: "1px solid var(--rule)", color: "var(--ink-muted)", fontFamily: "'IBM Plex Mono', ui-monospace, monospace", letterSpacing: "0.08em" }}
+                          style={{ borderRadius: 3, border: "1px solid var(--rule)", color: "var(--ink)", fontFamily: "'IBM Plex Mono', ui-monospace, monospace", letterSpacing: "0.08em" }}
                         >
                           IMPORTED MESSAGES
                         </span>
@@ -545,7 +542,7 @@ function TimelinePage() {
                         <span
                           key={t}
                           className="px-2 py-0.5 text-[10px] font-semibold"
-                          style={{ borderRadius: 3, border: "1px solid var(--rule)", color: "var(--ink-muted)", fontFamily: "'IBM Plex Mono', ui-monospace, monospace", letterSpacing: "0.08em" }}
+                          style={{ borderRadius: 3, border: "1px solid var(--rule)", color: "var(--ink)", fontFamily: "'IBM Plex Mono', ui-monospace, monospace", letterSpacing: "0.08em" }}
                         >
                           {typeLabel(t)}
                         </span>

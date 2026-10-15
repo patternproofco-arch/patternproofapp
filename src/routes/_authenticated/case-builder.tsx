@@ -16,6 +16,8 @@ export const Route = createFileRoute("/_authenticated/case-builder")({
 
 const RELATIONSHIPS = ["Ex-partner", "Co-parent", "Current partner", "Family member", "Other"];
 const CASE_TYPES = ["Domestic Violence", "Custody", "Divorce", "Protective Order", "Other"];
+/** Display only; stored values stay as above. */
+const CASE_TYPE_LABEL: Record<string, string> = { "Domestic Violence": "Family safety" };
 
 // Fuzzy name-comparison helpers live in src/lib/name-match.ts so the
 // conflict-of-interest check reuses the same normalization + threshold.
@@ -444,7 +446,7 @@ function CaseBuilder() {
                           border: "1.5px solid var(--accent)",
                         }}
                       >
-                        {t}
+                        {CASE_TYPE_LABEL[t] ?? t}
                       </button>
                     );
                   })}

@@ -374,6 +374,8 @@
 }
 .pp-illo .c-ink { stroke: var(--pp-illo-ink); }
 .pp-illo .c-cream { stroke: var(--pp-illo-cream); }
+.pp-illo .s.f-cream { fill: var(--pp-illo-cream); }
+.pp-illo .s.dash { stroke-dasharray: 3 3; }
 .pp-illo .c-clay { stroke: var(--pp-illo-clay); }
 .pp-illo .c-aqua { stroke: var(--pp-illo-aqua); }
 .pp-illo .c-chartreuse { stroke: var(--pp-illo-chartreuse); }
@@ -460,3 +462,34 @@
   .pp-home-museum > .pp-illo, .pp-lost .pp-lost-illo { height: 120px; }
 }
 .pp-lost .pp2-primary { justify-self: center; width: auto; min-height: 44px; padding: 0 20px; }
+/* Calm Home: "Show everything" is a quiet centred text link right below the CTA. */
+.pp-app-shell[data-persona="survivor"] .pp-home-toggle--quiet {
+  margin-top: -28px;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--pp2-ink);
+  text-decoration-thickness: 1px;
+}
+
+/* Timeline filter chips: ink on cream with a 1px ink outline; selected = ink fill. */
+.pp-app-shell .pp-filter-chip.pp-filter-chip {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--pp2-ink, #2b2134);
+  border-radius: 999px;
+  background: var(--pp2-cream, #f5f0e6);
+  color: var(--pp2-ink, #2b2134);
+  font-size: 13px;
+  font-weight: 600;
+  transition: none;
+}
+.pp-app-shell .pp-filter-chip.pp-filter-chip[aria-pressed="true"] {
+  background: var(--pp2-ink, #2b2134);
+  color: var(--pp2-cream, #f5f0e6);
+  transition: none;
+}
+
+/* Contrast: legacy eyebrows on cream/powder were 4.2–4.45:1; use ink-muted (≥6.9:1). */
+.pp-app-shell[data-persona="survivor"] .label-eyebrow {
+  color: #5b5263;
+}

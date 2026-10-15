@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Printer, Edit3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { typeLabel } from "@/lib/abuse-types";
+import { formalTypeLabel as typeLabel } from "@/lib/abuse-types";
 import { BrandLogo } from "@/components/BrandLogo";
 import { HubTabs, CASE_TABS } from "@/components/HubTabs";
 

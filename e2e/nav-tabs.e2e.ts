@@ -148,6 +148,9 @@ test("Timeline List shows accepted Notes only; drafts live under Notes > Drafts"
 test("Notes copy: no Mark or Archive labels", async ({ page }) => {
   await go(page, "/journal");
   await expect(page.locator("main")).not.toContainText(/\bMarks?\b|\bArchive\b/);
+  // No Notes yet: museum empty state; its CTA opens the full Notes page in place.
+  await page.getByTestId("notes-empty-cta").click();
+  await expect(page.locator("main")).not.toContainText(/\bMarks?\b|\bArchive\b/);
   await expect(page.getByText("Add several past Notes")).toBeVisible();
 });
 
