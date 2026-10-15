@@ -20,13 +20,13 @@ const MONO = "var(--font-mono)";
 export const Route = createFileRoute("/resources")({
   head: () => ({
     meta: [
-      { title: "Resources — hotlines, state coalitions, court guidance | PatternProof" },
+      { title: "Help & resources — PatternProof" },
       {
         name: "description",
         content:
           "National hotlines, state domestic violence coalitions, and plain-language court guidance. Free, always available, nothing stored.",
       },
-      { property: "og:title", content: "Resources — PatternProof" },
+      { property: "og:title", content: "Help & resources — PatternProof" },
       {
         property: "og:description",
         content: "National hotlines, state DV coalitions, and plain-language court guidance.",
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/resources")({
       { property: "og:url", content: "https://pattern-proof.tech/resources" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Resources — PatternProof" },
+      { name: "twitter:title", content: "Help & resources — PatternProof" },
       {
         name: "twitter:description",
         content: "National hotlines, state DV coalitions, and plain-language court guidance.",
@@ -187,7 +187,7 @@ function ResourcesPage() {
             marginTop: 32,
           }}
         >
-          Resources
+          Help &amp; resources
         </div>
 
         <h1

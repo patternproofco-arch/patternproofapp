@@ -48,6 +48,8 @@ test("survivor finds assistant setup, explicitly enables it, and disconnects it"
           : [],
     },
   });
+  // The AI assistance link lives in the full Home ("Show everything").
+  await page.addInitScript(() => localStorage.setItem("pp.home.view", "all"));
   await page.goto("/dashboard");
   await page.getByRole("link", { name: "AI assistance", exact: true }).click();
   await expect(page).toHaveURL(/\/settings#connected-apps$/);

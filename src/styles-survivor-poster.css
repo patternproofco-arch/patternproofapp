@@ -1,0 +1,340 @@
+/*
+ * Survivor app poster tokens (Experience, 2026-10-15). Survivor shell only.
+ * Flat colour, hairlines and type: no blur, gradients, shadows or iridescence.
+ */
+.pp-app-shell[data-persona="survivor"] {
+  --pp2-ink: #2b2134;
+  --pp2-cream: #f5f0e6;
+  --pp2-paper: #ffffff;
+  --pp2-aqua: #c3dde3;
+  --pp2-chartreuse: #d6da80;
+  --pp2-clay: #cc9875;
+  --pp2-muted: #5b5263;
+  --pp2-rule: rgba(43, 33, 52, 0.16);
+  --pp2-clay-text: #9a5a36;
+  --pp2-serif: "Source Serif 4", Georgia, serif;
+  --pp2-sans: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Re-point the shared tokens the shell already uses. */
+  --paper: var(--pp2-cream);
+  --pp-paper: var(--pp2-cream);
+  --pp-ground: var(--pp2-cream);
+  --pp-ground-hi: var(--pp2-cream);
+  --ink: var(--pp2-ink);
+  --rule: var(--pp2-rule);
+  --muted-foreground: var(--pp2-muted);
+  background: var(--pp2-cream) !important;
+  color: var(--pp2-ink);
+  font-family: var(--pp2-sans);
+}
+
+/* Nothing soft-focus anywhere in the survivor app. */
+.pp-app-shell[data-persona="survivor"] *,
+.pp-app-shell[data-persona="survivor"] *::before,
+.pp-app-shell[data-persona="survivor"] *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+.pp-app-shell[data-persona="survivor"] [aria-hidden][class*="ambient"],
+.pp-app-shell[data-persona="survivor"] .pp-ambient {
+  display: none;
+}
+
+/* Header: cream, 60px, hairline. */
+.pp-app-shell[data-persona="survivor"] .pp-shell-header {
+  background: var(--pp2-cream) !important;
+  border-bottom: 1px solid var(--pp2-rule);
+}
+.pp-app-shell[data-persona="survivor"] .pp-shell-header::before,
+.pp-app-shell[data-persona="survivor"] .pp-shell-header::after {
+  content: none !important;
+}
+.pp2-wordmark {
+  font-family: var(--pp2-serif);
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--pp2-ink);
+  text-decoration: none;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+@media (max-width: 339.98px) {
+  .pp2-wordmark-rest {
+    display: none;
+  }
+}
+.pp-app-shell[data-persona="survivor"] .pp-shell-header a,
+.pp-app-shell[data-persona="survivor"] .pp-shell-header button {
+  color: var(--pp2-ink);
+}
+
+/* Quick Exit: ink fill, cream label 14/600, 12px radius, 44px tall. */
+.pp-app-shell[data-persona="survivor"] [data-quick-exit] {
+  background: var(--pp2-ink) !important;
+  color: var(--pp2-cream) !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  min-height: 44px !important;
+  height: 44px !important;
+  font-family: var(--pp2-sans) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  background-image: none !important;
+}
+
+/* Type */
+.pp2-eyebrow {
+  font-family: var(--pp2-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pp2-muted);
+}
+.pp2-title {
+  font-family: var(--pp2-serif);
+  font-weight: 500;
+  font-size: 28px;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--pp2-ink);
+  margin-top: 8px;
+}
+.pp2-title::after {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 4px;
+  margin-top: 12px;
+  background: var(--pp2-clay);
+}
+.pp-band--sharing .pp2-title::after,
+.pp-band--clay .pp2-title::after {
+  background: var(--pp2-ink);
+}
+.pp2-body {
+  font-size: 16px !important;
+  line-height: 1.45;
+  color: var(--pp2-ink);
+  margin-top: 12px;
+}
+.pp2-primary {
+  display: flex;
+  width: 100%;
+  min-height: 52px;
+  margin-top: 20px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 12px;
+  background: var(--pp2-ink);
+  color: var(--pp2-cream);
+  font: 600 16px/1.2 var(--pp2-sans);
+  cursor: pointer;
+}
+.pp2-link {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  margin-top: 8px;
+  margin-right: 20px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--pp2-ink);
+  font: 600 15px/1.2 var(--pp2-sans);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* Full-bleed section band (main has 16px side padding and 20px top). */
+.pp-band {
+  margin: -20px -16px 0;
+  padding: 24px 20px 32px;
+  border-radius: 0;
+}
+.pp-band--aqua {
+  background: var(--pp2-aqua);
+}
+.pp-home[data-view="all"] .pp-band {
+  margin-top: 0;
+}
+
+/* Show everything / Show less */
+.pp-app-shell[data-persona="survivor"] .pp-home-toggle {
+  justify-self: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  background: none;
+  color: var(--pp2-ink);
+  font: 600 15px/1.2 var(--pp2-sans);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.pp-home[data-view="all"] .pp-home-toggle {
+  margin-top: -8px;
+}
+
+/* Expanded Home: cream, hairlines, eyebrows, no tiles. */
+.pp-home-expanded {
+  border-top: 1px solid var(--pp2-rule);
+  padding-top: 20px;
+}
+.pp-home-expanded h1 {
+  font-family: var(--pp2-serif);
+  font-weight: 500;
+}
+.pp-home-expanded .card-pp,
+.pp-home-expanded [class*="card"] {
+  background: transparent !important;
+  border: 0 !important;
+  border-top: 1px solid var(--pp2-rule) !important;
+  border-radius: 0 !important;
+}
+.pp-home-stats {
+  font-size: 14px;
+  color: var(--pp2-muted);
+}
+
+/* Folio margin rule and 40px gutter are off in the survivor app. */
+.pp-app-shell[data-persona="survivor"] .pp-app-main {
+  position: relative;
+  isolation: isolate;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+.pp-app-shell[data-persona="survivor"] .pp-app-main::before {
+  content: none !important;
+}
+
+/* Section top bands on Notes, Timeline and Sharing: flat, full width, behind the top of the page. */
+.pp-app-shell[data-persona="survivor"] .pp-app-main[data-section="notes"]::before {
+  content: "" !important;
+  position: absolute;
+  inset: 0 0 auto 0;
+  width: auto !important;
+  height: 92px;
+  z-index: -1;
+  border: 0;
+}
+.pp-app-main[data-section="notes"]::before {
+  background: var(--pp2-chartreuse) !important;
+}
+/* Timeline (clay) and Sharing (ink, cream text) need their page headers restyled
+   first: muted text on clay and ink text on ink would fail contrast. Follow-up. */
+
+/* Segmented control (Notes · Drafts · Files, List · Calendar · Patterns, Sharing). */
+.pp2-segments {
+  display: flex;
+  margin: 0 0 36px;
+  border: 1px solid var(--pp2-ink);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--pp2-paper);
+}
+.pp2-segment {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  text-align: center;
+  font: 600 14px/1.15 var(--pp2-sans);
+  color: var(--pp2-ink);
+  text-decoration: none;
+}
+.pp2-segment + .pp2-segment {
+  border-left: 1px solid var(--pp2-ink);
+}
+.pp2-segment[data-on="true"] {
+  background: var(--pp2-ink);
+  color: var(--pp2-cream);
+}
+
+/* Expanded Home actions: stacked, full width, 48px, 12px gaps. */
+.pp-home-actions {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+.pp2-btn {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font: 600 16px/1.2 var(--pp2-sans);
+  text-decoration: none;
+}
+.pp2-btn--primary {
+  background: var(--pp2-ink);
+  color: var(--pp2-cream) !important;
+}
+.pp2-btn--outline {
+  border: 1px solid var(--pp2-ink);
+  color: var(--pp2-ink) !important;
+  background: transparent;
+}
+.pp-home-more {
+  display: grid;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.pp-home-more li {
+  border-top: 1px solid var(--pp2-rule);
+}
+.pp-home-more a {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  color: var(--pp2-ink);
+  font-size: 15px;
+  text-decoration: none;
+}
+
+/* Bottom nav: fixed, cream, hairline; four equal tabs. */
+.pp-app-shell[data-persona="survivor"] .pp-bottom-tab-bar {
+  position: fixed !important;
+  inset: auto 0 0 0 !important;
+  background: var(--pp2-cream) !important;
+  border-top: 1px solid var(--pp2-rule);
+  padding: 0 0 env(safe-area-inset-bottom, 0px) !important;
+}
+.pp-app-shell[data-persona="survivor"] .pp-bottom-tab-inner {
+  background: transparent !important;
+  border-radius: 0 !important;
+  max-width: 430px;
+}
+.pp-app-shell[data-persona="survivor"] .pp-bottom-tab {
+  min-height: 60px;
+  margin: 0 !important;
+  background: transparent !important;
+  font-family: var(--pp2-sans);
+}
+.pp-app-shell[data-persona="survivor"] .pp-bottom-tab {
+  position: relative;
+  border: 0 !important;
+}
+.pp-app-shell[data-persona="survivor"] .pp-bottom-tab[data-active="true"] {
+  color: var(--pp2-ink) !important;
+  min-height: 60px;
+}
+/* Active indicator: a 3px bar inside the tab, at its top edge. */
+.pp-app-shell[data-persona="survivor"] .pp-bottom-tab[data-active="true"]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 3px;
+  background: var(--pp2-ink);
+}

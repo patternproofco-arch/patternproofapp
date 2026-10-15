@@ -1,21 +1,40 @@
-import { Outlet } from "@tanstack/react-router";
+import { Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
+import { clearHomeGuideStorage } from "@/lib/home-guide";
 import { useEffect } from "react";
 import { useSettings } from "@/lib/settings-context";
 import { GuideHelper } from "@/components/survivor/GuideHelper";
-import { FloatingRecordButton } from "@/components/FloatingRecordButton";
 import { QuickExitButton } from "@/components/QuickExitButton";
 import { AmbientBackground } from "@/components/AmbientBackground";
 import { BottomTabBar } from "@/components/BottomTabBar";
-import { UtilityBar } from "@/components/UtilityBar";
-import { BrandMark } from "@/components/BrandMark";
+import { HeaderTools } from "@/components/survivor/HeaderTools";
+import { SectionSegments } from "@/components/survivor/SectionSegments";
 import { NotificationBanner } from "@/components/NotificationBanner";
 import { NewConnectionNotice } from "@/components/NewConnectionNotice";
 import { quickExit } from "@/lib/quick-exit";
 import { FocusModeProvider } from "@/components/survivor/focus-mode";
 import "@/styles-role-accents.css";
+import "@/styles-survivor-poster.css";
+
+/** Top band colour per section (poster tokens). Home paints its own band. */
+function sectionFor(path: string): string | undefined {
+  if (path.startsWith("/journal")) return "notes";
+  if (path.startsWith("/timeline")) return "timeline";
+  if (path.startsWith("/access")) return "sharing";
+  return undefined;
+}
 
 export function AppShell() {
   const { settings } = useSettings();
+  const pathname = useRouterState({ select: (r) => r.location.pathname });
+
+  // Any sign-out (Settings, another tab, session end) clears Home/guide memory.
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") clearHomeGuideStorage();
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     let last = 0;
@@ -44,13 +63,16 @@ export function AppShell() {
       </a>
       <AmbientBackground />
 
-      <header className="pp-shell-header pp-app-chrome no-print app-surface mx-auto flex w-full max-w-[430px] items-center justify-between gap-3 px-4 pt-3">
-        <span aria-hidden className="pp-shell-header-spacer" style={{ width: 1 }} />
-        <BrandMark size={30} variant="ink" />
-        <div className="pp-shell-utility">
-          <UtilityBar />
-        </div>
-        {/* Phones: Quick Exit docks over this reserved top-right slot. */}
+      {/* Mark, Help, Settings; Quick Exit docks in the reserved top-right zone.
+          Search, Agent and Support moved to Home's "Show everything"; Sign out to Settings. */}
+      <header className="pp-shell-header pp-app-chrome no-print app-surface mx-auto flex w-full max-w-[430px] items-center gap-2">
+        <Link to="/dashboard" className="pp2-wordmark" aria-label="PatternProof, Home">
+          <span aria-hidden>P</span>
+          <span aria-hidden className="pp2-wordmark-rest">
+            atternProof
+          </span>
+        </Link>
+        <HeaderTools />
         <span aria-hidden className="pp-qe-slot" />
       </header>
 
@@ -61,19 +83,21 @@ export function AppShell() {
         <main
           id="main-content"
           tabIndex={-1}
+          data-section={sectionFor(pathname)}
           className="pp-app-main app-surface print-page mx-auto w-full max-w-[430px] px-4"
           style={{
             paddingTop: 20,
-            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 108px)",
+            // Room for the fixed nav, so it never covers the last content.
+            paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 96px)",
           }}
         >
+          <SectionSegments />
           <Outlet />
         </main>
       </FocusModeProvider>
 
       <BottomTabBar />
       <GuideHelper />
-      <FloatingRecordButton />
       <QuickExitButton phoneDock />
     </div>
   );

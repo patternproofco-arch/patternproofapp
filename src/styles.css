@@ -2017,33 +2017,16 @@ textarea.input-pp {
 }
 @media (max-width: 639.98px), (max-height: 499.98px) {
   .pp-qe-dock {
-    top: 8px;
+    top: calc(env(safe-area-inset-top, 0px) + 8px);
   }
   .pp-qe-slot {
     display: block;
     flex: 0 0 auto;
-    width: 116px;
+    /* Quick Exit's zone: 148px including the 16px edge gap. */
+    width: 132px;
     height: 44px;
   }
-  .pp-app-shell .pp-shell-header {
-    position: sticky;
-    top: 0;
-    z-index: 30;
-    min-height: 60px;
-    padding-top: 0;
-    background: var(--pp-ground);
-  }
-  .pp-app-shell .pp-shell-header-spacer {
-    display: none;
-  }
-  /* Utility icons move left to make room for Quick Exit top-right. */
-  .pp-app-shell .pp-shell-utility {
-    order: -1;
-  }
-  .pp-qe-dock {
-    /* Above the sticky global header (z 10000) whose top-right it docks into. */
-    z-index: 10001 !important;
-  }
+  /* Header shape lives in the survivor-shell block below (all widths). */
   /* PIN screen, /support, /resources, onboarding: on phones the docked Quick Exit
      replaces the global header's "Exit safely" (one control, one position);
      desktop keeps the global header's control. The global header becomes the
@@ -2066,4 +2049,52 @@ textarea.input-pp {
   .pp-qe-page {
     padding-top: 68px;
   }
+}
+
+/* Survivor shell header (mobile spec 2026-10-15, structure only): 60px, sticky, opaque,
+   16px sides, safe-area top. Mark left, Help + Settings, Quick Exit zone right. */
+.pp-app-shell .pp-shell-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  min-height: calc(60px + env(safe-area-inset-top, 0px));
+  padding: env(safe-area-inset-top, 0px) 16px 0;
+  /* Neutral until the revised visual spec lands. */
+  background: var(--pp-ground);
+}
+.pp-app-shell .pp-shell-header .pp-qe-slot {
+  margin-left: auto;
+}
+
+/* No horizontal overflow: shrinkable text children, long words wrap, and the
+   shell clips sideways only as a backstop. */
+.pp-app-shell {
+  max-width: 100%;
+  overflow-x: clip;
+}
+.pp-app-main,
+.pp-app-main :where(div, section, article, li, p, label, h1, h2, h3) {
+  min-width: 0;
+}
+.pp-app-main {
+  overflow-wrap: anywhere;
+}
+
+/* Home: "Show everything" / "Show less" — inline, centred, 44px text button. */
+.pp-home-toggle {
+  justify-self: center;
+  min-height: 44px;
+  padding: 0 16px;
+  background: none;
+  border: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+/* Guide card: normal flow, full width inside the 16px page margins. Surface stays
+   neutral (card-pp) until the revised visual spec lands. */
+.pp-home-guide-card {
+  padding: 20px;
 }

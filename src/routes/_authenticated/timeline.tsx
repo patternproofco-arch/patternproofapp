@@ -12,7 +12,6 @@ import { FocusRegion } from "@/components/survivor/focus-mode";
 import { useServerFn } from "@tanstack/react-start";
 import { findCrossReferences, type XrefCluster } from "@/lib/cross-references.functions";
 import { HubTabs, ARCHIVE_TABS } from "@/components/HubTabs";
-import { ProposedTimelineReview } from "@/components/ProposedTimelineReview";
 
 interface Item {
   id: string;
@@ -330,8 +329,6 @@ function TimelinePage() {
         The pattern, <em>over time.</em>
       </h1>
 
-      <ProposedTimelineReview onAccepted={reloadTimeline} />
-
       {xrefs.length > 0 && <CorroborationSection clusters={xrefs} />}
 
       <FocusRegion id="timeline-filters" className="card-pp mt-6">
@@ -406,7 +403,7 @@ function TimelinePage() {
         {filtered.length === 0 ? (
           <div className="card-pp">
             <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-              Your timeline will take shape as you add records. Every entry matters.
+              Notes you accept show up here in date order.
             </p>
           </div>
         ) : (

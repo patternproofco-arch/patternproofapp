@@ -34,6 +34,7 @@ import {
 } from "@/lib/survivor-attorney-notes.functions";
 import { Download } from "lucide-react";
 import { ChangePasswordCard } from "@/components/ChangePasswordCard";
+import { SignOutButton } from "@/components/UtilityBar";
 import { AssistantSetup } from "@/components/AssistantSetup";
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -410,6 +411,18 @@ function SettingsPage() {
 
       <div className="mt-6">
         <ChangePasswordCard />
+      </div>
+
+      {/* Moved here from the header. */}
+      <div className="mt-4">
+        <SignOutButton className="btn-ghost inline-flex items-center gap-2" />
+        <Link
+          to="/resources"
+          className="ml-4 text-[14px]"
+          style={{ color: "var(--ink)", textDecoration: "underline" }}
+        >
+          Help &amp; resources
+        </Link>
       </div>
 
       <div className="mt-8 grid gap-5 md:grid-cols-2">
