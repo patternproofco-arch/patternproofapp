@@ -49,7 +49,7 @@ export const getFrequencyObservations = createServerFn({ method: "POST" })
       const o = buildObservation(
         `incidents:${type}`,
         "incidents",
-        `Marks logged under ${abuseTypeLabel(type)}`,
+        `Notes logged under ${abuseTypeLabel(type)}`,
         "in the past 30 days",
         rows,
       );

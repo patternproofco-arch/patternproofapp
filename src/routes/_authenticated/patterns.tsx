@@ -117,7 +117,7 @@ function PatternsPage() {
             What the record <em>shows.</em>
           </h1>
           <p className="mt-3 text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-            Quiet, calm trends from your own Marks. Not a diagnosis. Not a legal conclusion. Just
+            Quiet, calm trends from your own Notes. Not a diagnosis. Not a legal conclusion. Just
             what's there.
           </p>
         </div>
@@ -166,7 +166,7 @@ function PatternsPage() {
               className="text-[11px] md:text-right"
               style={{ color: "var(--muted-foreground)" }}
             >
-              First time? This groups your Marks by what keeps recurring.
+              First time? This groups your Notes by what keeps recurring.
             </span>
           )}
         </div>
@@ -181,7 +181,7 @@ function PatternsPage() {
       {notEnough && (
         <div className="card-pp mt-6" style={{ borderLeft: "3px solid var(--accent)" }}>
           <p className="text-[14px]">
-            Add at least two Marks and try again. Patterns need a little ground to stand on.
+            Add at least two Notes and try again. Patterns need a little ground to stand on.
           </p>
           <Link to="/journal" className="btn-primary mt-3 inline-block">
             Add an entry
@@ -192,7 +192,7 @@ function PatternsPage() {
       {!loading && !analysis && !notEnough && (
         <div className="card-pp mt-6">
           <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-            When you're ready, build your Recurline. Your Marks stay private — only patterns come
+            When you're ready, build your Recurline. Your Notes stay private — only patterns come
             back.
           </p>
         </div>
@@ -445,7 +445,7 @@ function PatternsPage() {
             className="lg:col-span-2 rounded-2xl p-5 text-[12px] leading-relaxed"
             style={{ background: "var(--input)", color: "var(--muted-foreground)" }}
           >
-            Recurline is based only on the Marks and evidence you've added to PatternProof. It is
+            Recurline is based only on the Notes and evidence you've added to PatternProof. It is
             not a guarantee, legal advice, or a safety plan. If you believe you are in immediate
             danger, contact emergency services, a domestic violence advocate, or your attorney.
           </div>
@@ -453,9 +453,9 @@ function PatternsPage() {
       )}
 
       <div className="card-pp mt-8">
-        <div className="label-eyebrow">Mark density</div>
+        <div className="label-eyebrow">Note density</div>
         <p className="mt-1 mb-3 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-          A visual view of how often Marks appear over time, and how recent they are. Shading only —
+          A visual view of how often Notes appear over time, and how recent they are. Shading only —
           no score, no assessment.
         </p>
         <MarkDensityBar marks={marks} />

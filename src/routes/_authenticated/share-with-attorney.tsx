@@ -562,7 +562,7 @@ function ShareWithAttorney() {
                       Currently shared with {l.profile?.full_name ?? "this attorney"}
                     </div>
                     <div>
-                      {l.include_all_incidents ? "All Marks" : "Selected Marks only"}
+                      {l.include_all_incidents ? "All Notes" : "Selected Notes only"}
                       {" · "}
                       {l.include_all_evidence ? "all evidence files" : "selected evidence only"}
                       {" · "}

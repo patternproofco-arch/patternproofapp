@@ -31,7 +31,7 @@ const SECTIONS: Array<{ to: string; title: string; body: string }> = [
   {
     to: "/case-builder",
     title: "What is included",
-    body: "Choose the Marks and files that belong in this case.",
+    body: "Choose the Notes and files that belong in this case.",
   },
   {
     to: "/court-packet",

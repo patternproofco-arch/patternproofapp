@@ -558,7 +558,7 @@ function JournalPage() {
             className="pp-chip inline-flex items-center gap-2 px-3.5 py-2.5 text-[13px] font-semibold"
           >
             <Mic size={15} />
-            Add a spoken Mark
+            Add a spoken Note
           </Link>
           <button
             type="button"
@@ -574,11 +574,11 @@ function JournalPage() {
             className="pp-chip inline-flex items-center gap-2 px-3.5 py-2.5 text-[13px] font-semibold"
           >
             <Clock size={15} />
-            Add Multiple Past Marks
+            Add several past Notes
           </button>
         </div>
         <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-          Upload a written page, or recall older Marks one memory at a time.
+          Upload a written page, or recall older Notes one memory at a time.
         </p>
       </div>
 
@@ -586,10 +586,10 @@ function JournalPage() {
         <section
           className="card-pp mt-6"
           style={{ borderLeft: "4px solid var(--pp-approximate)" }}
-          aria-label="Same-day Marks with different details"
+          aria-label="Same-day Notes with different details"
         >
           <h2 className="font-serif text-[18px]" style={{ color: "var(--foreground)" }}>
-            A few Marks on the same day have different details — worth a look
+            A few Notes on the same day have different details — worth a look
           </h2>
           <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
             Nothing has been changed. Review each one and edit whichever feels right — or leave them
@@ -630,7 +630,7 @@ function JournalPage() {
                         className="text-[10px] font-semibold uppercase tracking-wide"
                         style={{ color: "var(--muted-foreground)" }}
                       >
-                        Review Mark A
+                        Review Note A
                       </div>
                       <div className="mt-0.5 line-clamp-2">{a.description}</div>
                     </button>
@@ -644,7 +644,7 @@ function JournalPage() {
                         className="text-[10px] font-semibold uppercase tracking-wide"
                         style={{ color: "var(--muted-foreground)" }}
                       >
-                        Review Mark B
+                        Review Note B
                       </div>
                       <div className="mt-0.5 line-clamp-2">{b.description}</div>
                     </button>
@@ -1339,7 +1339,7 @@ function JournalPage() {
         onCancel={() => setConfirmDelete(null)}
       />
       <CognitiveClose
-        title="See your Marks on a timeline"
+        title="See your Notes on a timeline"
         body="One date next to another is where the pattern starts to show. Take a look when you're ready."
         cta="Open timeline"
         to="/timeline"
