@@ -2,6 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useSettings } from "@/lib/settings-context";
 import { quickExit } from "@/lib/quick-exit";
+import { Illustration } from "@/components/survivor/Illustration";
 import {
   GUIDE_COPY,
   type DismissableState,
@@ -84,13 +85,20 @@ export function HomeGuideCard({
     /* keep the generic wording */
   }
 
+  const museum = !practicing && (state === "first-mark" || state === "rest");
   return (
     <section
       aria-labelledby={practicing ? "qe-practice-title" : "home-guide-title"}
-      className="pp-band pp-band--aqua pp-home-guide-card"
+      className={`pp-home-guide-card ${museum ? "pp-museum pp-home-museum" : "pp-band pp-band--aqua"}`}
       data-testid="home-guide-card"
       data-state={state}
     >
+      {!practicing && state === "first-mark" && (
+        <Illustration name="thread-start" />
+      )}
+      {!practicing && state === "rest" && (
+        <Illustration name="thread-rest" />
+      )}
       <div className="pp2-eyebrow">Start here</div>
       {practicing ? (
         <div role="dialog" aria-modal="false" aria-labelledby="qe-practice-title">

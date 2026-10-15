@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { MuseumHero } from "@/components/survivor/MuseumHero";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -401,11 +402,14 @@ function TimelinePage() {
           style={{ width: 1.5, background: "var(--stitch)" }}
         />
         {filtered.length === 0 ? (
-          <div className="card-pp">
-            <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-              Notes you accept show up here in date order.
-            </p>
-          </div>
+          <MuseumHero
+            art="dated-sequence"
+            eyebrow="Timeline"
+            title="Nothing in order yet."
+            body="Notes you accept show up here in date order."
+            cta={{ label: "Add a Note", to: "/journal", testId: "timeline-empty-cta" }}
+            testId="timeline-empty"
+          />
         ) : (
           <div className="space-y-5">
             {filtered.map((row) => {

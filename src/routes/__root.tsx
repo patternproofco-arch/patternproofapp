@@ -1,4 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Illustration } from "@/components/survivor/Illustration";
+import { QuickExitButton } from "@/components/QuickExitButton";
+import "@/styles-survivor-poster.css";
 import {
   Outlet,
   Link,
@@ -116,62 +119,55 @@ const FOLIO_PATHS = new Set([
   "/family-law-workload",
 ]);
 
-function NotFoundComponent() {
+/** 404 and error screens: thread-gap art, calm copy, Quick Exit always present. */
+function LostScreen({ onRetry }: { onRetry?: () => void }) {
   return (
     <div
       data-persona="survivor"
-      className="flex min-h-screen items-center justify-center bg-background px-4"
+      className="pp-lost flex min-h-screen items-center justify-center px-4"
+      style={{ background: "#F5F0E6", color: "#2B2134" }}
     >
-      <div className="pp-card max-w-md text-center">
-        <p className="label-eyebrow">PatternProof</p>
-        <h1 className="mt-3 font-display text-7xl text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
-        </p>
-        <div className="mt-6">
-          <Link to="/" className="pp-btn pp-btn-primary">
-            Go home
-          </Link>
-        </div>
-      </div>
+      <QuickExitButton />
+      <main className="w-full max-w-md text-center" style={{ display: "grid", gap: 16 }}>
+        <Illustration name="thread-gap" className="pp-lost-illo" />
+        <h1
+          style={{ fontFamily: '"Source Serif 4", Georgia, serif', fontSize: 28, fontWeight: 500 }}
+        >
+          This page isn&apos;t here.
+        </h1>
+        <p style={{ fontSize: 16, color: "#5B5263" }}>Your notes are still where you left them.</p>
+        <a href="/dashboard" className="pp2-primary" style={{ textDecoration: "none" }}>
+          Go to Home
+        </a>
+        {onRetry && (
+          <button
+            type="button"
+            className="pp2-link"
+            style={{ justifySelf: "center" }}
+            onClick={onRetry}
+          >
+            Try again
+          </button>
+        )}
+      </main>
     </div>
   );
+}
+
+function NotFoundComponent() {
+  return <LostScreen />;
 }
 
 function ErrorComponent({ error, reset }: { error: unknown; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-
   return (
-    <div
-      data-persona="survivor"
-      className="flex min-h-screen items-center justify-center bg-background px-4"
-    >
-      <div className="pp-card max-w-md text-center">
-        <p className="label-eyebrow">PatternProof</p>
-        <h1 className="mt-3 text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
-        </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <button
-            onClick={() => {
-              router.invalidate();
-              reset();
-            }}
-            className="pp-btn pp-btn-primary"
-          >
-            Try again
-          </button>
-          <a href="/" className="pp-btn pp-btn-secondary">
-            Go home
-          </a>
-        </div>
-      </div>
-    </div>
+    <LostScreen
+      onRetry={() => {
+        void router.invalidate();
+        reset();
+      }}
+    />
   );
 }
 

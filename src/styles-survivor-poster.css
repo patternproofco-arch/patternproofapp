@@ -2,6 +2,15 @@
  * Survivor app poster tokens (Experience, 2026-10-15). Survivor shell only.
  * Flat colour, hairlines and type: no blur, gradients, shadows or iridescence.
  */
+.pp-lost {
+  --pp2-ink: #2b2134;
+  --pp2-cream: #f5f0e6;
+  --pp2-muted: #5b5263;
+  --pp2-clay: #cc9875;
+  --pp2-serif: "Source Serif 4", Georgia, serif;
+  --pp2-sans: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--pp2-sans);
+}
 .pp-app-shell[data-persona="survivor"] {
   --pp2-ink: #2b2134;
   --pp2-cream: #f5f0e6;
@@ -338,3 +347,116 @@
   height: 3px;
   background: var(--pp2-ink);
 }
+
+/* Thread illustrations (v2): bold woven threads, colours from tokens, no motion. */
+.pp-illo {
+  display: block;
+  line-height: 0;
+  --pp-illo-ink: var(--pp2-ink, #2b2134);
+  --pp-illo-cream: var(--pp2-cream, #f5f0e6);
+  --pp-illo-clay: var(--pp2-clay, #cc9875);
+  --pp-illo-aqua: var(--pp2-aqua, #c3dde3);
+  --pp-illo-chartreuse: var(--pp2-chartreuse, #d6da80);
+}
+.pp-illo svg {
+  display: block;
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  overflow: visible;
+}
+.pp-illo .t {
+  fill: none;
+  stroke-width: 4px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.pp-illo .c-ink { stroke: var(--pp-illo-ink); }
+.pp-illo .c-cream { stroke: var(--pp-illo-cream); }
+.pp-illo .c-clay { stroke: var(--pp-illo-clay); }
+.pp-illo .c-aqua { stroke: var(--pp-illo-aqua); }
+.pp-illo .c-chartreuse { stroke: var(--pp-illo-chartreuse); }
+.pp-illo .f-ink { fill: var(--pp-illo-ink); }
+.pp-illo .s {
+  fill: none;
+  stroke: var(--pp-illo-ink);
+  stroke-width: 2px;
+}
+@media (max-width: 359.98px) {
+  .pp-illo--hide-narrow { display: none; }
+}
+
+/* Museum layout for empty/hero states: one centred object, a short centred
+   text column, one small centred CTA. */
+.pp-museum {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 48px 0 32px;
+}
+.pp-museum .pp-illo { height: 180px; width: 100%; }
+@media (max-width: 359.98px) {
+  .pp-museum .pp-illo { height: 120px; }
+}
+.pp-museum-text {
+  max-width: 32ch;
+  margin-top: 32px;
+  display: grid;
+  gap: 8px;
+}
+.pp-museum-text .pp2-title { margin-top: 0; font-size: 28px; }
+.pp-museum-text .pp2-title::after { margin: 12px auto 0; }
+.pp-museum-text .pp2-body { margin-top: 4px; }
+.pp-museum-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: 24px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--pp2-ink, #2b2134);
+  color: var(--pp2-cream, #f5f0e6) !important;
+  font: 600 15px/1.2 var(--pp2-sans, system-ui, sans-serif);
+  text-decoration: none;
+  cursor: pointer;
+}
+.pp-museum--ink {
+  margin: 0 -16px;
+  padding-inline: 20px;
+  background: var(--pp2-ink, #2b2134);
+}
+.pp-museum--ink .pp2-title,
+.pp-museum--ink .pp2-body,
+.pp-museum--ink .pp2-eyebrow { color: var(--pp2-cream, #f5f0e6) !important; }
+.pp-museum--ink .pp2-title::after { background: var(--pp2-clay, #cc9875); }
+.pp-museum--ink .pp-museum-cta {
+  background: var(--pp2-cream, #f5f0e6);
+  color: var(--pp2-ink, #2b2134) !important;
+}
+
+/* Sharing band: ink with cream text (top of Who can see). */
+.pp-share-band {
+  margin: 0 -16px;
+  padding: 24px 20px 32px;
+  background: var(--pp2-ink);
+  color: var(--pp2-cream);
+}
+.pp-share-band h1,
+.pp-share-band p {
+  color: var(--pp2-cream) !important;
+}
+
+/* Home first-note / rest: museum on cream (aqua threads stay visible). */
+.pp-home-museum .pp2-title,
+.pp-home-museum .pp2-body { max-width: 32ch; margin-inline: auto; }
+.pp-home-museum > .pp-illo { margin-bottom: 32px; }
+.pp-home-museum .pp2-primary { width: auto; min-height: 44px; padding: 0 20px; margin-inline: auto; }
+.pp-lost .pp-lost-illo { height: 180px; margin: 48px 0 32px; }
+@media (max-width: 359.98px) {
+  .pp-home-museum > .pp-illo, .pp-lost .pp-lost-illo { height: 120px; }
+}
+.pp-lost .pp2-primary { justify-self: center; width: auto; min-height: 44px; padding: 0 20px; }

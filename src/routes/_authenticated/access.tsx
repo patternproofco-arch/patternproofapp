@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { MuseumHero } from "@/components/survivor/MuseumHero";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -69,9 +70,22 @@ function AccessPage() {
   }, [pendingFn, pendingAttFn, listFn, auditFn]);
   useEffect(load, [load]);
   const activeLinks = (grants?.links ?? []).filter((link) => link.status === "active");
+  const nothingShared =
+    grants !== null && pending.length === 0 && pendingAtt.length === 0 && activeLinks.length === 0;
   return (
     <div style={{ display: "grid", gap: 22, maxWidth: 720, padding: "8px 0 48px" }}>
-      <div>
+      {nothingShared && (
+        <MuseumHero
+          art="threads-converge"
+          tone="ink"
+          eyebrow="Sharing"
+          title="Nothing is shared."
+          body="Only you can see your notes. When you choose to share, it starts here."
+          cta={{ label: "Get ready to share", to: "/share-with-advocate", testId: "sharing-empty-cta" }}
+          testId="sharing-empty"
+        />
+      )}
+      <div className="pp-band--ink pp-share-band">
         <h1 style={{ fontFamily: "var(--font-serif)", fontSize: 26, margin: 0 }}>Who can see this</h1>
         <p style={{ fontSize: 14, color: "var(--muted-foreground)" }}>
           Pending invites, active grants, and a log of professional views. Opening an invite never shares by itself. Revoking stops new access inside PatternProof — it cannot retract a copy already downloaded.

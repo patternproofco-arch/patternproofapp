@@ -1,4 +1,5 @@
 import { confirmOptionalAiProcessing } from "@/lib/optional-ai-consent";
+import { MuseumHero } from "@/components/survivor/MuseumHero";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CorrectionHistory } from "@/components/survivor/CorrectionHistory";
 import { useCallback, useEffect, useState } from "react";
@@ -1248,11 +1249,13 @@ function JournalPage() {
                   </p>
                 </div>
               ) : list.length === 0 ? (
-                <div className="card-pp">
-                  <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-                    Nothing here yet — when you're ready, this is a good place to start.
-                  </p>
-                </div>
+                <MuseumHero
+                  art="threads-gather"
+                  eyebrow="Notes"
+                  title="Nothing here yet."
+                  body="When you're ready, this is a good place to start."
+                  testId="notes-empty"
+                />
               ) : (
                 <div className="space-y-3">
                   {list.map((i) => (
