@@ -11,7 +11,7 @@ import { type QuickAction } from "@/components/shared/QuickActionGrid";
 import { portalTheme } from "@/components/shared/portal-theme";
 import { ThreadPreview, type ThreadItem } from "@/components/shared/ThreadPreview";
 import { HomeGuideCard } from "@/components/survivor/HomeGuideCard";
-import { HOME_VIEW_KEY, homeViewKey, quickExitTried } from "@/lib/home-guide";
+import { HOME_VIEW_KEY, homeViewKey, purgeLegacyHomeKeys, quickExitTried } from "@/lib/home-guide";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -54,6 +54,7 @@ function Dashboard() {
 
   useEffect(() => {
     if (!user) return;
+    purgeLegacyHomeKeys();
     try {
       const saved =
         window.localStorage.getItem(homeViewKey(user.id)) ??
@@ -74,15 +75,27 @@ function Dashboard() {
     }
   };
 
+  // Newest Note's created_at, kept in memory only (never written to storage).
+  const latestNoteAt = useMemo(
+    () =>
+      (activity ?? [])
+        .filter((a) => a.kind === "mark")
+        .map((a) => a.at)
+        .sort()
+        .at(-1) ?? null,
+    [activity],
+  );
+
   const guideInputs = useMemo(
     () => ({
       entries: stats?.incident_count ?? 0,
+      latestNoteAt: latestNoteAt,
       draftWaiting: (stats?.unconfirmed_ai_count ?? 0) > 0,
       // Home does not load evidence requests; this state stays off until it does.
       requestWaiting: false,
       quickExitTried: qeTried,
     }),
-    [stats, qeTried],
+    [stats, qeTried, latestNoteAt],
   );
 
   useEffect(() => {

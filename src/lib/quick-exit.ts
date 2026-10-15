@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { markWipePending, wipeLocalEvidence } from "@/lib/local-wipe";
+import { clearHomeGuideStorage } from "@/lib/home-guide";
 
 export function quickExit(exitUrl?: string) {
   const url = exitUrl || "https://weather.com";
@@ -10,6 +11,9 @@ export function quickExit(exitUrl?: string) {
   } catch {
     /* ignore */
   }
+
+  // Home/guide memory goes too (pp.home*). quickexit.tried and the dock version stay.
+  clearHomeGuideStorage();
 
   // Tell any beforeunload guards (e.g. the journal draft warning) to stand down:
   // leaving right now is the whole point of this button.

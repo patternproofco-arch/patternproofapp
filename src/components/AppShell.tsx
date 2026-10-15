@@ -1,4 +1,6 @@
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
+import { clearHomeGuideStorage } from "@/lib/home-guide";
 import { useEffect } from "react";
 import { useSettings } from "@/lib/settings-context";
 import { GuideHelper } from "@/components/survivor/GuideHelper";
@@ -25,6 +27,14 @@ function sectionFor(path: string): string | undefined {
 export function AppShell() {
   const { settings } = useSettings();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
+
+  // Any sign-out (Settings, another tab, session end) clears Home/guide memory.
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") clearHomeGuideStorage();
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     let last = 0;

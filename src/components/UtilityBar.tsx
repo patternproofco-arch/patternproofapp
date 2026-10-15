@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { clearHomeGuideStorage } from "@/lib/home-guide";
 import { Search, Sparkles, Settings as SettingsIcon, LifeBuoy, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { wipeLocalEvidence } from "@/lib/local-wipe";
@@ -34,6 +35,7 @@ export function UtilityBar() {
         onClick={() => {
           // Signing out on purpose also clears files staged on this device for upload.
           void wipeLocalEvidence();
+          clearHomeGuideStorage();
           void supabase.auth.signOut();
         }}
         aria-label="Sign out"
@@ -56,6 +58,7 @@ export function SignOutButton({ className = "btn-ghost" }: { className?: string 
       className={className}
       onClick={() => {
         void wipeLocalEvidence();
+        clearHomeGuideStorage();
         void supabase.auth.signOut();
       }}
     >

@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useSettings } from "@/lib/settings-context";
+import { quickExit } from "@/lib/quick-exit";
 import {
   GUIDE_COPY,
   type DismissableState,
@@ -12,6 +13,7 @@ import {
   notNow,
   pickGuideState,
   readJSON,
+  sanitizeMemory,
   settleOnReturn,
   startSuggestion,
   writeJSON,
@@ -21,7 +23,8 @@ const DISMISSABLE: GuideState[] = ["draft", "request", "quick-exit"];
 
 /**
  * One guide card: eyebrow, one title, one line, one primary button. Quick Exit
- * stays in the shell header (top right); practice mode never really exits.
+ * stays in the shell header (top right). Practice explains it, then "Try it now"
+ * runs the real Quick Exit path (sign out + replace), the same as the header button.
  */
 export function HomeGuideCard({
   userId,
@@ -33,7 +36,9 @@ export function HomeGuideCard({
   const navigate = useNavigate();
   const { settings } = useSettings();
   const key = guideMemoryKey(userId);
-  const [memory, setMemory] = useState<GuideMemory>(() => readJSON<GuideMemory>(key, {}));
+  const [memory, setMemory] = useState<GuideMemory>(() =>
+    sanitizeMemory(readJSON<unknown>(key, {})),
+  );
   const [practicing, setPracticing] = useState(false);
   // Practice counts as trying Quick Exit even before Home re-reads storage.
   const [practiced, setPracticed] = useState(false);
@@ -48,7 +53,7 @@ export function HomeGuideCard({
     if (practicing) return;
     setMemory((m) => {
       const next = settleOnReturn(m, inputs);
-      if (next !== m) writeJSON(key, next);
+      if (next !== m) writeJSON(key, sanitizeMemory(next));
       return next;
     });
   }, [inputs, practicing, key]);
@@ -58,7 +63,7 @@ export function HomeGuideCard({
 
   const save = (next: GuideMemory) => {
     setMemory(next);
-    writeJSON(key, next);
+    writeJSON(key, sanitizeMemory(next));
   };
 
   const act = () => {
@@ -90,15 +95,23 @@ export function HomeGuideCard({
       {practicing ? (
         <div role="dialog" aria-modal="false" aria-labelledby="qe-practice-title">
           <h2 id="qe-practice-title" className="pp2-title">
-            This is practice.
+            Here&apos;s what happens
           </h2>
           <p className="pp2-body">
-            When you tap Quick exit at the top right, this page closes and {exitHost} opens right
-            away, and you&apos;re signed out. Nothing happened just now.
+            When you tap Quick exit at the top right, this page closes, {exitHost} opens right away,
+            and you&apos;re signed out. To come back, open PatternProof and sign in.
           </p>
           <button
             type="button"
             className="pp2-primary"
+            onClick={() => quickExit(settings.exitUrl)}
+            data-testid="quick-exit-practice-try"
+          >
+            Try it now
+          </button>
+          <button
+            type="button"
+            className="pp2-link"
             onClick={() => setPracticing(false)}
             data-testid="quick-exit-practice-done"
           >

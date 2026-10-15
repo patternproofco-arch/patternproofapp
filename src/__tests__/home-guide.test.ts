@@ -55,9 +55,18 @@ describe("Not now", () => {
 
 describe("completing a suggestion shows the rest card", () => {
   it("first Note saved → rest; returning without saving keeps the suggestion", () => {
-    const m = startSuggestion({}, "first-mark", { ...base, entries: 0 }, T);
-    expect(settleOnReturn(m, { ...base, entries: 0 }, T)).toEqual(m);
-    const done = settleOnReturn(m, { ...base, entries: 1 }, T);
+    const tap = new Date("2026-10-15T10:00:00.000Z");
+    const m = startSuggestion({}, "first-mark", { ...base, entries: 0 }, T, tap);
+    expect(settleOnReturn(m, { ...base, entries: 0, latestNoteAt: null }, T)).toEqual(m);
+    // An older Note doesn't count; one saved after the tap does.
+    expect(
+      settleOnReturn(m, { ...base, entries: 1, latestNoteAt: "2026-10-14T09:00:00+00:00" }, T),
+    ).toEqual(m);
+    const done = settleOnReturn(
+      m,
+      { ...base, entries: 1, latestNoteAt: "2026-10-15T10:05:00.123456+00:00" },
+      T,
+    );
     expect(done.restDay).toBe(T);
     expect(pickGuideState({ ...base, entries: 1 }, done, T)).toBe("rest");
   });
@@ -96,7 +105,8 @@ describe("copy rules", () => {
     expect(card).toContain("Start here");
     expect(card).toContain('data-testid="home-guide-card"');
     expect(card).toContain("data-state={state}");
-    expect(card).not.toMatch(/quickExit\(/);
+    // Guardian (d): practice runs the real exit path, the same function as the header button.
+    expect(card).toMatch(/quickExit\(settings\.exitUrl\)/);
     expect(readFileSync("src/components/AppShell.tsx", "utf8")).toMatch(
       /<QuickExitButton phoneDock \/>/,
     );

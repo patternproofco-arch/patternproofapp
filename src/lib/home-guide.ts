@@ -66,21 +66,60 @@ export const GUIDE_COPY: Record<GuideState, GuideCopy> = {
 
 /** What Home knows. `requestWaiting` is false until Home loads requests. */
 export type GuideInputs = {
+  /** Used to pick the state only; never written to storage. */
   entries: number;
+  /** created_at of her newest Note, if Home has loaded it. Used only in memory. */
+  latestNoteAt?: string | null;
   draftWaiting: boolean;
   requestWaiting: boolean;
   quickExitTried: boolean;
 };
 
-/** Local, per-account memory (localStorage). Days are local YYYY-MM-DD. */
+/**
+ * Local, per-account memory (localStorage). Only dates and the card's own state
+ * names: no counts, titles, request or professional details (Guardian, #242).
+ * Days are local YYYY-MM-DD; `since` is an ISO timestamp.
+ */
 export type GuideMemory = {
   /** Suggestion hidden by "Not now", and the day it was hidden. */
   dismissed?: Partial<Record<DismissableState, string>>;
   /** Day she finished a suggestion; the rest card stays for that day. */
   restDay?: string;
-  /** The suggestion she started, the day, and the entry count when she tapped. */
-  pending?: { state: GuideState; day: string; entries: number };
+  /** The suggestion she started and when she tapped it. */
+  pending?: { state: GuideState; day: string; since: string };
 };
+
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+const ISO = /^\d{4}-\d{2}-\d{2}T[\d:.]+Z$/;
+const STATES: GuideState[] = ["first-mark", "draft", "request", "quick-exit", "default", "rest"];
+const DISMISSABLE: DismissableState[] = ["draft", "request", "quick-exit"];
+
+/** Keeps only the allowed shape: anything else read from storage is dropped. */
+export function sanitizeMemory(raw: unknown): GuideMemory {
+  const out: GuideMemory = {};
+  if (!raw || typeof raw !== "object") return out;
+  const m = raw as Record<string, unknown>;
+  if (m.dismissed && typeof m.dismissed === "object") {
+    const d: Partial<Record<DismissableState, string>> = {};
+    for (const k of DISMISSABLE) {
+      const v = (m.dismissed as Record<string, unknown>)[k];
+      if (typeof v === "string" && DAY.test(v)) d[k] = v;
+    }
+    if (Object.keys(d).length) out.dismissed = d;
+  }
+  if (typeof m.restDay === "string" && DAY.test(m.restDay)) out.restDay = m.restDay;
+  const p = m.pending as Record<string, unknown> | undefined;
+  if (
+    p &&
+    STATES.includes(p.state as GuideState) &&
+    typeof p.day === "string" &&
+    DAY.test(p.day) &&
+    typeof p.since === "string" &&
+    ISO.test(p.since)
+  )
+    out.pending = { state: p.state as GuideState, day: p.day, since: p.since };
+  return out;
+}
 
 export function dayKey(d: Date = new Date()) {
   const p = (n: number) => String(n).padStart(2, "0");
@@ -120,10 +159,11 @@ export function notNow(
 export function startSuggestion(
   memory: GuideMemory,
   state: GuideState,
-  inputs: GuideInputs,
+  _inputs: GuideInputs,
   today = dayKey(),
+  now: Date = new Date(),
 ): GuideMemory {
-  return { ...memory, pending: { state, day: today, entries: inputs.entries } };
+  return { ...memory, pending: { state, day: today, since: now.toISOString() } };
 }
 
 /** On returning Home: if the started suggestion is now done, rest for the day. */
@@ -137,7 +177,7 @@ export function settleOnReturn(
   if (p.day !== today) return { ...memory, pending: undefined };
   const done =
     p.state === "first-mark" || p.state === "default" || p.state === "rest"
-      ? inputs.entries > p.entries
+      ? !!inputs.latestNoteAt && Date.parse(inputs.latestNoteAt) > Date.parse(p.since)
       : p.state === "draft"
         ? !inputs.draftWaiting
         : p.state === "request"
@@ -150,9 +190,52 @@ export function settleOnReturn(
 
 export const QUICK_EXIT_TRIED_KEY = "pp.quickexit.tried";
 export const HOME_VIEW_KEY = "pp.home.view";
-/** "Show everything" is remembered per account; the bare key is a legacy fallback. */
-export const homeViewKey = (userId: string) => `${HOME_VIEW_KEY}.${userId}`;
-export const guideMemoryKey = (userId: string) => `pp.home.guide.${userId}`;
+const SALT_KEY = "pp.home.salt";
+
+/** Per-device random salt, so keys never carry the raw user id. */
+function deviceSalt(): string {
+  try {
+    let salt = window.localStorage.getItem(SALT_KEY);
+    if (!salt) {
+      const b = new Uint8Array(16);
+      crypto.getRandomValues(b);
+      salt = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+      window.localStorage.setItem(SALT_KEY, salt);
+    }
+    return salt;
+  } catch {
+    return "nosalt";
+  }
+}
+
+/** Salted, non-reversible tag for an account on this device (two 32-bit FNV-1a lanes). */
+export function accountTag(userId: string, salt = deviceSalt()): string {
+  const input = `${salt}:${userId}`;
+  let a = 0x811c9dc5;
+  let b = 0x01000193 ^ 0x5bd1e995;
+  for (let i = 0; i < input.length; i++) {
+    const c = input.charCodeAt(i);
+    a = Math.imul(a ^ c, 0x01000193) >>> 0;
+    b = Math.imul(b ^ c, 0x01000193 + 2) >>> 0;
+  }
+  return a.toString(16).padStart(8, "0") + b.toString(16).padStart(8, "0");
+}
+
+/** "Show everything" is remembered per account (by tag). */
+export const homeViewKey = (userId: string) => `${HOME_VIEW_KEY}.${accountTag(userId)}`;
+export const guideMemoryKey = (userId: string) => `pp.home.guide.${accountTag(userId)}`;
+
+/**
+ * Quick Exit and sign-out remove every Home/guide key (pp.home*, pp.home.guide*),
+ * including the device salt. pp.quickexit.tried and the dock version stay.
+ */
+export function clearHomeGuideStorage(storage: Storage = window.localStorage) {
+  try {
+    for (const k of Object.keys(storage)) if (k.startsWith("pp.home")) storage.removeItem(k);
+  } catch {
+    /* ignore */
+  }
+}
 
 export function readJSON<T>(key: string, fallback: T): T {
   try {
@@ -184,5 +267,17 @@ export function quickExitTried() {
     return window.localStorage.getItem(QUICK_EXIT_TRIED_KEY) === "1";
   } catch {
     return false;
+  }
+}
+
+const UUID_TAIL = /\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Earlier builds keyed by raw user id; remove those keys. */
+export function purgeLegacyHomeKeys(storage: Storage = window.localStorage) {
+  try {
+    for (const k of Object.keys(storage))
+      if (k.startsWith("pp.home") && UUID_TAIL.test(k)) storage.removeItem(k);
+  } catch {
+    /* ignore */
   }
 }

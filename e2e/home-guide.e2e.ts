@@ -42,6 +42,20 @@ async function setup(page: Page, s: () => Record<string, unknown>, init?: () => 
   await mockLoggedIn(page, {
     persona: "survivor",
     serverFnHandlers: { ...LISTS, getDashboardStats: () => stats(s()) },
+    // Home reads her newest Note's created_at (memory only) to see a Note was saved.
+    restHandlers: {
+      incidents: (route: import("@playwright/test").Route) =>
+        route.fulfill({
+          status: 200,
+          headers: {
+            "access-control-allow-origin": route.request().headers().origin || "*",
+          },
+          json:
+            Number(s().incident_count ?? 0) > 0
+              ? [{ id: "n1", date: null, description: "x", created_at: new Date().toISOString() }]
+              : [],
+        }),
+    },
   });
   if (init) await page.addInitScript(init);
 }
@@ -111,7 +125,7 @@ test("Quick Exit practice shows what happens and comes back, without leaving", a
   await page.goto("/dashboard");
   await expect(card(page)).toHaveAttribute("data-state", "quick-exit");
   await card(page).getByRole("button", { name: "Practice Quick Exit" }).click();
-  await expect(card(page)).toContainText("This is practice.");
+  await expect(card(page)).toContainText("Here's what happens");
   await expect(page).toHaveURL(/\/dashboard/);
   await page.getByTestId("quick-exit-practice-done").click();
   await expect(card(page)).toHaveAttribute("data-state", "rest");
@@ -223,4 +237,48 @@ test("poster: no blur, gradient or shadow, and no banned words in titles, header
     if (SHOTS && name === "Notes") await page.screenshot({ path: `${SHOTS}/390-notes-band.png` });
   }
   expect(found).toEqual([]);
+});
+
+test("Guardian: storage holds only dates/state names under hashed keys", async ({ page }) => {
+  await setup(page, () => ({ incident_count: 2, unconfirmed_ai_count: 1 }));
+  await page.goto("/dashboard");
+  await card(page).getByRole("button", { name: "Not now" }).click();
+  await page.getByRole("button", { name: "Show everything" }).click();
+  const ls = await page.evaluate(() =>
+    Object.fromEntries(
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith("pp.home"))
+        .map((k) => [k, localStorage.getItem(k)]),
+    ),
+  );
+  const keys = Object.keys(ls);
+  expect(keys.length).toBeGreaterThan(0);
+  for (const k of keys) expect(k).toMatch(/^pp\.home\.(salt|(guide|view)\.[0-9a-f]{16})$/);
+  const guide = keys.find((k) => k.startsWith("pp.home.guide."))!;
+  expect(JSON.parse(ls[guide]!)).toEqual({
+    dismissed: { draft: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/) },
+  });
+});
+
+test("Guardian: practice 'Try it now' runs the real Quick Exit and clears Home keys", async ({
+  page,
+}) => {
+  await page.route(/weather\.com/, (r) =>
+    r.fulfill({ status: 200, contentType: "text/html", body: "<title>Weather</title>ok" }),
+  );
+  await setup(page, () => ({ incident_count: 2 }));
+  await page.goto("/dashboard");
+  await expect(card(page)).toHaveAttribute("data-state", "quick-exit");
+  await page.getByRole("button", { name: "Show everything" }).click(); // writes a view key
+  await card(page).getByRole("button", { name: "Practice Quick Exit" }).click();
+  await page.getByTestId("quick-exit-practice-try").click();
+  await page.waitForURL(/weather\.com/);
+  // Back on the app origin (the mock re-signs in, but Home/guide memory must be gone).
+  await page.goto("/robots.txt");
+  const left = await page.evaluate(() => ({
+    home: Object.keys(localStorage).filter((k) => k.startsWith("pp.home")),
+    tried: localStorage.getItem("pp.quickexit.tried"),
+  }));
+  expect(left.home).toEqual([]);
+  expect(left.tried).toBe("1");
 });
