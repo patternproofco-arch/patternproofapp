@@ -73,8 +73,10 @@ describe("Quick Exit docking on phones", () => {
     const block = css.slice(
       css.indexOf("@media (max-width: 639.98px), (max-height: 499.98px) {\n  .pp-qe-dock"),
     );
-    expect(block).toMatch(/\.pp-qe-dock \{\s*top: 8px;/);
-    expect(block).toMatch(/\.pp-app-shell \.pp-shell-header \{[^}]*position: sticky;[^}]*top: 0;/);
-    expect(block).toMatch(/background: var\(--pp-ground\)/);
+    expect(block).toMatch(/\.pp-qe-dock \{\s*top: calc\(env\(safe-area-inset-top, 0px\) \+ 8px\);/);
+    // Survivor header: 60px, sticky, opaque at every width (mobile spec 2026-10-15).
+    expect(css).toMatch(
+      /\.pp-app-shell \.pp-shell-header \{[^}]*position: sticky;[^}]*top: 0;[^}]*min-height: calc\(60px[^}]*background: var\(--pp-ground\);/,
+    );
   });
 });

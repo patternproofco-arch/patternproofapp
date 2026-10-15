@@ -57,7 +57,8 @@ describe("the home screen has one main action", () => {
     for (const label of ["Entries", "Timeline", "Files", "Sharing", "Safety"]) {
       expect(src).toContain(`label: "${label}"`);
     }
-    expect(src).toMatch(/neverDim/);
+    // Nothing on Home is dimmed or blurred any more (no focus regions at all).
+    expect(src).not.toMatch(/FocusRegion|blur\(/);
   });
 });
 

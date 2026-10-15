@@ -4,6 +4,13 @@ import { markWipePending, wipeLocalEvidence } from "@/lib/local-wipe";
 export function quickExit(exitUrl?: string) {
   const url = exitUrl || "https://weather.com";
 
+  // Home's guide stops suggesting "Try Quick Exit once" after a real tap.
+  try {
+    window.localStorage.setItem("pp.quickexit.tried", "1");
+  } catch {
+    /* ignore */
+  }
+
   // Tell any beforeunload guards (e.g. the journal draft warning) to stand down:
   // leaving right now is the whole point of this button.
   try {

@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { HelpCircle, X, Send, PowerOff } from "lucide-react";
+import { X, Send, PowerOff } from "lucide-react";
 import { guideChat } from "@/lib/guide-chat.functions";
 import { cleanGuideAnswer } from "@/lib/guide-answer-copy";
 import { useSettings } from "@/lib/settings-context";
+
+/** Fired by the header Help button. */
+export const OPEN_GUIDE_EVENT = "pp:open-guide";
 
 interface Msg {
   role: "user" | "assistant";
@@ -37,6 +40,13 @@ export function GuideHelper() {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [msgs, busy]);
 
+  // Opened from the header's Help button (the floating button is gone).
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener(OPEN_GUIDE_EVENT, onOpen);
+    return () => window.removeEventListener(OPEN_GUIDE_EVENT, onOpen);
+  }, []);
+
   if (!settings.guideEnabled) return null;
 
   const send = async (override?: string) => {
@@ -65,22 +75,7 @@ export function GuideHelper() {
     update({ guideEnabled: false });
   };
 
-  if (!open) {
-    return (
-      <button
-        onClick={() => setOpen(true)}
-        aria-label="Open the guide"
-        className="no-print fixed bottom-[168px] right-6 z-[96] flex h-12 w-12 items-center justify-center rounded-full"
-        style={{
-          background: "var(--card)",
-          color: "var(--foreground)",
-          boxShadow: "var(--pp-shadow-sm)",
-        }}
-      >
-        <HelpCircle size={20} />
-      </button>
-    );
-  }
+  if (!open) return null;
 
   return (
     <div

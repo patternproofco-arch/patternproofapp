@@ -8,6 +8,8 @@ for (const [label, path] of [
   test(`fictional survivor can choose ${label}`, async ({ page }) => {
     const { mockLoggedIn } = await import("../scripts/qa/mock-session.mjs");
     await mockLoggedIn(page, { persona: "survivor" });
+    // These actions live in the full Home ("Show everything"), remembered per device.
+    await page.addInitScript(() => localStorage.setItem("pp.home.view", "all"));
     const pageErrors: string[] = [];
     page.on("pageerror", (e) => pageErrors.push(e.message));
     await page.goto("/dashboard", { waitUntil: "domcontentloaded" });

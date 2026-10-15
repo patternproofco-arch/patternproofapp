@@ -12,6 +12,7 @@ export function AmbientBackground() {
         inset: 0,
         zIndex: 0,
         pointerEvents: "none",
+        overflow: "hidden",
         background: "var(--pp-paper)",
       }}
     />

@@ -46,3 +46,20 @@ export function UtilityBar() {
     </div>
   );
 }
+
+/** Sign out on purpose (moved from the header into Settings). Also clears files
+ *  staged on this device for upload. */
+export function SignOutButton({ className = "btn-ghost" }: { className?: string }) {
+  return (
+    <button
+      type="button"
+      className={className}
+      onClick={() => {
+        void wipeLocalEvidence();
+        void supabase.auth.signOut();
+      }}
+    >
+      <LogOut size={16} strokeWidth={1.75} /> Sign out
+    </button>
+  );
+}
