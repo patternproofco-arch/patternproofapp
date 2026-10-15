@@ -98,7 +98,7 @@
   "devDependencies": {
     "@electric-sql/pglite": "0.3.14",
     "@eslint/js": "^9.32.0",
-    "@lovable.dev/vite-tanstack-config": "2.25.3",
+    "@lovable.dev/vite-tanstack-config": "2.26.5",
     "@playwright/test": "1.56.1",
     "@types/node": "^26.6.2",
     "@types/react": "^19.2.0",
