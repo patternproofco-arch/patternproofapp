@@ -20,11 +20,11 @@ describe("Quick Exit docking on phones", () => {
     expect(quickExitDock(1280, 800)).toEqual(WIDE_DOCK);
     expect(PHONE_DOCK).not.toHaveProperty("left");
   });
-  it("shell and onboarding both use the shared phone dock", () => {
-    for (const f of ["src/components/AppShell.tsx", "src/routes/_authenticated/onboarding.tsx"]) {
-      expect(read(f)).toMatch(/<QuickExitButton phoneDock \/>/);
-      expect(read(f)).toMatch(/className="pp-qe-slot"/);
-    }
+  it("shell uses the shared phone dock; onboarding relies on the shell's (exactly one)", () => {
+    expect(read("src/components/AppShell.tsx")).toMatch(/<QuickExitButton phoneDock \/>/);
+    expect(read("src/components/AppShell.tsx")).toMatch(/className="pp-qe-slot"/);
+    // Onboarding renders inside AppShell; its own button stacked a second one on top.
+    expect(read("src/routes/_authenticated/onboarding.tsx")).not.toMatch(/<QuickExitButton/);
     for (const f of [
       "src/components/PinScreen.tsx",
       "src/routes/support.tsx",
