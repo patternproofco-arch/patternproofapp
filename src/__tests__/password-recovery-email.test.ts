@@ -75,7 +75,10 @@ describe("forgot / reset quiet chrome and send trust", () => {
 
   it("uses the canonical redirect helper and surfaces send-config failures", () => {
     expect(forgot).toContain("passwordRecoveryRedirectTo");
-    expect(forgot).toContain("We couldn't send a reset link right now");
+    expect(readFileSync("src/lib/password-reset-request.ts", "utf8")).toContain(
+      "We couldn't send a reset link right now",
+    );
+    expect(forgot).toContain("classifyResetResult");
     expect(forgot).toContain("RECOVERY_EMAIL_INBOX_HINT");
     expect(RECOVERY_EMAIL_INBOX_HINT).toMatch(/Your account access link/);
     expect(RECOVERY_EMAIL_INBOX_HINT).toMatch(/Account Notices/);

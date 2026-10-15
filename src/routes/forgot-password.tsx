@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 import { BrandMark } from "@/components/BrandMark";
 import { passwordRecoveryRedirectTo } from "@/lib/password-recovery-redirect";
+import { RESET_NETWORK, classifyResetResult, resetDiagnostics } from "@/lib/password-reset-request";
 import { RECOVERY_EMAIL_INBOX_HINT } from "@/lib/email-templates/recovery.config";
 
 export const Route = createFileRoute("/forgot-password")({
@@ -23,8 +24,9 @@ export const Route = createFileRoute("/forgot-password")({
 
 /**
  * Enumeration-safe reset request: the success screen is the same whether or not
- * the address has an account. Only transport / rate-limit / send-config failures
- * surface as visible role=alert errors (soft-claim copy; no absolute privacy promises).
+ * the address has an account (Auth answers success for unknown addresses). It is
+ * shown ONLY when Auth returned no error; every error is a calm role=alert with a
+ * retry (src/lib/password-reset-request.ts).
  */
 function ForgotPasswordPage() {
   const navigate = useNavigate();
@@ -42,33 +44,19 @@ function ForgotPasswordPage() {
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo,
       });
-      if (resetError) {
-        const lower = resetError.message.toLowerCase();
-        // Never reveal whether the email is registered.
-        if (/rate limit|too many|over_request_rate|email rate/i.test(lower)) {
-          setError("Too many attempts. Wait a minute and try again.");
-          return;
-        }
-        if (/failed to fetch|network|timeout|load failed|fetch failed/i.test(lower)) {
-          setError("We couldn't reach the reset service. Check your connection and try again.");
-          return;
-        }
-        // Redirect allow-list / SMTP / hook failures used to fall through to the
-        // calm success screen, so survivors thought mail was sent when it was not.
-        if (
-          /redirect|not allowed|invalid.*(url|redirect)|site.?url|unable to send|error sending|smtp|email provider|hook/i.test(
-            lower,
-          )
-        ) {
-          setError("We couldn't send a reset link right now. Try again in a few minutes.");
-          return;
-        }
-        // Other API responses (including unknown-user) still show the calm success path.
+      // Success screen only when Auth returned no error (it already answers success
+      // for unknown addresses, so this reveals nothing). Any error: calm retry message.
+      const outcome = classifyResetResult(resetError);
+      if (outcome.kind === "error") {
+        const line = resetDiagnostics(outcome);
+        if (line) console.warn(line);
+        setError(outcome.message);
+        return;
       }
       setSubmitted(true);
       setEmail("");
     } catch {
-      setError("We couldn't reach the reset service. Check your connection and try again.");
+      setError(RESET_NETWORK);
     } finally {
       setBusy(false);
     }
@@ -97,13 +85,14 @@ function ForgotPasswordPage() {
             <>
               <h1 className="font-serif text-[22px]">Reset your password.</h1>
               <p className="mt-1 mb-5 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-                Enter the email you use with this account. If that address has an account, we&apos;ll
-                send a one-time link to choose a new password. Your records stay as you left them —
-                this only changes how you sign in.
+                Enter the email you use with this account. If that address has an account,
+                we&apos;ll send a one-time link to choose a new password. Your records stay as you
+                left them — this only changes how you sign in.
               </p>
 
               <form onSubmit={submit} className="space-y-3" noValidate>
-                <input aria-label="Email"
+                <input
+                  aria-label="Email"
                   type="email"
                   required
                   autoComplete="email"
