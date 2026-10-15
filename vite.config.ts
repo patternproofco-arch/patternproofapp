@@ -12,7 +12,7 @@ import { resolve } from "node:path";
 import { loadEnv } from "vite";
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { sourceDigest } from "./scripts/source-digest.mjs";
-import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/tanstack/vite";
+// mcp-js Vite plugin removed: it regenerates the MCP routes un-gated. MCP is behind MCP_ENABLED (default OFF).
 
 // Server routes need non-VITE_ env vars (e.g. service role key) in process.env.
 // These are NOT exposed to the client bundle.
@@ -222,7 +222,6 @@ export default defineConfig({
       ...clientEnvDefines,
     },
 
-    plugins: [mcpPlugin()],
     resolve: {
       alias: {
         "entities/lib/decode.js": path.resolve(
