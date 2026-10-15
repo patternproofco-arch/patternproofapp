@@ -21,7 +21,7 @@ import { getClioAvailability, getClioStatus } from "@/lib/clio.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import attorneyCss from "@/styles/attorney.css?url";
 import { BrandMark } from "@/components/BrandMark";
-import { FocusModeProvider } from "@/components/survivor/focus-mode";
+import { FocusModeProvider, FocusReveal } from "@/components/survivor/focus-mode";
 import { useMfaGate } from "@/hooks/use-mfa-gate";
 import { attorneyPathExemptFromRequiredMfa, attorneyPathWithoutPortalChrome } from "@/lib/mfa";
 
@@ -236,6 +236,7 @@ function AttorneyLayout() {
         <main id="main-content" tabIndex={-1} className="att-content">
           <FocusModeProvider accentColor="var(--att-navy)">
             <Outlet />
+          <FocusReveal />
           </FocusModeProvider>
         </main>
         <footer className="att-footer">

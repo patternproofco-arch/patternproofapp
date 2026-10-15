@@ -1,3 +1,4 @@
+import { groupLabelFor } from "@/lib/abuse-types";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -338,7 +339,7 @@ function PatternsPage() {
               {analysis.abuse_type_breakdown.map((b) => (
                 <div key={b.type}>
                   <div className="mb-1 flex items-baseline justify-between text-[13px]">
-                    <span>{b.type}</span>
+                    <span>{groupLabelFor(b.type)}</span>
                     <span style={{ color: "var(--muted-foreground)" }}>
                       {b.count} · {b.percent.toFixed(0)}%
                     </span>

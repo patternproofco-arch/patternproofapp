@@ -194,7 +194,7 @@ function Dashboard() {
       type="button"
       aria-expanded={expanded}
       onClick={() => chooseView(expanded ? "guide" : "all")}
-      className="pp-home-toggle"
+      className={`pp-home-toggle ${expanded ? "" : "pp-home-toggle--quiet"}`}
       data-testid="home-toggle"
     >
       {expanded ? "Show less" : "Show everything"}

@@ -10,19 +10,19 @@
 export const ABUSE_TYPES = [
   {
     value: "verbal",
-    label: "Verbal abuse",
+    label: "Hurtful words",
     helper: "Yelling, name-calling, contempt, put-downs.",
     color: "#C4708A",
   },
   {
     value: "physical",
-    label: "Physical violence",
+    label: "Physical harm",
     helper: "Any unwanted physical contact, restraint, or harm.",
     color: "#B85574",
   },
   {
     value: "sexual",
-    label: "Sexual violence",
+    label: "Unwanted sexual contact",
     helper: "Any unwanted sexual contact, coercion, or pressure.",
     color: "#9C3A5A",
   },
@@ -58,7 +58,7 @@ export const ABUSE_TYPES = [
   },
   {
     value: "legal",
-    label: "Legal/court violation",
+    label: "Court order issues",
     helper: "Order violations, false filings, weaponizing the court.",
     color: "#2F5C8D",
   },
@@ -70,7 +70,7 @@ export const ABUSE_TYPES = [
   },
   {
     value: "digital",
-    label: "Digital abuse",
+    label: "Accounts & devices",
     helper: "Hacking accounts, fake profiles, spyware, deepfakes.",
     color: "#5C9C9C",
   },
@@ -103,7 +103,7 @@ export const ABUSE_TYPES = [
   },
   {
     value: "smart_home",
-    label: "Smart-home abuse",
+    label: "Smart-home devices",
     helper:
       "Examples: someone remotely changing thermostats, locks, lights, or cameras in your home. Alexa, Ring, or Nest devices used to listen, watch, or unsettle you.",
     color: "#9C7B5A",
@@ -117,7 +117,7 @@ export const ABUSE_TYPES = [
   },
   {
     value: "digital_intimidation",
-    label: "Digital intimidation",
+    label: "Repeated messages",
     helper:
       "Examples: floods of texts, calls, or DMs that don't stop, watching your online status to time contact, harassing you across multiple platforms or through new accounts after being blocked.",
     color: "#C9744C",
@@ -142,7 +142,7 @@ export type EvidenceFlagValue = (typeof EVIDENCE_FLAGS)[number]["value"];
 
 /** Legacy value aliases — keep historic rows readable. */
 const LEGACY_ALIASES: Record<string, { label: string; color: string }> = {
-  emotional: { label: "Verbal abuse", color: "#C4708A" },
+  emotional: { label: "Hurtful words", color: "#C4708A" },
   custody: { label: "Child-related", color: "#5C8DC4" },
   other: { label: "Other", color: "#8E8678" },
 };
@@ -155,6 +155,78 @@ export function typeColor(value: string): string {
   );
 }
 
+/**
+ * Discretion (Experience 2026-10-15): display labels above are neutral. DB values
+ * are unchanged. Professional surfaces and court documents use the formal terms.
+ */
+const FORMAL_LABELS: Record<string, string> = {
+  verbal: "Verbal abuse",
+  emotional: "Verbal abuse",
+  physical: "Physical violence",
+  sexual: "Sexual violence",
+  legal: "Legal/court violation",
+  digital: "Digital abuse",
+  smart_home: "Smart-home abuse",
+  digital_intimidation: "Digital intimidation",
+};
+
+export function formalTypeLabel(value: string): string {
+  return FORMAL_LABELS[value] ?? typeLabel(value);
+}
+
+/** Timeline filter chips: six plain-language groups over the stored values. */
+export const TIMELINE_GROUPS = [
+  { key: "said", label: "Things said", values: ["verbal", "emotional", "threats", "harassment"] },
+  {
+    key: "done",
+    label: "Things done",
+    values: ["physical", "sexual", "property", "coercive", "child", "custody", "legal", "smart_home", "impersonation"],
+  },
+  { key: "money", label: "Money", values: ["financial"] },
+  {
+    key: "messages",
+    label: "Messages & calls",
+    values: ["digital_intimidation", "digital", "account_control"],
+  },
+  { key: "where", label: "Where I go", values: ["stalking", "location_tracking", "surveillance"] },
+  { key: "other", label: "Other", values: ["other"] },
+] as const;
+
+export type TimelineGroupKey = (typeof TIMELINE_GROUPS)[number]["key"];
+
+/** Group a stored value belongs to; anything unknown falls under Other. */
+export function timelineGroupOf(value: string): TimelineGroupKey {
+  return (TIMELINE_GROUPS.find((g) => (g.values as readonly string[]).includes(value))?.key ??
+    "other") as TimelineGroupKey;
+}
+
 export function typeLabel(value: string): string {
   return ABUSE_TYPES.find((t) => t.value === value)?.label ?? LEGACY_ALIASES[value]?.label ?? value;
+}
+
+/** Sensitive type labels: shown only in the tag picker and on her own entries. */
+export const PICKER_ONLY_LABELS = [
+  "Unwanted sexual contact",
+  "Threats",
+  "Stalking",
+  "Harassment",
+  "Coercive control",
+] as const;
+
+/**
+ * Discreet label for aggregate surfaces (summaries, observations, filter chips):
+ * accepts a stored value or any display/formal label and returns its group.
+ */
+export function groupLabelFor(valueOrLabel: string): string {
+  const k = valueOrLabel.trim().toLowerCase();
+  const hit =
+    ABUSE_TYPES.find((t) => t.value === k || t.label.toLowerCase() === k)?.value ??
+    Object.entries(FORMAL_LABELS).find(([, l]) => l.toLowerCase() === k)?.[0] ??
+    k.replace(/\s+/g, "_");
+  const key = timelineGroupOf(hit);
+  return TIMELINE_GROUPS.find((g) => g.key === key)!.label;
+}
+
+export function groupLabelByKey(key: string): string {
+  return TIMELINE_GROUPS.find((g) => g.key === key)?.label ?? "Other";
 }

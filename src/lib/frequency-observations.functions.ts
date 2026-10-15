@@ -1,7 +1,7 @@
+import { groupLabelByKey, timelineGroupOf } from "@/lib/abuse-types";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
-  abuseTypeLabel,
   buildObservation,
   dateLabel,
   daysAgoDate,
@@ -39,7 +39,10 @@ export const getFrequencyObservations = createServerFn({ method: "POST" })
 
     const byType = new Map<string, ObservationSourceRow[]>();
     for (const row of inc.data ?? []) {
-      for (const t of (row.abuse_types ?? []) as string[]) {
+      // Grouped into the plain-language Timeline groups (discretion: no sensitive
+      // type names on aggregate surfaces). One row per Note per group.
+      const groups = new Set(((row.abuse_types ?? []) as string[]).map((t) => timelineGroupOf(t)));
+      for (const t of groups) {
         const list = byType.get(t) ?? [];
         list.push({ id: row.id as string, label: dateLabel(row.date as string | null) });
         byType.set(t, list);
@@ -49,7 +52,7 @@ export const getFrequencyObservations = createServerFn({ method: "POST" })
       const o = buildObservation(
         `incidents:${type}`,
         "incidents",
-        `Notes logged under ${abuseTypeLabel(type)}`,
+        `Notes logged under ${groupLabelByKey(type).toLowerCase()}`,
         "in the past 30 days",
         rows,
       );

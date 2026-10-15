@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getMyAdvocateRole } from "@/lib/advocate.functions";
 import { AccessDisclaimerBar } from "@/components/AccessDisclaimer";
 import { BrandMark } from "@/components/BrandMark";
-import { FocusModeProvider } from "@/components/survivor/focus-mode";
+import { FocusModeProvider, FocusReveal } from "@/components/survivor/focus-mode";
 import { useMfaGate } from "@/hooks/use-mfa-gate";
 import "@/styles-role-accents.css";
 
@@ -128,6 +128,7 @@ function AdvocateLayout() {
       >
         <FocusModeProvider accentColor="var(--pp-accent-org)">
           <Outlet />
+          <FocusReveal />
         </FocusModeProvider>
       </main>
     </div>

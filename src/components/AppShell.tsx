@@ -12,7 +12,7 @@ import { SectionSegments } from "@/components/survivor/SectionSegments";
 import { NotificationBanner } from "@/components/NotificationBanner";
 import { NewConnectionNotice } from "@/components/NewConnectionNotice";
 import { quickExit } from "@/lib/quick-exit";
-import { FocusModeProvider } from "@/components/survivor/focus-mode";
+import { FocusModeProvider, FocusReveal } from "@/components/survivor/focus-mode";
 import "@/styles-role-accents.css";
 import "@/styles-survivor-poster.css";
 
@@ -93,6 +93,7 @@ export function AppShell() {
         >
           <SectionSegments />
           <Outlet />
+          <FocusReveal />
         </main>
       </FocusModeProvider>
 

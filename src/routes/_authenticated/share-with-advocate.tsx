@@ -180,7 +180,7 @@ function ShareWithAdvocate() {
       <p
         style={{ fontSize: 13.5, lineHeight: 1.6, color: "var(--muted-foreground)", maxWidth: 640 }}
       >
-        If someone at a domestic violence organization is helping you, you can give them a read-only
+        If someone at a support organization is helping you, you can give them a read-only
         view of what you've documented. They can't change or delete anything, and you can withdraw
         access whenever you want.
       </p>
