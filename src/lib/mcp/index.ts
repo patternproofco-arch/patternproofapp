@@ -1,6 +1,5 @@
 import { auth, defineMcp } from "@lovable.dev/mcp-js";
 import listIncidents from "./tools/list-incidents";
-import createIncident from "./tools/create-incident";
 import listEvidence from "./tools/list-evidence";
 import searchCase from "./tools/search";
 
@@ -18,5 +17,5 @@ export default defineMcp({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated",
   }),
-  tools: [listIncidents, createIncident, listEvidence, searchCase],
+  tools: [listIncidents, listEvidence, searchCase],
 });
