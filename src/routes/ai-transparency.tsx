@@ -46,8 +46,25 @@ export const Route = createFileRoute("/ai-transparency")({
       </Section>
       <Section title="You decide">
         <p>
-          Every AI suggestion supports Confirm, Edit, Reject, Unsure, and Review later. Rejected
-          suggestions never appear in an export.
+          Review suggestions before using them. You can confirm an entry reference, edit a draft
+          yourself, dismiss a suggestion, or leave it for later. Rejected suggestions never appear
+          in an export.
+        </p>
+      </Section>
+      <Section title="Optional Jev checks">
+        <p>
+          Jev returns a fixed choice or a probability for a review question, rather than generated
+          text. It can suggest entry references, temporary record-type groups, possible duplicate
+          drafts, date/place review flags, and request-to-file matches. A probability is a software
+          signal, not a finding about what happened. No match does not establish that an item is
+          missing.
+        </p>
+        <p>
+          Each check names the saved text it sends to TypeSafe and asks first. Records marked no AI
+          and sealed records stay out of checks. Attorney checks use only the current share. Jev
+          results stay in the current view and are not exported; only a confirmed entry reference is
+          saved in the attorney's review. Draft checks keep your wording and leave every edit,
+          accept, and discard decision to you.
         </p>
       </Section>
       <Section title="Explanations, not hidden reasoning">
@@ -57,7 +74,7 @@ export const Route = createFileRoute("/ai-transparency")({
           chain-of-thought.
         </p>
       </Section>
-      <Section title="Provenance we store with each AI output">
+      <Section title="Provenance for saved AI outputs">
         <ul>
           <li>Source record IDs the suggestion was drawn from</li>
           <li>Kind of AI activity (extraction or interpretation)</li>

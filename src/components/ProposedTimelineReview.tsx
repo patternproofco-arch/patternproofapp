@@ -9,6 +9,7 @@ import {
   saveDraftSourceText,
 } from "@/lib/propose-timeline.functions";
 import { toast } from "sonner";
+import { JevDraftCheck } from "./JevDraftCheck";
 import { Check, Pencil, Sparkles, Trash2, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -450,6 +451,15 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
                       <li key={i}>· {n}</li>
                     ))}
                   </ul>
+                )}
+
+                {!isEditing && (
+                  <JevDraftCheck
+                    key={p.id + JSON.stringify(p.draft)}
+                    proposalId={p.id}
+                    candidateIds={items.map((item) => item.id)}
+                    onEdit={() => startEdit(p)}
+                  />
                 )}
 
                 <div className="pp-draft-trust-hinge" data-testid="draft-accept-pipeline-cue">

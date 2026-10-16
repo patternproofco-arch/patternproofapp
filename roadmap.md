@@ -47,9 +47,10 @@
 - [x] "Enable Supabase for this project" — checked: the backend is already enabled, managed and live (not paused); nothing to turn on, no change made
 ## Oct 16 (later)
 - [x] link_id type errors fixed by aligning with the generated schema (no link_id column on attorney_evidence_reviews; unique key is attorney_user_id+evidence_id); tests updated, typecheck clean
-- [ ] Jev AI: attorney entry-link suggestions (file ↔ documented entry, confirm to apply)
-- [ ] Jev AI: record-type grouping of shared files in the review queue (display-only)
-- [ ] Jev AI: survivor draft tidy-up (possible duplicates, missing date/place flags; confirm everything)
-- [ ] Jev AI: missing-items nudge on evidence requests (match request text to shared files)
+- [x] Jev AI: attorney entry-link suggestions (file ↔ documented entry, confirm to save a private attorney reference)
+- [x] Jev AI: record-type grouping of shared files in the review queue (display-only; batches of 20)
+- [x] Jev AI: survivor draft tidy-up (possible duplicates, missing date/place review flags; original wording and accept/discard decisions stay with survivor)
+- [x] Jev AI: missing-items nudge on evidence requests (optional request-to-shared-file match; never infers that an item is missing)
+- [ ] Enable Jev on the host after provider-policy review and server key configuration; see docs/jev-proposals.md. Implementation is present; no real-record provider call or deployment performed.
 - [ ] Drive/OneDrive scan: per-user connector (google_drive, microsoft_onedrive) so Jev can identify relevant files even with unhelpful names — needs client configured + per-user OAuth + storage table
-- [ ] Preview build error: attorney evidence review notes need a share-link field the live database doesn't have — RESOLVED: fixed code-side by aligning with the generated schema; no database change needed
+- [x] Preview build error resolved: attorney evidence reviews match the generated schema; no share-link column or database change needed. Notes remain keyed by attorney+file and can reappear when that same file is actively re-shared.

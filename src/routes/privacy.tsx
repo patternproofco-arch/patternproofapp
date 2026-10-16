@@ -52,8 +52,8 @@ function PrivacyPage() {
 
         <Prose>
           <p>
-            PatternProof, operated by G. BURNS COMPANY LLC ("PatternProof," "we," "us," or "our"), is
-            committed to protecting the privacy and safety of our users. This Privacy Policy
+            PatternProof, operated by G. BURNS COMPANY LLC ("PatternProof," "we," "us," or "our"),
+            is committed to protecting the privacy and safety of our users. This Privacy Policy
             explains how we collect, use, store, and protect your information when you use our
             platform and associated services (collectively, the "Services").
           </p>
@@ -138,10 +138,9 @@ function PrivacyPage() {
             anyone you choose to share them with.
           </p>
           <p>
-            What is not retained is the raw inference call at the third-party model provider: the
-            content sent for a given request is processed to return that result and is not used to
-            train their models. We do not independently control those providers' internal handling
-            or retention beyond the terms of the gateway agreement described in Section 5.
+            AI features send selected content to an outside provider. The provider's handling,
+            retention, and training terms depend on the service used. We do not independently
+            control those providers' internal handling; see the provider information in Section 5.
           </p>
 
           <H2>5. How We Share Your Information</H2>
@@ -200,15 +199,29 @@ function PrivacyPage() {
 
           <H3>AI providers and subprocessors</H3>
           <p>
+            When enabled, optional Jev checks send bounded saved text and record metadata to
+            TypeSafe to suggest entry references, record-type groups, possible duplicate drafts,
+            date/place review flags, and request-to-file matches. Each check asks before sending.
+            Attorney checks use only currently shared, AI-eligible records; sealed records and
+            records marked no AI are excluded. Suggestions stay in the current view unless an
+            attorney confirms an entry reference in their review notes. These checks do not scan
+            Google Drive or OneDrive. TypeSafe processing requires a separate host policy review;
+            PatternProof makes no retention or training promise on TypeSafe's behalf. See{" "}
+            <a href="https://docs.typesafe.ai/legal" target="_blank" rel="noreferrer">
+              TypeSafe's policies
+            </a>
+            . You can continue to review and organize manually.
+          </p>
+          <p>
             Several features rely on third-party AI providers reached through the Lovable AI
             Gateway: Google (Gemini models) and OpenAI (GPT-4o transcription). Features that use
             them include Recurline pattern grouping, the Co-Pilot assistant, evidence content-type
-            suggestions, voice/recording transcription, and reading text from the screenshots and call
-            log photos you add on the Message threads page. Each of those screens tells you this
-            and asks you to agree before anything is sent. A screen recording uploaded on that page
-            is stored unchanged and is not read or sent to an AI provider. The on-device import
-            (Import Messages) reads screenshots and recordings in your own browser and sends
-            nothing to an AI provider.
+            suggestions, voice/recording transcription, and reading text from the screenshots and
+            call log photos you add on the Message threads page. Each of those screens tells you
+            this and asks you to agree before anything is sent. A screen recording uploaded on that
+            page is stored unchanged and is not read or sent to an AI provider. The on-device import
+            (Import Messages) reads screenshots and recordings in your own browser and sends nothing
+            to an AI provider.
           </p>
           <p>
             When you use those features, the content involved — your entry text, message text, file

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { JevRequestNudge } from "./JevRequestNudge";
 import { requestOutcomeLabel } from "@/lib/request-response";
 import {
   createEvidenceRequest,
@@ -83,6 +84,7 @@ export function EvidenceRequestsPanel({ clientId }: EvidenceRequestsPanelProps) 
           value={details}
           onChange={(e) => setDetails(e.target.value)}
         />
+        <JevRequestNudge clientId={clientId} title={title} details={details} />
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <select
             className="att-input"
@@ -118,6 +120,14 @@ export function EvidenceRequestsPanel({ clientId }: EvidenceRequestsPanelProps) 
                   {requestOutcomeLabel(r.response_outcome) ?? STATUS[r.status] ?? r.status}
                 </span>
               </div>
+              {r.status === "open" && (
+                <JevRequestNudge
+                  key={clientId + r.id}
+                  clientId={clientId}
+                  title={r.title}
+                  details={r.details ?? ""}
+                />
+              )}
               {r.status === "submitted" && (
                 <p style={{ fontSize: 13, marginTop: 4 }}>
                   {r.response_note ?? "No note."} · {r.shared_file_count} file
