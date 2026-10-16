@@ -74,15 +74,24 @@ beforeEach(() => {
       {
         attorney_user_id: "attorney",
         client_user_id: "survivor",
+        link_id: "old-grant",
         evidence_id: "old-file",
         notes: "Hidden old review",
       },
       {
         attorney_user_id: "attorney",
         client_user_id: "survivor",
+        link_id: "current-grant",
         evidence_id: "current-file",
         notes: "Current review",
         linked_incident_id: "current-incident",
+      },
+      {
+        link_id: "old-grant",
+        attorney_user_id: "attorney",
+        client_user_id: "survivor",
+        evidence_id: "current-file",
+        notes: "Earlier grant same file",
       },
     ],
   });
@@ -122,6 +131,59 @@ describe("access after fresh sharing", () => {
       }),
     ).toEqual({ ok: true });
     expect(state.admin.tables.attorney_evidence_reviews[1].notes).toBe("Reviewed");
+    expect(state.admin.tables.attorney_evidence_reviews[1].link_id).toBe("current-grant");
+    expect(state.admin.tables.attorney_evidence_reviews[2].notes).toBe("Earlier grant same file");
+  });
+  it("binds upserts to current-grant via onConflict link_id,evidence_id without touching earlier grants", async () => {
+    expect(
+      await upsertEvidenceReview({
+        data: { clientId: "survivor", evidenceId: "current-file", notes: "Grant-scoped" },
+      }),
+    ).toEqual({ ok: true });
+    const rows = state.admin.tables.attorney_evidence_reviews;
+    const current = rows.find(
+      (r: any) => r.link_id === "current-grant" && r.evidence_id === "current-file",
+    );
+    const earlier = rows.find(
+      (r: any) => r.link_id === "old-grant" && r.evidence_id === "current-file",
+    );
+    expect(current?.notes).toBe("Grant-scoped");
+    expect(current?.link_id).toBe("current-grant");
+    expect(earlier?.notes).toBe("Earlier grant same file");
+  });
+  it("never writes a client-supplied link_id; server always binds the current grant", async () => {
+    // The unit createServerFn mock skips Zod; this still proves the handler
+    // derives link_id from assertActiveLink, not from request data.
+    expect(
+      await upsertEvidenceReview({
+        data: {
+          clientId: "survivor",
+          evidenceId: "current-file",
+          notes: "Server-derived",
+          link_id: "old-grant",
+        } as any,
+      }),
+    ).toEqual({ ok: true });
+    const rows = state.admin.tables.attorney_evidence_reviews;
+    const current = rows.find(
+      (r: any) => r.link_id === "current-grant" && r.evidence_id === "current-file",
+    );
+    const earlier = rows.find(
+      (r: any) => r.link_id === "old-grant" && r.evidence_id === "current-file",
+    );
+    expect(current?.notes).toBe("Server-derived");
+    expect(current?.link_id).toBe("current-grant");
+    expect(earlier?.notes).toBe("Earlier grant same file");
+  });
+  it("refuses evidence-review upserts when there is no current active grant", async () => {
+    state.admin.tables.attorney_client_links[1].status = "revoked";
+    state.admin.tables.attorney_client_links[1].revoked_at = "2026-01-02";
+    await expect(
+      upsertEvidenceReview({
+        data: { clientId: "survivor", evidenceId: "current-file", notes: "Forged" },
+      }),
+    ).rejects.toThrow("No active access");
+    expect(state.admin.tables.attorney_evidence_reviews[1].notes).toBe("Current review");
   });
   it("does not read or edit reviews after the survivor deletes the underlying file", async () => {
     state.admin.tables.evidence[0].deleted_at = "2026-01-01";
