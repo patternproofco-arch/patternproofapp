@@ -13,9 +13,12 @@ import {
 } from "@react-email/components";
 import type { TemplateEntry } from "./registry";
 
+/**
+ * Safety: this email must not reveal any organization (e.g. a DV agency) in
+ * the subject, preview text or body. orgName is intentionally not accepted.
+ */
 interface Props {
   advocateName?: string;
-  orgName?: string | null;
   survivorName?: string | null;
   personalNote?: string;
   acceptUrl?: string;
@@ -24,19 +27,12 @@ interface Props {
 
 const Email = ({
   advocateName,
-  orgName,
   survivorName,
   personalNote,
   acceptUrl = "https://pattern-proof.tech",
   expiresLabel = "30 days",
 }: Props) => {
-  const who = advocateName
-    ? orgName
-      ? `${advocateName} (${orgName})`
-      : advocateName
-    : orgName
-      ? orgName
-      : "An advocate";
+  const who = advocateName || "Someone you work with";
   const greeting = survivorName ? `${survivorName},` : "Hello,";
 
   return (
@@ -48,22 +44,22 @@ const Email = ({
       </Preview>
       <Body style={main}>
         <Container style={container}>
-          <Text style={eyebrow}>PATTERNPROOF · ADVOCATE INVITE</Text>
+          <Text style={eyebrow}>PATTERNPROOF · INVITE</Text>
           <Heading style={h1}>{greeting}</Heading>
           <Text style={p}>
-            {who} invited you to share documentation you organize in PatternProof. PatternProof helps
-            you keep your own records in one place — it does not draw legal conclusions, and this
-            invite is not attorney–client privilege.
+            {who} invited you to share documentation you organize in PatternProof. PatternProof
+            helps you keep your own records in one place — it does not draw legal conclusions, and
+            this invite is not attorney–client privilege.
           </Text>
           <Text style={p}>
             <strong>Opening this email link alone does not grant access.</strong> You choose whether
-            to accept, what to share, and you can revoke later. Revoking ends new access; it does not
-            undo anything already downloaded while access was active.
+            to accept, what to share, and you can revoke later. Revoking ends new access; it does
+            not undo anything already downloaded while access was active.
           </Text>
 
           {personalNote ? (
             <Section style={note}>
-              <Text style={noteLabel}>A note from {advocateName || "your advocate"}</Text>
+              <Text style={noteLabel}>A note from {advocateName || "the sender"}</Text>
               <Text style={noteBody}>{personalNote}</Text>
             </Section>
           ) : null}
@@ -102,11 +98,10 @@ export const template = {
   subject: ({ advocateName }: Record<string, unknown>) =>
     advocateName
       ? `${String(advocateName)} invited you to share PatternProof records`
-      : "An advocate invited you to share PatternProof records",
+      : "You have been invited to share PatternProof records",
   displayName: "Advocate → survivor invitation",
   previewData: {
     advocateName: "Jordan Lee",
-    orgName: "Harbor DV Services",
     survivorName: "Alex",
     personalNote: "When you're ready, this can help us stay organized together.",
     acceptUrl: "https://pattern-proof.tech/advocate-survivor-invite/example-token",

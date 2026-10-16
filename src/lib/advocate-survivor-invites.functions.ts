@@ -55,7 +55,7 @@ async function sendAdvocateSurvivorInviteEmail(input: {
   const origin = getEmailSiteOrigin();
   const { data: prof } = await supabaseAdmin
     .from("advocate_profiles")
-    .select("full_name,org_name")
+    .select("full_name")
     .eq("user_id", input.advocateUserId)
     .maybeSingle();
   const { deliverTransactionalEmail } = await import("@/lib/email/deliver-transactional.server");
@@ -67,7 +67,6 @@ async function sendAdvocateSurvivorInviteEmail(input: {
       : `advocate-survivor-invitation-${input.inviteId}`,
     templateData: {
       advocateName: prof?.full_name ?? undefined,
-      orgName: prof?.org_name ?? undefined,
       survivorName: input.survivorName ?? undefined,
       personalNote: input.personalNote ?? undefined,
       acceptUrl: `${origin}/advocate-survivor-invite/${input.token}`,
