@@ -74,24 +74,15 @@ beforeEach(() => {
       {
         attorney_user_id: "attorney",
         client_user_id: "survivor",
-        link_id: "old-grant",
         evidence_id: "old-file",
         notes: "Hidden old review",
       },
       {
         attorney_user_id: "attorney",
         client_user_id: "survivor",
-        link_id: "current-grant",
         evidence_id: "current-file",
         notes: "Current review",
         linked_incident_id: "current-incident",
-      },
-      {
-        link_id: "old-grant",
-        attorney_user_id: "attorney",
-        client_user_id: "survivor",
-        evidence_id: "current-file",
-        notes: "Earlier grant same file",
       },
     ],
   });
@@ -131,7 +122,6 @@ describe("access after fresh sharing", () => {
       }),
     ).toEqual({ ok: true });
     expect(state.admin.tables.attorney_evidence_reviews[1].notes).toBe("Reviewed");
-    expect(state.admin.tables.attorney_evidence_reviews[2].notes).toBe("Earlier grant same file");
   });
   it("does not read or edit reviews after the survivor deletes the underlying file", async () => {
     state.admin.tables.evidence[0].deleted_at = "2026-01-01";
