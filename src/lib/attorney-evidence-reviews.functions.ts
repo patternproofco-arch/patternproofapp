@@ -149,7 +149,7 @@ export const upsertEvidenceReview = createServerFn({ method: "POST" })
     if (data.linked_incident_id !== undefined) payload.linked_incident_id = data.linked_incident_id;
     const { error } = await supabaseAdmin
       .from("attorney_evidence_reviews")
-      .upsert(payload, { onConflict: "link_id,evidence_id" });
+      .upsert(payload, { onConflict: "attorney_user_id,evidence_id" });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
