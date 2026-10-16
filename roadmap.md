@@ -42,3 +42,7 @@
 - [ ] Approve fictional test attorneys in /admin — after all three pastes
 - [ ] End-to-end pilot for each upload format (consent, processing, Journal, revocation, privacy, survivor-approved Timeline) — after pastes
 - [ ] Grace: delete real-survivor "New survivor signup" emails in Gmail; turn on Lovable 2FA; set AI database access to ask each time; remove unneeded project members
+
+## Oct 16
+- [x] "Enable Supabase for this project" — checked: the backend is already enabled, managed and live (not paused); nothing to turn on, no change made
+- [ ] Preview build error: attorney evidence review notes need a share-link field the live database doesn't have — HELD per Grace (Option 1: don't run the build fix, don't change the database, wait for Builder's reviewed version); no code-only fix exists without weakening grant binding
