@@ -72,12 +72,17 @@ export const requireAccountAuth = createMiddleware({ type: "function" }).server(
   },
 );
 
-/** All ordinary server functions deny unreviewed attorney accounts. */
+/**
+ * All ordinary server functions deny unreviewed attorney accounts and require
+ * an aal2 session when the account has a verified TOTP factor.
+ */
 export const requireSupabaseAuth = createMiddleware({ type: "function" })
   .middleware([requireAccountAuth])
   .server(async ({ context, next }) => {
     const { supabaseAdmin } = await import("./client.server");
     const { assertApprovedAttorneyAccount } = await import("@/lib/attorney-approval.server");
+    const { assertSessionMeetsMfa } = await import("@/lib/mfa-session-gate.server");
+    await assertSessionMeetsMfa(supabaseAdmin, context.userId, context.claims as any);
     await assertApprovedAttorneyAccount(supabaseAdmin, context.userId);
     return next();
   });
