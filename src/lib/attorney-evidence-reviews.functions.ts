@@ -54,7 +54,6 @@ export const listEvidenceReviews = createServerFn({ method: "POST" })
           .select("evidence_id,status,exhibit_label,notes,linked_incident_id,updated_at")
           .eq("attorney_user_id", context.userId)
           .eq("client_user_id", data.clientId)
-          .eq("link_id", link.id)
           .in("evidence_id", ids),
       { what: "evidence review" },
     );
@@ -129,7 +128,6 @@ export const upsertEvidenceReview = createServerFn({ method: "POST" })
     if (checks.some((result) => result.error || !result.data))
       throw new Error("That record is no longer in the current share.");
     type Payload = {
-      link_id: string;
       attorney_user_id: string;
       client_user_id: string;
       evidence_id: string;
@@ -140,7 +138,6 @@ export const upsertEvidenceReview = createServerFn({ method: "POST" })
       linked_incident_id?: string | null;
     };
     const payload: Payload = {
-      link_id: link.id,
       attorney_user_id: context.userId,
       client_user_id: data.clientId,
       evidence_id: data.evidenceId,
