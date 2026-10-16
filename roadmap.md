@@ -45,4 +45,11 @@
 
 ## Oct 16
 - [x] "Enable Supabase for this project" — checked: the backend is already enabled, managed and live (not paused); nothing to turn on, no change made
-- [ ] Preview build error: attorney evidence review notes need a share-link field the live database doesn't have — HELD per Grace (Option 1: don't run the build fix, don't change the database, wait for Builder's reviewed version); no code-only fix exists without weakening grant binding
+## Oct 16 (later)
+- [x] link_id type errors fixed by aligning with the generated schema (no link_id column on attorney_evidence_reviews; unique key is attorney_user_id+evidence_id); tests updated, typecheck clean
+- [ ] Jev AI: attorney entry-link suggestions (file ↔ documented entry, confirm to apply)
+- [ ] Jev AI: record-type grouping of shared files in the review queue (display-only)
+- [ ] Jev AI: survivor draft tidy-up (possible duplicates, missing date/place flags; confirm everything)
+- [ ] Jev AI: missing-items nudge on evidence requests (match request text to shared files)
+- [ ] Drive/OneDrive scan: per-user connector (google_drive, microsoft_onedrive) so Jev can identify relevant files even with unhelpful names — needs client configured + per-user OAuth + storage table
+- [ ] Preview build error: attorney evidence review notes need a share-link field the live database doesn't have — RESOLVED: fixed code-side by aligning with the generated schema; no database change needed
