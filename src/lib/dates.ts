@@ -24,6 +24,20 @@ export function formatDateLocal(
   return parseDateLocal(dateStr).toLocaleDateString(undefined, options);
 }
 
+/**
+ * Heading for a "YYYY-MM" group key, timezone-safe. Anything that is not a real
+ * month (the "0000-00" bucket used for entries with no date) reads
+ * "Date not documented" rather than "Invalid Date".
+ */
+export function formatMonthKey(key: string): string {
+  const m = /^(\d{4})-(\d{2})$/.exec(key);
+  if (!m || Number(m[1]) < 1000 || Number(m[2]) < 1 || Number(m[2]) > 12) return "Date not documented";
+  return new Date(Number(m[1]), Number(m[2]) - 1, 1).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+}
+
 /** Today's date in local time as YYYY-MM-DD. */
 export function todayLocal(): string {
   const d = new Date();
