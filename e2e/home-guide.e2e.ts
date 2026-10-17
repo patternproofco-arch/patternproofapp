@@ -89,7 +89,12 @@ test("new account sees Add your first Note; after saving a Note the rest card sh
   await expect(page).toHaveURL(/\/journal/);
   // The Note is saved (the fixture's stats now report one entry) and she returns Home.
   entries = 1;
-  await page.goto("/dashboard");
+  // WebKit rejects a goto issued while the move to /journal is still settling
+  // ("interrupted by another navigation"); the error is transient, so retry it.
+  await page.waitForLoadState("load");
+  await expect(async () => {
+    await page.goto("/dashboard");
+  }).toPass({ timeout: 15_000 });
   await expect(card(page)).toHaveAttribute("data-state", "rest");
   await expect(card(page)).toContainText("That's enough for today.");
   await expect(card(page).getByRole("link", { name: "Add another Note" })).toBeVisible();
