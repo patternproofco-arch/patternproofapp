@@ -30,6 +30,7 @@ describe("/version.json build marker", () => {
       "__BUILD_TIME__",
       "__BUILD_ID__",
       "__COMMIT_SOURCE__",
+      "__SOURCE_DIGEST__",
     ]) {
       expect(declarations).toContain(name);
       expect(viteConfig).toContain(name);
@@ -49,10 +50,13 @@ describe("build-time commit resolution", () => {
     expect(viteConfig).not.toMatch(/readFileSync\([^)]*COMMIT/);
   });
 
-  it("fails the build when no full SHA can be resolved", () => {
-    expect(viteConfig).toContain("Build refused: cannot resolve a full 40-character git commit SHA");
+  it("supports strict builds that require a real full SHA", () => {
+    expect(viteConfig).toContain(
+      "Commit metadata unavailable: cannot resolve a full 40-character git commit SHA",
+    );
     expect(viteConfig).toContain("process.exit(1)");
     expect(viteConfig).toContain("FULL_SHA");
+    expect(viteConfig).toContain('process.env.REQUIRE_COMMIT_SHA === "1"');
   });
 
   it("never hardcodes a commit sha in the endpoint or page", () => {

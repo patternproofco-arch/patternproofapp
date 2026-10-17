@@ -34,6 +34,8 @@ import {
 } from "@/lib/survivor-attorney-notes.functions";
 import { Download } from "lucide-react";
 import { ChangePasswordCard } from "@/components/ChangePasswordCard";
+import { SignOutButton } from "@/components/UtilityBar";
+import { AssistantSetup } from "@/components/AssistantSetup";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
@@ -66,8 +68,9 @@ function AssistantAccessSwitch({ onChanged }: { onChanged: () => void }) {
   const load = async () => {
     try {
       setState(await getAssistantAccess());
+      setError(null);
     } catch {
-      setState({ on: false, hasPassword: true });
+      setError("We couldn't check assistant access. Try again in a moment.");
     }
   };
   useEffect(() => {
@@ -113,7 +116,11 @@ function AssistantAccessSwitch({ onChanged }: { onChanged: () => void }) {
     }
   };
 
-  if (!state) return null;
+  if (!state) return (
+    <div className="mt-4 text-[13px]">
+      {error ? <><p role="alert">{error}</p><button className="btn-primary mt-2" onClick={() => void load()}>Retry access check</button></> : <p>Checking assistant access…</p>}
+    </div>
+  );
   return (
     <div className="mt-4 rounded-2xl p-3" style={{ background: "var(--input)" }}>
       <div className="text-[14px] font-semibold">
@@ -168,20 +175,22 @@ function AssistantAccessSwitch({ onChanged }: { onChanged: () => void }) {
 function ConnectedApps() {
   const [rows, setRows] = useState<ConsentRow[] | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
 
   const load = async () => {
+    setLoadError(false);
     try {
       const data = await listMyOauthConsents();
       setRows((data ?? []) as ConsentRow[]);
+      // Only acknowledge connections after they were successfully loaded for display.
+      void acknowledgeConnections().catch(() => undefined);
     } catch {
-      setRows([]);
+      setLoadError(true);
     }
   };
 
   useEffect(() => {
     void load();
-    // Opening this screen counts as seeing the connections that exist now.
-    void acknowledgeConnections().catch(() => undefined);
   }, []);
 
   const revoke = async (id: string) => {
@@ -203,23 +212,32 @@ function ConnectedApps() {
     <div id="connected-apps" className="card-pp mt-6 scroll-mt-24">
       <div className="flex items-center gap-2">
         <Plug size={18} style={{ color: "var(--accent)" }} />
-        <h2 className="font-serif text-[19px]">Connected apps</h2>
+        <h2 className="font-serif text-[19px]">AI assistance & connected apps</h2>
       </div>
       <p className="mt-2 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
-        Outside AI assistants and apps you've allowed to act as you.
+        Get help documenting with Claude, ChatGPT or another compatible assistant.
+        You choose whether to connect and can stop access here at any time.
       </p>
       <AssistantAccessSwitch onChanged={() => void load()} />
-      {rows === null ? (
+      <AssistantSetup />
+      <h3 className="mt-5 text-[15px] font-semibold">Your connected apps</h3>
+      {loadError && (
+        <div className="mt-3 text-[13px]">
+          <p role="alert">We couldn't load your connections. Your apps may still be connected.</p>
+          <button className="btn-primary mt-2" onClick={() => void load()}>Retry connections</button>
+        </div>
+      )}
+      {rows === null && !loadError ? (
         <p className="mt-4 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
           Checking…
         </p>
-      ) : rows.length === 0 ? (
+      ) : rows?.length === 0 && !loadError ? (
         <p className="mt-4 text-[13px]" style={{ color: "var(--muted-foreground)" }}>
           Nothing connected right now.
         </p>
       ) : (
         <div className="mt-4 flex flex-col gap-3">
-          {rows.map((r) => (
+          {rows?.map((r) => (
             <div
               key={r.id}
               className="flex flex-wrap items-center justify-between gap-3 rounded-2xl p-3"
@@ -393,6 +411,18 @@ function SettingsPage() {
 
       <div className="mt-6">
         <ChangePasswordCard />
+      </div>
+
+      {/* Moved here from the header. */}
+      <div className="mt-4">
+        <SignOutButton className="btn-ghost inline-flex items-center gap-2" />
+        <Link
+          to="/resources"
+          className="ml-4 text-[14px]"
+          style={{ color: "var(--ink)", textDecoration: "underline" }}
+        >
+          Help &amp; resources
+        </Link>
       </div>
 
       <div className="mt-8 grid gap-5 md:grid-cols-2">

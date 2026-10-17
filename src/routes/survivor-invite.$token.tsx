@@ -495,7 +495,7 @@ function SurvivorInvitePage() {
           <ScopeBox
             icon={<FileText size={15} />}
             title="Incidents"
-            description="Dates, descriptions, abuse types, witnesses, severity, and impact notes."
+            description="Dates, descriptions, note types, witnesses, severity, and impact notes."
           >
             <ScopeModeCard
               name="incidents-mode"

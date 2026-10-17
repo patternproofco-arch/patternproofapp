@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useRouterState } from "@tanstack/react-router";
+import { segmentsFor } from "@/lib/nav-tabs";
 
 export interface HubTab {
   to: string;
@@ -8,6 +9,8 @@ export interface HubTab {
 
 export function HubTabs({ tabs }: { tabs: HubTab[] }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // Where the shell shows a segmented control (Notes, Timeline, Sharing), the old row goes.
+  if (segmentsFor(pathname)) return null;
   return (
     <nav aria-label="Section" className="pp-hub-tabs no-print">
       {tabs.map((t) => {
@@ -23,7 +26,7 @@ export function HubTabs({ tabs }: { tabs: HubTab[] }) {
 }
 
 export const ARCHIVE_TABS: HubTab[] = [
-  { to: "/journal", label: "Marks" },
+  { to: "/journal", label: "Notes" },
   { to: "/voice-notes", label: "Voice notes" },
   { to: "/evidence", label: "Evidence" },
   { to: "/message-threads", label: "Message threads" },
@@ -32,7 +35,7 @@ export const ARCHIVE_TABS: HubTab[] = [
 
 export const RECURLINE_TABS: HubTab[] = [
   { to: "/patterns", label: "Recurline" },
-  { to: "/calendar", label: "Marks Calendar" },
+  { to: "/calendar", label: "Notes calendar" },
 ];
 
 export const CASE_TABS: HubTab[] = [

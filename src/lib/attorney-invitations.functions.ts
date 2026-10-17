@@ -314,17 +314,6 @@ export const acceptInvitation = createServerFn({ method: "POST" })
       throw new Error("This invitation was sent to a different email address.");
     }
 
-    // Ensure attorney role
-    await supabaseAdmin
-      .from("user_roles")
-      .upsert({ user_id: context.userId, role: "attorney" }, { onConflict: "user_id,role" });
-    await (
-      await import("@/lib/signup-notify.server")
-    ).notifyNewSignup({
-      userId: context.userId,
-      role: "attorney",
-    });
-
     // The scope was fixed when the survivor created the invitation (Add vs Replace
     // already resolved into the frozen ids). This only narrows by ownership/deletion.
     const { scopeForAcceptance } = await import("@/lib/invitation-scope.server");
@@ -339,6 +328,25 @@ export const acceptInvitation = createServerFn({ method: "POST" })
       direction: "attorney",
       scope: frozen,
     });
+
+    // Only after a successful accept: ensure the attorney role, and alert the
+    // founder only when this accept actually created the role (a genuinely new
+    // attorney). A failed accept, or an existing attorney, sends nothing.
+    const { data: hadRole } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "attorney")
+      .maybeSingle();
+    if (!hadRole) {
+      const { error: roleError } = await supabaseAdmin
+        .from("user_roles")
+        .upsert({ user_id: context.userId, role: "attorney" }, { onConflict: "user_id,role" });
+      if (!roleError)
+        await (
+          await import("@/lib/signup-notify.server")
+        ).notifyNewSignup({ userId: context.userId, role: "attorney" });
+    }
 
     return { ok: true, link };
   });

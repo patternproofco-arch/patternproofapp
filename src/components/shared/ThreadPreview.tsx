@@ -42,7 +42,7 @@ export function ThreadPreview({
           color: t.muted,
         }}
       >
-        Nothing on the thread yet. Your next Mark will start it.
+        Nothing on the thread yet. Your next Note will start it.
       </div>
     );
   }

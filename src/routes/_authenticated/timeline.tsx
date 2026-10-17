@@ -1,10 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { MuseumHero } from "@/components/survivor/MuseumHero";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { ABUSE_TYPES, typeLabel } from "@/lib/abuse-types";
+import { TIMELINE_GROUPS, timelineGroupOf, typeLabel } from "@/lib/abuse-types";
 import { formatIncidentDate } from "@/lib/dates";
-import { FileText } from "lucide-react";
+import { FileText, SlidersHorizontal } from "lucide-react";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { MessageSquare } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { CognitiveClose } from "@/components/CognitiveClose";
@@ -12,7 +22,6 @@ import { FocusRegion } from "@/components/survivor/focus-mode";
 import { useServerFn } from "@tanstack/react-start";
 import { findCrossReferences, type XrefCluster } from "@/lib/cross-references.functions";
 import { HubTabs, ARCHIVE_TABS } from "@/components/HubTabs";
-import { ProposedTimelineReview } from "@/components/ProposedTimelineReview";
 
 interface Item {
   id: string;
@@ -92,7 +101,7 @@ function CorroborationSection({ clusters }: { clusters: XrefCluster[] }) {
         <span className="mono-meta mono-meta--muted">Records that reinforce each other</span>
       </div>
       <p style={{ marginTop: 8, fontSize: 13, color: "var(--pp-muted)" }}>
-        These Marks share a date, place, or repeated pattern. Nothing is flagged as wrong — this is
+        These Notes share a date, place, or repeated pattern. Nothing is flagged as wrong — this is
         where your own records line up.
       </p>
       <div className="mt-4 space-y-3">
@@ -130,6 +139,7 @@ function TimelinePage() {
   >({});
   const [legal, setLegal] = useState<LegalItem[]>([]);
   const [showLegal, setShowLegal] = useState(true);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [msgDays, setMsgDays] = useState<MsgDay[]>([]);
   const [showMessages, setShowMessages] = useState(true);
   const [types, setTypes] = useState<string[]>([]);
@@ -286,7 +296,8 @@ function TimelinePage() {
   const filtered = useMemo<Row[]>(() => {
     const inc: Row[] = items
       .filter((i) => {
-        if (types.length && !i.abuse_types.some((t) => types.includes(t))) return false;
+        if (types.length && !i.abuse_types.some((t) => types.includes(timelineGroupOf(t))))
+          return false;
         if (from && (i.date ?? "") < from) return false;
         if (to && (i.date ?? "9999") > to) return false;
         return true;
@@ -330,85 +341,89 @@ function TimelinePage() {
         The pattern, <em>over time.</em>
       </h1>
 
-      <ProposedTimelineReview onAccepted={reloadTimeline} />
-
       {xrefs.length > 0 && <CorroborationSection clusters={xrefs} />}
 
-      <FocusRegion id="timeline-filters" className="card-pp mt-6">
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="flex-1 min-w-[200px]">
-            <div className="label-eyebrow mb-2">Filter by type</div>
-            <div className="flex flex-wrap gap-2">
-              {ABUSE_TYPES.map((t) => {
-                const on = types.includes(t.value);
-                return (
-                  <button
-                    key={t.value}
-                    onClick={() => toggleType(t.value)}
-                    aria-pressed={on}
-                    className="px-3 py-1 text-[11px] font-semibold"
-                    style={{
-                      background: on ? "var(--ink)" : "transparent",
-                      color: on ? "var(--paper)" : "var(--ink)",
-                      border: "1px solid var(--rule)",
-                      borderRadius: 3,
-                    }}
-                  >
-                    {t.label}
-                  </button>
-
-                );
-              })}
+      {(() => {
+        const active = types.length + (from ? 1 : 0) + (to ? 1 : 0) + (showLegal ? 0 : 1) + (showMessages ? 0 : 1);
+        return (
+          <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+            <div className="mt-4 flex items-center gap-3">
+              <SheetTrigger asChild>
+                <button type="button" className="pp-filter-open" data-testid="timeline-filter-open">
+                  <SlidersHorizontal size={16} aria-hidden />
+                  Filter{active > 0 ? ` · ${active}` : ""}
+                </button>
+              </SheetTrigger>
             </div>
-          </div>
-          <div>
-            <div className="label-eyebrow mb-1">From</div>
-            <input aria-label="From"
-              type="date"
-              value={from}
-              onChange={(e) => setFrom(e.target.value)}
-              className="input-pp"
-            />
-          </div>
-          <div>
-            <div className="label-eyebrow mb-1">To</div>
-            <input aria-label="To"
-              type="date"
-              value={to}
-              onChange={(e) => setTo(e.target.value)}
-              className="input-pp"
-            />
-          </div>
-          <label className="flex items-center gap-2 self-center text-[12px]">
-            <input
-              type="checkbox"
-              checked={showLegal}
-              onChange={(e) => setShowLegal(e.target.checked)}
-            />
-            Include legal documents
-          </label>
-          <label className="flex items-center gap-2 self-center text-[12px]">
-            <input
-              type="checkbox"
-              checked={showMessages}
-              onChange={(e) => setShowMessages(e.target.checked)}
-            />
-            Include imported messages
-          </label>
-        </div>
-      </FocusRegion>
+            <SheetContent side="bottom" className="pp-filter-sheet" data-testid="timeline-filter-sheet">
+              <SheetHeader>
+                <SheetTitle className="pp-filter-sheet-title">Filter</SheetTitle>
+                <SheetDescription className="pp-filter-sheet-desc">
+                  Choose what shows on your timeline.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="pp-filter-sheet-body">
+                <div className="pp2-eyebrow">Type</div>
+                <div className="pp-filter-chips">
+                  {TIMELINE_GROUPS.map((t) => {
+                    const on = types.includes(t.key);
+                    return (
+                      <button
+                        key={t.key}
+                        type="button"
+                        onClick={() => toggleType(t.key)}
+                        aria-pressed={on}
+                        className="pp-filter-chip"
+                        data-testid={`timeline-chip-${t.key}`}
+                      >
+                        {t.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="pp-filter-dates">
+                  <label>
+                    <span className="pp2-eyebrow">From</span>
+                    <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="pp-filter-date" />
+                  </label>
+                  <label>
+                    <span className="pp2-eyebrow">To</span>
+                    <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="pp-filter-date" />
+                  </label>
+                </div>
+                <label className="pp-filter-check">
+                  <input type="checkbox" checked={showLegal} onChange={(e) => setShowLegal(e.target.checked)} />
+                  Include files from others
+                </label>
+                <label className="pp-filter-check">
+                  <input type="checkbox" checked={showMessages} onChange={(e) => setShowMessages(e.target.checked)} />
+                  Include imported messages
+                </label>
+                <SheetClose asChild>
+                  <button type="button" className="pp-museum-cta pp-filter-done" data-testid="timeline-filter-done">
+                    Show timeline
+                  </button>
+                </SheetClose>
+              </div>
+            </SheetContent>
+          </Sheet>
+        );
+      })()}
 
-      <FocusRegion id="timeline-entries" className="relative mt-8 pl-8">
+      <FocusRegion id="timeline-entries" className="relative mt-6 pl-8">
         <div
           className="absolute left-2 top-0 bottom-0"
           style={{ width: 1.5, background: "var(--stitch)" }}
         />
         {filtered.length === 0 ? (
-          <div className="card-pp">
-            <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-              Your timeline will take shape as you add records. Every entry matters.
-            </p>
-          </div>
+          <MuseumHero
+            art="dated-sequence"
+            eyebrow="Timeline"
+            title="Nothing in order yet."
+            body="Notes you accept show up here in date order."
+            cta={{ label: "Add a Note", to: "/journal", testId: "timeline-empty-cta" }}
+            testId="timeline-empty"
+          />
         ) : (
           <div className="space-y-5">
             {filtered.map((row) => {
@@ -434,7 +449,7 @@ function TimelinePage() {
                       <div className="mt-1">
                         <span
                           className="px-2 py-0.5 text-[10px] font-semibold"
-                          style={{ borderRadius: 3, border: "1px solid var(--rule)", color: "var(--ink-muted)", fontFamily: "'IBM Plex Mono', ui-monospace, monospace", letterSpacing: "0.08em" }}
+                          style={{ borderRadius: 3, border: "1px solid var(--rule)", color: "var(--ink)", fontFamily: "'IBM Plex Mono', ui-monospace, monospace", letterSpacing: "0.08em" }}
                         >
                           {LEGAL_LABEL[l.document_type] ?? "Document"}
                         </span>
@@ -481,7 +496,7 @@ function TimelinePage() {
                       <div className="mt-1">
                         <span
                           className="px-2 py-0.5 text-[10px] font-semibold"
-                          style={{ borderRadius: 3, border: "1px solid var(--rule)", color: "var(--ink-muted)", fontFamily: "'IBM Plex Mono', ui-monospace, monospace", letterSpacing: "0.08em" }}
+                          style={{ borderRadius: 3, border: "1px solid var(--rule)", color: "var(--ink)", fontFamily: "'IBM Plex Mono', ui-monospace, monospace", letterSpacing: "0.08em" }}
                         >
                           IMPORTED MESSAGES
                         </span>
@@ -544,7 +559,7 @@ function TimelinePage() {
                         <span
                           key={t}
                           className="px-2 py-0.5 text-[10px] font-semibold"
-                          style={{ borderRadius: 3, border: "1px solid var(--rule)", color: "var(--ink-muted)", fontFamily: "'IBM Plex Mono', ui-monospace, monospace", letterSpacing: "0.08em" }}
+                          style={{ borderRadius: 3, border: "1px solid var(--rule)", color: "var(--ink)", fontFamily: "'IBM Plex Mono', ui-monospace, monospace", letterSpacing: "0.08em" }}
                         >
                           {typeLabel(t)}
                         </span>
@@ -610,7 +625,7 @@ function TimelinePage() {
       </FocusRegion>
       <CognitiveClose
         title="See what your Recurline is telling you"
-        body="Once your timeline has a few Marks, Recurline surfaces recurring tactics and frequency."
+        body="Once your timeline has a few Notes, Recurline surfaces recurring tactics and frequency."
         cta="Open Recurline"
         to="/patterns"
       />

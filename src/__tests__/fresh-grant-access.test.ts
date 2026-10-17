@@ -8,7 +8,13 @@ vi.mock("@/integrations/supabase/client.server", () => ({
     return state.admin;
   },
 }));
-vi.mock("@/integrations/supabase/auth-middleware", () => ({ requireSupabaseAuth: {} }));
+vi.mock("@/integrations/supabase/auth-middleware", () => ({
+  requireSupabaseAuth: {},
+  requireAccountAuth: {},
+}));
+vi.mock("@/lib/payments.functions", () => ({ isAttorneyEntitled: vi.fn() }));
+vi.mock("@/lib/attorney-portal-auth", () => ({ requireAttorneyPortalAuth: {} }));
+
 vi.mock("@tanstack/react-start", () => ({
   createServerFn: () => {
     const builder = {
@@ -23,6 +29,8 @@ import {
   listEvidenceReviews,
   upsertEvidenceReview,
 } from "@/lib/attorney-evidence-reviews.functions";
+
+import { listAttorneyNotes, upsertAttorneyNote } from "@/lib/attorney-portal.functions";
 
 const grant = {
   attorney_user_id: "attorney",
@@ -48,19 +56,42 @@ beforeEach(() => {
       },
       { ...grant, id: "current-grant" },
     ],
+    user_roles: [{ user_id: "attorney", role: "attorney" }],
+    attorney_incident_notes: [
+      {
+        link_id: "current-grant",
+        attorney_user_id: "attorney",
+        client_user_id: "survivor",
+        incident_id: "current-incident",
+        note: "Current note",
+        flagged: false,
+        reviewed: false,
+      },
+    ],
+    incidents: [{ id: "current-incident", user_id: "survivor", deleted_at: null }],
+    evidence: [{ id: "current-file", user_id: "survivor", deleted_at: null }],
     attorney_evidence_reviews: [
       {
         attorney_user_id: "attorney",
         client_user_id: "survivor",
+        link_id: "old-grant",
         evidence_id: "old-file",
         notes: "Hidden old review",
       },
       {
         attorney_user_id: "attorney",
         client_user_id: "survivor",
+        link_id: "current-grant",
         evidence_id: "current-file",
         notes: "Current review",
-        linked_incident_id: "hidden-incident",
+        linked_incident_id: "current-incident",
+      },
+      {
+        link_id: "old-grant",
+        attorney_user_id: "attorney",
+        client_user_id: "survivor",
+        evidence_id: "current-file",
+        notes: "Earlier grant same file",
       },
     ],
   });
@@ -77,8 +108,12 @@ describe("access after fresh sharing", () => {
   it("does not let a new narrower grant expose historical reviews or incident references", async () => {
     const result = await listEvidenceReviews({ data: { clientId: "survivor" } });
     expect(result.reviews).toHaveLength(1);
-    expect(result.reviews[0]).toMatchObject({ notes: "Current review", linked_incident_id: null });
+    expect(result.reviews[0]).toMatchObject({
+      notes: "Current review",
+      linked_incident_id: "current-incident",
+    });
     expect(JSON.stringify(result)).not.toContain("Hidden old review");
+    expect(JSON.stringify(result)).not.toContain("Earlier grant same file");
   });
   it("rejects edits outside the current evidence and incident scope", async () => {
     for (const data of [
@@ -96,6 +131,145 @@ describe("access after fresh sharing", () => {
       }),
     ).toEqual({ ok: true });
     expect(state.admin.tables.attorney_evidence_reviews[1].notes).toBe("Reviewed");
+    expect(state.admin.tables.attorney_evidence_reviews[1].link_id).toBe("current-grant");
+    expect(state.admin.tables.attorney_evidence_reviews[2].notes).toBe("Earlier grant same file");
+  });
+  it("binds upserts to current-grant via onConflict link_id,evidence_id without touching earlier grants", async () => {
+    expect(
+      await upsertEvidenceReview({
+        data: { clientId: "survivor", evidenceId: "current-file", notes: "Grant-scoped" },
+      }),
+    ).toEqual({ ok: true });
+    const rows = state.admin.tables.attorney_evidence_reviews;
+    const current = rows.find(
+      (r: any) => r.link_id === "current-grant" && r.evidence_id === "current-file",
+    );
+    const earlier = rows.find(
+      (r: any) => r.link_id === "old-grant" && r.evidence_id === "current-file",
+    );
+    expect(current?.notes).toBe("Grant-scoped");
+    expect(current?.link_id).toBe("current-grant");
+    expect(earlier?.notes).toBe("Earlier grant same file");
+  });
+  it("never writes a client-supplied link_id; server always binds the current grant", async () => {
+    // The unit createServerFn mock skips Zod; this still proves the handler
+    // derives link_id from assertActiveLink, not from request data.
+    expect(
+      await upsertEvidenceReview({
+        data: {
+          clientId: "survivor",
+          evidenceId: "current-file",
+          notes: "Server-derived",
+          link_id: "old-grant",
+        } as any,
+      }),
+    ).toEqual({ ok: true });
+    const rows = state.admin.tables.attorney_evidence_reviews;
+    const current = rows.find(
+      (r: any) => r.link_id === "current-grant" && r.evidence_id === "current-file",
+    );
+    const earlier = rows.find(
+      (r: any) => r.link_id === "old-grant" && r.evidence_id === "current-file",
+    );
+    expect(current?.notes).toBe("Server-derived");
+    expect(current?.link_id).toBe("current-grant");
+    expect(earlier?.notes).toBe("Earlier grant same file");
+  });
+  it("refuses evidence-review upserts when there is no current active grant", async () => {
+    state.admin.tables.attorney_client_links[1].status = "revoked";
+    state.admin.tables.attorney_client_links[1].revoked_at = "2026-01-02";
+    await expect(
+      upsertEvidenceReview({
+        data: { clientId: "survivor", evidenceId: "current-file", notes: "Forged" },
+      }),
+    ).rejects.toThrow("No active access");
+    expect(state.admin.tables.attorney_evidence_reviews[1].notes).toBe("Current review");
+  });
+  it("does not read or edit reviews after the survivor deletes the underlying file", async () => {
+    state.admin.tables.evidence[0].deleted_at = "2026-01-01";
+    expect((await listEvidenceReviews({ data: { clientId: "survivor" } })).reviews).toEqual([]);
+    await expect(
+      upsertEvidenceReview({
+        data: { clientId: "survivor", evidenceId: "current-file", notes: "Forged" },
+      }),
+    ).rejects.toThrow("current share");
+  });
+  it("hides the whole review when its referenced entry is no longer available", async () => {
+    state.admin.tables.attorney_evidence_reviews[1].linked_incident_id = "current-incident";
+    state.admin.tables.incidents[0].deleted_at = "2026-01-01";
+    expect((await listEvidenceReviews({ data: { clientId: "survivor" } })).reviews).toEqual([]);
+  });
+  it("hides review notes when their referenced entry leaves the selected scope", async () => {
+    state.admin.tables.attorney_client_links[1].scope_incidents = [];
+    expect((await listEvidenceReviews({ data: { clientId: "survivor" } })).reviews).toEqual([]);
+  });
+  it("keeps reviews private when the current case no longer includes the file", async () => {
+    state.admin.tables.attorney_client_links[1].case_id = "case-1";
+    state.admin.tables.cases = [
+      {
+        id: "case-1",
+        user_id: "survivor",
+        highlighted_incident_ids: ["current-incident"],
+        attached_evidence_ids: [],
+      },
+    ];
+    expect((await listEvidenceReviews({ data: { clientId: "survivor" } })).reviews).toEqual([]);
+    await expect(
+      upsertEvidenceReview({
+        data: { clientId: "survivor", evidenceId: "current-file", notes: "Forged" },
+      }),
+    ).rejects.toThrow("current share");
+  });
+  it("does not read or edit notes on deleted entries", async () => {
+    expect((await listAttorneyNotes({ data: { clientId: "survivor" } })).notes).toHaveLength(1);
+    state.admin.tables.incidents[0].deleted_at = "2026-01-01";
+    expect((await listAttorneyNotes({ data: { clientId: "survivor" } })).notes).toEqual([]);
+    await expect(
+      upsertAttorneyNote({
+        data: {
+          clientId: "survivor",
+          incidentId: "current-incident",
+          note: "Forged",
+        },
+      }),
+    ).rejects.toThrow("current share");
+  });
+  it("does not read or edit notes on entries removed from the current case", async () => {
+    state.admin.tables.attorney_client_links[1].case_id = "case-1";
+    state.admin.tables.cases = [
+      {
+        id: "case-1",
+        user_id: "survivor",
+        highlighted_incident_ids: [],
+        attached_evidence_ids: ["current-file"],
+      },
+    ];
+    expect((await listAttorneyNotes({ data: { clientId: "survivor" } })).notes).toEqual([]);
+    await expect(
+      upsertAttorneyNote({
+        data: {
+          clientId: "survivor",
+          incidentId: "current-incident",
+          note: "Forged",
+        },
+      }),
+    ).rejects.toThrow("current share");
+  });
+  it("denies review reads and edits after the attorney role is removed", async () => {
+    state.admin.tables.user_roles = [];
+    await expect(listEvidenceReviews({ data: { clientId: "survivor" } })).rejects.toThrow(
+      "Attorney role required",
+    );
+    await expect(
+      upsertEvidenceReview({
+        data: {
+          clientId: "survivor",
+          evidenceId: "current-file",
+          notes: "Forged",
+        },
+      }),
+    ).rejects.toThrow("Attorney role required");
+    expect(state.admin.tables.attorney_evidence_reviews[1].notes).toBe("Current review");
   });
   it("denies review access once the current grant expires", async () => {
     state.admin.tables.attorney_client_links[1].expires_at = "2000-01-01";

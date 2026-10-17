@@ -96,7 +96,7 @@ export function IncidentHeatMap({ incidents, months = 6 }: Props) {
                   <Link
                     key={i}
                     to="/timeline"
-                    title={`${d.date}${d.cell ? ` · ${d.cell.count} Mark${d.cell.count > 1 ? "s" : ""}` : ""}`}
+                    title={`${d.date}${d.cell ? ` · ${d.cell.count} Note${d.cell.count > 1 ? "s" : ""}` : ""}`}
                     className="aspect-square rounded text-center text-[10px] leading-none"
                     style={{
                       background: colorFor(d.cell),

@@ -21,7 +21,7 @@ import { getClioAvailability, getClioStatus } from "@/lib/clio.functions";
 import { useSubscription } from "@/hooks/useSubscription";
 import attorneyCss from "@/styles/attorney.css?url";
 import { BrandMark } from "@/components/BrandMark";
-import { FocusModeProvider } from "@/components/survivor/focus-mode";
+import { FocusModeProvider, FocusReveal } from "@/components/survivor/focus-mode";
 import { useMfaGate } from "@/hooks/use-mfa-gate";
 import { attorneyPathExemptFromRequiredMfa, attorneyPathWithoutPortalChrome } from "@/lib/mfa";
 
@@ -76,7 +76,11 @@ function AttorneyLayout() {
           return;
         }
         if (r.role === "attorney" && !r.attorney_approved) {
-          navigate({ to: "/attorney-apply", replace: true });
+          // Staff accounts with an unreviewed attorney role go to /admin, not intake.
+          navigate({
+            to: r.roles.includes("admin") ? "/admin" : "/attorney-apply",
+            replace: true,
+          });
           return;
         }
         setUserRole(r.role);
@@ -232,6 +236,7 @@ function AttorneyLayout() {
         <main id="main-content" tabIndex={-1} className="att-content">
           <FocusModeProvider accentColor="var(--att-navy)">
             <Outlet />
+          <FocusReveal />
           </FocusModeProvider>
         </main>
         <footer className="att-footer">

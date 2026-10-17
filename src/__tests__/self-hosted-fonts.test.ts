@@ -12,7 +12,7 @@ describe("fonts are self-hosted (no Google Fonts requests)", () => {
     const cssUrl = new URL("../../public/fonts/fonts.css", import.meta.url);
     const css = readFileSync(cssUrl, "utf8");
     const srcs = [...css.matchAll(/url\((\/fonts\/[^)]+)\)/g)].map((m) => m[1]);
-    expect(srcs.length).toBe(10);
+    expect(srcs.length).toBe(13);
     for (const s of srcs)
       expect(existsSync(new URL(`../../public${s}`, import.meta.url))).toBe(true);
     const faces = css.match(/@font-face/g) ?? [];

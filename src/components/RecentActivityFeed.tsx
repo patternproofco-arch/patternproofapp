@@ -10,7 +10,7 @@ export interface ActivityItem {
 }
 
 const META: Record<ActivityItem["kind"], { icon: typeof Mic; word: string; to: string }> = {
-  mark: { icon: NotebookPen, word: "Mark", to: "/journal" },
+  mark: { icon: NotebookPen, word: "Note", to: "/journal" },
   evidence: { icon: Paperclip, word: "Evidence", to: "/evidence" },
   voice: { icon: Mic, word: "Voice note", to: "/voice-notes" },
 };
@@ -36,7 +36,7 @@ export function RecentActivityFeed({ items }: { items: ActivityItem[] | null }) 
     return (
       <div className="card-pp">
         <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-          Nothing here yet — when you're ready, this is a safe place to start.
+          Nothing here yet — when you're ready, this is a good place to start.
         </p>
       </div>
     );

@@ -47,24 +47,31 @@ describe("onboarding asks only for what's needed", () => {
 
 describe("the home screen has one main action", () => {
   const src = read("src/routes/_authenticated/dashboard.tsx");
-  it("is 'Add an entry', and a note, recording or file can start it", () => {
-    expect(src.match(/className="btn-pp"/g)).toHaveLength(1);
-    expect(src).toContain("Add an entry");
-    expect(src).toMatch(/a recording/);
-    expect(src).toMatch(/a file/);
+  it("is 'Add a Note' (one primary), with See my notes and Get ready to share as outlines", () => {
+    expect(src.match(/pp2-btn--primary/g)).toHaveLength(1);
+    expect(src).toContain("Add a Note");
+    expect(src.match(/pp2-btn--outline/g)).toHaveLength(2);
+    expect(src).toContain("See my notes");
+    expect(src).toContain("Get ready to share");
+    expect(src).not.toMatch(/Save something|Review my record|then rest/);
   });
   it("uses familiar words and keeps Safety visible", () => {
-    for (const label of ["Entries", "Timeline", "Files", "Sharing", "Safety"]) {
-      expect(src).toContain(`label: "${label}"`);
+    expect(src).toContain('label: "Safety"');
+    const nav = read("src/lib/nav-tabs.ts");
+    for (const label of ["Notes", "Timeline", "Files", "Sharing"]) {
+      expect(nav).toContain(`label: "${label}"`);
     }
-    expect(src).toMatch(/neverDim/);
+    // Nothing on Home is dimmed or blurred any more (no focus regions at all).
+    expect(src).not.toMatch(/FocusRegion|blur\(/);
   });
 });
 
 describe("the pre-sign-up recorder", () => {
   const src = read("src/routes/capture.tsx");
   it("no longer records anything, so it can't promise a recording it will lose", () => {
-    expect(src).not.toMatch(/MediaRecorder|getUserMedia|createObjectURL|localStorage|sessionStorage/);
+    expect(src).not.toMatch(
+      /MediaRecorder|getUserMedia|createObjectURL|localStorage|sessionStorage/,
+    );
     expect(src).toMatch(/Nothing is recorded or stored on this page/);
   });
   it("sends people to record inside an account, with no microphone prompt here", () => {
