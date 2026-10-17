@@ -816,6 +816,7 @@ export type Database = {
           evidence_id: string
           exhibit_label: string | null
           id: string
+          link_id: string | null
           linked_incident_id: string | null
           notes: string | null
           status: string
@@ -828,6 +829,7 @@ export type Database = {
           evidence_id: string
           exhibit_label?: string | null
           id?: string
+          link_id?: string | null
           linked_incident_id?: string | null
           notes?: string | null
           status?: string
@@ -840,6 +842,7 @@ export type Database = {
           evidence_id?: string
           exhibit_label?: string | null
           id?: string
+          link_id?: string | null
           linked_incident_id?: string | null
           notes?: string | null
           status?: string
@@ -851,6 +854,13 @@ export type Database = {
             columns: ["evidence_id"]
             isOneToOne: false
             referencedRelation: "evidence"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attorney_evidence_reviews_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
             referencedColumns: ["id"]
           },
           {

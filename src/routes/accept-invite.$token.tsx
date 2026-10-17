@@ -5,6 +5,11 @@ import { Scale, ShieldCheck, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { peekInvitation, acceptInvitation } from "@/lib/attorney-invitations.functions";
+import {
+  getMyAttorneyApplication,
+  type AttorneyApplication,
+} from "@/lib/founder-operations.functions";
+import { InviteApprovalStep } from "@/components/attorney/InviteApprovalStep";
 import { toast } from "sonner";
 import attorneyCss from "@/styles/attorney.css?url";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
@@ -39,6 +44,25 @@ function AcceptInvite() {
   const [confidentialityOk, setConfidentialityOk] = useState(false);
   const [fullName, setFullName] = useState("");
   const [barNumber, setBarNumber] = useState("");
+  const getApplication = useServerFn(getMyAttorneyApplication);
+  const [application, setApplication] = useState<AttorneyApplication | null>(null);
+  const [appChecked, setAppChecked] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [recheck, setRecheck] = useState(0);
+
+  // Keep what the attorney typed at signup so the approval step is prefilled
+  // after they confirm their email (same browser tab session only).
+  useEffect(() => {
+    const saved = sessionStorage.getItem(`pp-invite-draft-${token}`);
+    if (!saved) return;
+    try {
+      const d = JSON.parse(saved) as { fullName?: string; barNumber?: string };
+      if (d.fullName) setFullName(d.fullName);
+      if (d.barNumber) setBarNumber(d.barNumber);
+    } catch {
+      /* ignore malformed draft */
+    }
+  }, [token]);
 
   useEffect(() => {
     peek({ data: { token } })
@@ -52,19 +76,35 @@ function AcceptInvite() {
     }
   }, [peeked, email]);
 
+  // Signed in: check approval first. Only an approved attorney attempts
+  // acceptance (the server enforces this too); everyone else sees the
+  // approval step instead of a stuck "Linking…" screen.
   useEffect(() => {
-    if (!loading && user && peeked?.status === "ok" && !accepted) {
-      setBusy(true);
-      accept({ data: { token } })
-        .then(() => {
-          setAccepted(true);
-          toast("Access granted. One step left.");
-          navigate({ to: "/subscribe" });
-        })
-        .catch((e) => toast(e instanceof Error ? e.message : "Couldn't accept."))
-        .finally(() => setBusy(false));
-    }
-  }, [loading, user, peeked, accepted, accept, token, navigate]);
+    if (loading || !user || peeked?.status !== "ok" || accepted) return;
+    let cancelled = false;
+    setBusy(true);
+    getApplication()
+      .then(async ({ application: row }) => {
+        if (cancelled) return;
+        setApplication(row);
+        setAppChecked(true);
+        if (row?.status !== "approved") return;
+        await accept({ data: { token } });
+        if (cancelled) return;
+        setAccepted(true);
+        toast("Access granted. One step left.");
+        navigate({ to: "/subscribe" });
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      })
+      .finally(() => {
+        if (!cancelled) setBusy(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, user, peeked, accepted, accept, getApplication, token, navigate, recheck]);
 
   const auth = async (e: React.FormEvent) => {
     e.preventDefault();

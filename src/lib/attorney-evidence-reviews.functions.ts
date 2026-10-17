@@ -54,6 +54,7 @@ export const listEvidenceReviews = createServerFn({ method: "POST" })
           .select("evidence_id,status,exhibit_label,notes,linked_incident_id,updated_at")
           .eq("attorney_user_id", context.userId)
           .eq("client_user_id", data.clientId)
+          .eq("link_id", link.id)
           .in("evidence_id", ids),
       { what: "evidence review" },
     );
@@ -95,9 +96,12 @@ export const upsertEvidenceReview = createServerFn({ method: "POST" })
         notes: z.string().trim().max(5000).optional().nullable(),
         linked_incident_id: z.string().uuid().optional().nullable(),
       })
+      .strict()
       .parse(input),
   )
   .handler(async ({ data, context }) => {
+    // link_id is derived only from the attorney's current active grant for this
+    // client (assertActiveLink → assertLink). Never accept it from the request.
     const link = await assertActiveLink(context.userId, data.clientId);
     const { idInScope } = await import("@/lib/attorney-access.server");
     if (
@@ -128,6 +132,7 @@ export const upsertEvidenceReview = createServerFn({ method: "POST" })
     if (checks.some((result) => result.error || !result.data))
       throw new Error("That record is no longer in the current share.");
     type Payload = {
+      link_id: string;
       attorney_user_id: string;
       client_user_id: string;
       evidence_id: string;
@@ -138,6 +143,7 @@ export const upsertEvidenceReview = createServerFn({ method: "POST" })
       linked_incident_id?: string | null;
     };
     const payload: Payload = {
+      link_id: link.id,
       attorney_user_id: context.userId,
       client_user_id: data.clientId,
       evidence_id: data.evidenceId,
@@ -149,7 +155,7 @@ export const upsertEvidenceReview = createServerFn({ method: "POST" })
     if (data.linked_incident_id !== undefined) payload.linked_incident_id = data.linked_incident_id;
     const { error } = await supabaseAdmin
       .from("attorney_evidence_reviews")
-      .upsert(payload, { onConflict: "attorney_user_id,evidence_id" });
+      .upsert(payload, { onConflict: "link_id,evidence_id" });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
