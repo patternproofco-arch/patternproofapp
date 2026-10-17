@@ -141,7 +141,10 @@ function OperationsPage() {
             </div>
             <div className="rounded border p-4">
               <div className="text-2xl">
-                {data.tickets.filter((t) => t.status !== "closed" && t.status !== "resolved").length}
+                {
+                  data.tickets.filter((t) => t.status !== "closed" && t.status !== "resolved")
+                    .length
+                }
               </div>
               <div>Open help requests</div>
             </div>
@@ -222,12 +225,16 @@ function OperationsPage() {
                         {a.status === "rejected" && a.decline_reason && (
                           <p className="mt-2 text-sm whitespace-pre-wrap">
                             Reason: {a.decline_reason}
-                            {a.decline_reason_emailed_at ? " (emailed to attorney)" : " (not emailed)"}
+                            {a.decline_reason_emailed_at
+                              ? " (emailed to attorney)"
+                              : " (not emailed)"}
                           </p>
                         )}
                         {declining === a.id && (
                           <div className="mt-3 max-w-sm space-y-2">
-                            <Label htmlFor={`reason-${a.id}`}>Reason for declining (optional)</Label>
+                            <Label htmlFor={`reason-${a.id}`}>
+                              Reason for declining (optional)
+                            </Label>
                             <Textarea
                               id={`reason-${a.id}`}
                               maxLength={1000}

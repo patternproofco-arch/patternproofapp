@@ -34,6 +34,7 @@ test("pending attorney sees a review status without client records", async ({ pa
 test("founder can review applications and see support, signup and mail activity", async ({
   page,
 }) => {
+  let declined = false;
   await mockLoggedIn(page, {
     persona: "attorney",
     serverFnHandlers: {
@@ -54,7 +55,9 @@ test("founder can review applications and see support, signup and mail activity"
             bar_number: "QA-000",
             jurisdiction: "QA jurisdiction",
             created_at: "2026-10-10T10:00:00Z",
-            status: "pending_review",
+            status: declined ? "rejected" : "pending_review",
+            decline_reason: declined ? "Fictional review reason" : null,
+            decline_reason_emailed_at: null,
           },
         ],
         tickets: [
@@ -87,20 +90,36 @@ test("founder can review applications and see support, signup and mail activity"
         ],
       }),
       retrySignupAlerts: () => ({ attempted: 1, submitted: 1 }),
+      declineAttorney: () => {
+        declined = true;
+        return { ok: true, emailed: false };
+      },
     },
   });
   await page.goto("/admin/operations");
   await expect(page.getByRole("heading", { name: "Founder operations" })).toBeVisible();
   await expect(page.getByText("QA-000")).toBeVisible();
   await expect(page.getByRole("button", { name: "Approve", exact: true })).toBeVisible();
-  await page.getByRole("tab", { name: "Support", exact: true }).click();
+  await page.getByRole("button", { name: "Decline", exact: true }).click();
+  const emailReason = page.getByRole("checkbox", { name: "Email this reason to the attorney" });
+  await expect(emailReason).not.toBeChecked();
+  await expect(emailReason).toBeDisabled();
+  await page.getByLabel("Reason for declining (optional)").fill("Fictional review reason");
+  await expect(emailReason).toBeEnabled();
+  expect(declined).toBe(false);
+  await page.getByRole("button", { name: "Confirm decline", exact: true }).click();
+  await expect(page.getByRole("status")).toHaveText("Declined. No email was sent.");
+  await expect(page.getByText("Reason: Fictional review reason (not emailed)")).toBeVisible();
+  await page.getByRole("tab", { name: /^Help requests/ }).click();
   await expect(page.getByText("Fictional support request")).toBeVisible();
-  await page.getByRole("tab", { name: "Signups", exact: true }).click();
+  await page.getByRole("tab", { name: /^Signups/ }).click();
   await expect(page.getByText("survivor", { exact: true })).toBeVisible();
   await page.getByRole("tab", { name: "Email activity", exact: true }).click();
   await expect(page.getByText("Fictional provider outage")).toBeVisible();
   await page.getByRole("button", { name: "Retry pending signup alerts" }).click();
-  await expect(page.getByRole("status")).toContainText("Submitted 1 of 1 eligible signup alerts");
+  await expect(
+    page.getByRole("status").filter({ hasText: "Submitted 1 of 1 eligible signup alerts" }),
+  ).toBeVisible();
 });
 
 test("signup email confirmation returns through the role setup callback", async ({ page }) => {
