@@ -13,6 +13,35 @@ for (const width of [320, 390]) {
     await page.setViewportSize({ width, height: 844 });
     await mockLoggedIn(page, {
       persona: "survivor",
+      // "Add a spoken Note" only shows once she has a Note; with none, Notes shows
+      // its empty state ("Add your first Note"), so give the page one.
+      restHandlers: {
+        incidents: (route: import("@playwright/test").Route) =>
+          route.fulfill({
+            status: 200,
+            headers: { "access-control-allow-origin": route.request().headers().origin || "*" },
+            json: [
+              {
+                id: "n1",
+                date: "2026-01-01",
+                time: null,
+                location: null,
+                description: "A fictional Note used by this layout check.",
+                abuse_types: [],
+                witnesses: null,
+                emotional_impact: null,
+                source: "manual",
+                confirmed_at: new Date().toISOString(),
+                date_precision: "exact",
+                date_range_start: null,
+                date_range_end: null,
+                anchor_incident_id: null,
+                anchor_label: null,
+                share_readiness: null,
+              },
+            ],
+          }),
+      },
       serverFnHandlers: {
         listProposedIncidents: () => [],
         listUnseenConnections: () => [],
