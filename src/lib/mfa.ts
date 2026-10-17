@@ -133,7 +133,13 @@ export function attorneyPathWithoutPortalChrome(pathname: string): boolean {
 
 export async function dropUnverifiedTotpFactors(): Promise<void> {
   // Unenroll still uses the SDK; enrollment cleanup is best-effort.
+  // `data.totp` only ever contains verified factors (supabase-js's design, which is
+  // also why the old `data.totp` version of this filter needed a String() cast to
+  // dodge a "no overlap" type error) — unverified enrollments only show up in
+  // `data.all`, so that's what actually needs scanning to find anything to drop.
   const { data } = await supabase.auth.mfa.listFactors();
-  const pending = (data?.totp ?? []).filter((f) => String(f.status) !== "verified");
+  const pending = (data?.all ?? []).filter(
+    (f) => f.factor_type === "totp" && f.status !== "verified",
+  );
   await Promise.all(pending.map((f) => supabase.auth.mfa.unenroll({ factorId: f.id })));
 }
