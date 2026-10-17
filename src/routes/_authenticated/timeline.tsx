@@ -94,7 +94,12 @@ function CorroborationSection({ clusters }: { clusters: XrefCluster[] }) {
   return (
     <section
       className="mt-6"
-      style={{ background: "var(--paper)", padding: 20, border: "1px solid var(--rule)", borderRadius: 3 }}
+      style={{
+        background: "var(--paper)",
+        padding: 20,
+        border: "1px solid var(--rule)",
+        borderRadius: 3,
+      }}
     >
       <div className="flex items-baseline gap-3">
         <span className="exhibit-tag">CORROBORATION</span>
@@ -344,7 +349,12 @@ function TimelinePage() {
       {xrefs.length > 0 && <CorroborationSection clusters={xrefs} />}
 
       {(() => {
-        const active = types.length + (from ? 1 : 0) + (to ? 1 : 0) + (showLegal ? 0 : 1) + (showMessages ? 0 : 1);
+        const active =
+          types.length +
+          (from ? 1 : 0) +
+          (to ? 1 : 0) +
+          (showLegal ? 0 : 1) +
+          (showMessages ? 0 : 1);
         return (
           <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
             <div className="mt-4 flex items-center gap-3">
@@ -355,7 +365,11 @@ function TimelinePage() {
                 </button>
               </SheetTrigger>
             </div>
-            <SheetContent side="bottom" className="pp-filter-sheet" data-testid="timeline-filter-sheet">
+            <SheetContent
+              side="bottom"
+              className="pp-filter-sheet"
+              data-testid="timeline-filter-sheet"
+            >
               <SheetHeader>
                 <SheetTitle className="pp-filter-sheet-title">Filter</SheetTitle>
                 <SheetDescription className="pp-filter-sheet-desc">
@@ -384,23 +398,45 @@ function TimelinePage() {
                 <div className="pp-filter-dates">
                   <label>
                     <span className="pp2-eyebrow">From</span>
-                    <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="pp-filter-date" />
+                    <input
+                      type="date"
+                      value={from}
+                      onChange={(e) => setFrom(e.target.value)}
+                      className="pp-filter-date"
+                    />
                   </label>
                   <label>
                     <span className="pp2-eyebrow">To</span>
-                    <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="pp-filter-date" />
+                    <input
+                      type="date"
+                      value={to}
+                      onChange={(e) => setTo(e.target.value)}
+                      className="pp-filter-date"
+                    />
                   </label>
                 </div>
                 <label className="pp-filter-check">
-                  <input type="checkbox" checked={showLegal} onChange={(e) => setShowLegal(e.target.checked)} />
+                  <input
+                    type="checkbox"
+                    checked={showLegal}
+                    onChange={(e) => setShowLegal(e.target.checked)}
+                  />
                   Include files from others
                 </label>
                 <label className="pp-filter-check">
-                  <input type="checkbox" checked={showMessages} onChange={(e) => setShowMessages(e.target.checked)} />
+                  <input
+                    type="checkbox"
+                    checked={showMessages}
+                    onChange={(e) => setShowMessages(e.target.checked)}
+                  />
                   Include imported messages
                 </label>
                 <SheetClose asChild>
-                  <button type="button" className="pp-museum-cta pp-filter-done" data-testid="timeline-filter-done">
+                  <button
+                    type="button"
+                    className="pp-museum-cta pp-filter-done"
+                    data-testid="timeline-filter-done"
+                  >
                     Show timeline
                   </button>
                 </SheetClose>
@@ -434,7 +470,11 @@ function TimelinePage() {
                   <div key={`l-${l.id}`} className="relative">
                     <span
                       className="absolute -left-[28px] top-3 flex h-4 w-4 items-center justify-center"
-                      style={{ background: "var(--paper)", border: "1px solid var(--stitch)", borderRadius: 2 }}
+                      style={{
+                        background: "var(--paper)",
+                        border: "1px solid var(--stitch)",
+                        borderRadius: 2,
+                      }}
                     >
                       <FileText size={10} color="var(--pp-ink)" />
                     </span>
@@ -449,7 +489,13 @@ function TimelinePage() {
                       <div className="mt-1">
                         <span
                           className="px-2 py-0.5 text-[10px] font-semibold"
-                          style={{ borderRadius: 3, border: "1px solid var(--rule)", color: "var(--ink)", fontFamily: "'IBM Plex Mono', ui-monospace, monospace", letterSpacing: "0.08em" }}
+                          style={{
+                            borderRadius: 3,
+                            border: "1px solid var(--rule)",
+                            color: "var(--ink)",
+                            fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
+                            letterSpacing: "0.08em",
+                          }}
                         >
                           {LEGAL_LABEL[l.document_type] ?? "Document"}
                         </span>
@@ -481,7 +527,11 @@ function TimelinePage() {
                   <div key={`m-${d.key}`} className="relative">
                     <span
                       className="absolute -left-[28px] top-3 flex h-4 w-4 items-center justify-center"
-                      style={{ background: "var(--paper)", border: "1px solid var(--stitch)", borderRadius: 2 }}
+                      style={{
+                        background: "var(--paper)",
+                        border: "1px solid var(--stitch)",
+                        borderRadius: 2,
+                      }}
                     >
                       <MessageSquare size={10} color="var(--pp-ink)" />
                     </span>
@@ -496,7 +546,13 @@ function TimelinePage() {
                       <div className="mt-1">
                         <span
                           className="px-2 py-0.5 text-[10px] font-semibold"
-                          style={{ borderRadius: 3, border: "1px solid var(--rule)", color: "var(--ink)", fontFamily: "'IBM Plex Mono', ui-monospace, monospace", letterSpacing: "0.08em" }}
+                          style={{
+                            borderRadius: 3,
+                            border: "1px solid var(--rule)",
+                            color: "var(--ink)",
+                            fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
+                            letterSpacing: "0.08em",
+                          }}
                         >
                           IMPORTED MESSAGES
                         </span>
@@ -559,7 +615,13 @@ function TimelinePage() {
                         <span
                           key={t}
                           className="px-2 py-0.5 text-[10px] font-semibold"
-                          style={{ borderRadius: 3, border: "1px solid var(--rule)", color: "var(--ink)", fontFamily: "'IBM Plex Mono', ui-monospace, monospace", letterSpacing: "0.08em" }}
+                          style={{
+                            borderRadius: 3,
+                            border: "1px solid var(--rule)",
+                            color: "var(--ink)",
+                            fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
+                            letterSpacing: "0.08em",
+                          }}
                         >
                           {typeLabel(t)}
                         </span>
@@ -624,9 +686,9 @@ function TimelinePage() {
         )}
       </FocusRegion>
       <CognitiveClose
-        title="See what your Recurline is telling you"
-        body="Once your timeline has a few Notes, Recurline surfaces recurring tactics and frequency."
-        cta="Open Recurline"
+        title="See patterns across your notes"
+        body="Once your timeline has a few Notes, you can see what keeps happening and how often."
+        cta="View patterns"
         to="/patterns"
       />
     </div>

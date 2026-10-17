@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { ShieldCheck } from "lucide-react";
 import { applyAsAttorney, type AttorneyApplication } from "@/lib/founder-operations.functions";
@@ -23,25 +23,27 @@ export function InviteApprovalStep({ application, draft, onSubmitted }: InviteAp
   const [jurisdiction, setJurisdiction] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const submitting = useRef(false);
 
   if (application?.status === "pending_review") {
     return (
-      <div className="att-card" style={{ textAlign: "center" }}>
+      <div className="att-card" role="status" aria-live="polite" style={{ textAlign: "center" }}>
         <ShieldCheck size={28} style={{ color: "var(--att-green)", margin: "0 auto 8px" }} />
         <h2 style={{ fontSize: 20, marginBottom: 6 }}>Your access is being reviewed</h2>
         <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>
           We check every attorney's bar number before any client file opens. Come back to this
-          same link once you're approved — your client's invitation is held here for you.
+          same link once you are approved. Your client's invitation is held here for you.
         </p>
       </div>
     );
   }
   if (application?.status === "rejected") {
     return (
-      <div className="att-card">
+      <div className="att-card" role="status" aria-live="polite">
         <h2 style={{ fontSize: 20, marginBottom: 6 }}>We couldn't approve this account</h2>
         <p style={{ fontSize: 13, color: "var(--att-text-2)" }}>
-          This case file stays closed. Reply to your review email if you think this is a mistake.
+          This case file stays closed. If you think this is a mistake, please contact PatternProof
+          and mention the invitation you were sent.
         </p>
       </div>
     );
@@ -49,6 +51,8 @@ export function InviteApprovalStep({ application, draft, onSubmitted }: InviteAp
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting.current) return;
+    submitting.current = true;
     setBusy(true);
     setMessage("");
     try {
@@ -59,6 +63,7 @@ export function InviteApprovalStep({ application, draft, onSubmitted }: InviteAp
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "We couldn't send that. Try again in a moment.");
     } finally {
+      submitting.current = false;
       setBusy(false);
     }
   };
@@ -89,8 +94,12 @@ export function InviteApprovalStep({ application, draft, onSubmitted }: InviteAp
         {field("invite-apply-firm", "Firm (optional)", firm, setFirm, false)}
         {field("invite-apply-bar", "Bar number", barNumber, setBarNumber)}
         {field("invite-apply-jurisdiction", "State / jurisdiction", jurisdiction, setJurisdiction)}
-        {message && <p style={{ fontSize: 12, color: "var(--att-text-2)" }}>{message}</p>}
-        <button className="att-btn-primary" disabled={busy} style={{ width: "100%" }}>
+        {message && (
+          <p role="alert" style={{ fontSize: 12, color: "var(--att-text-2)" }}>
+            {message}
+          </p>
+        )}
+        <button type="submit" className="att-btn-primary" disabled={busy} aria-busy={busy} style={{ width: "100%" }}>
           {busy ? "One moment…" : "Send for review"}
         </button>
       </form>

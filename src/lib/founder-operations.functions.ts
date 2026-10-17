@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireAccountAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { declineAttorneyApplication, type DeclineDb } from "@/lib/decline-attorney";
+import type { FounderOverview } from "@/lib/founder-ops.functions";
 
 export type AttorneyApplication = {
   id: string;
@@ -13,6 +15,8 @@ export type AttorneyApplication = {
   status: "pending_review" | "approved" | "rejected";
   created_at: string;
   reviewed_at: string | null;
+  decline_reason?: string | null;
+  decline_reason_emailed_at?: string | null;
 };
 
 async function founder(userId: string) {
@@ -117,6 +121,20 @@ export const applyAsAttorney = createServerFn({ method: "POST" })
         `attorney-application-${id}`,
       );
     return { ok: true as const };
+  });
+
+// Keep the earlier intake available without loading unrelated signup/support data.
+export const getEarlierAttorneyRequests = createServerFn({ method: "GET" })
+  .middleware([requireAccountAuth])
+  .handler(async ({ context }) => {
+    const db = await founder(context.userId);
+    const { data, error } = await (db as any)
+      .from("attorney_applications")
+      .select("id,email,full_name,firm_name,bar_number,jurisdiction,source,status,created_at")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (error) throw new Error("Could not load earlier attorney requests.");
+    return { applications: (data ?? []) as FounderOverview["applications"] };
   });
 
 export const getFounderOperations = createServerFn({ method: "GET" })
@@ -257,4 +275,36 @@ export const inviteVettedAttorney = createServerFn({ method: "POST" })
       `founder-invite-alert-${invitation.id}`,
     );
     return { url, expires_at: invitation.expires_at as string, emailed: result.sent };
+  });
+
+/**
+ * Decline an attorney application, optionally with a reason.
+ * - The decision itself goes through the same audited RPC as reviewAttorney
+ *   (declining also withdraws any client shares).
+ * - The reason is saved on the application so the founder can see why later.
+ * - The reason is only emailed to the attorney if the founder ticks the box.
+ */
+export const declineAttorney = createServerFn({ method: "POST" })
+  .middleware([requireAccountAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        reason: z.string().trim().max(1000).optional(),
+        sendEmail: z.boolean().default(false),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const db = await founder(context.userId);
+    return declineAttorneyApplication({
+      // The held decline RPC is not in generated database types yet. Keep the
+      // compatibility assertion at this server-only boundary; missing RPCs fail closed.
+      db: db as unknown as DeclineDb,
+      id: data.id,
+      reviewer: context.userId,
+      reason: data.reason,
+      sendEmail: data.sendEmail,
+      sendEmailFn: alert,
+    });
   });

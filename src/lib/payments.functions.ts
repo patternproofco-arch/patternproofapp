@@ -329,7 +329,35 @@ export async function isAttorneyEntitled(
   });
   if (error) throw new Error("Could not verify attorney billing entitlement.");
   if (billing?.[0]?.entitled) return { entitled: true, reason: "subscribed" };
-  void clientId;
+  // A survivor-initiated invitation is a free, client-specific review grant.
+  // This is not a general trial: it requires a currently active, unrevoked,
+  // unexpired share owned by this attorney and originating from an accepted
+  // invitation. Never infer entitlement from a signup or pending invitation.
+  const { data: links, error: linkError } = await supabaseAdmin
+    .from("attorney_client_links")
+    .select("id,status,revoked_at,expires_at,invitation_id")
+    .eq("attorney_user_id", attorneyId)
+    .eq("client_user_id", clientId)
+    .eq("status", "active")
+    .is("revoked_at", null)
+    .not("invitation_id", "is", null);
+  if (linkError) throw new Error("Could not verify client sharing entitlement.");
+  const { isActiveShareLink } = await import("@/lib/attorney-access.server");
+  const active = (links ?? []).filter(isActiveShareLink);
+  if (active.length) {
+    const ids = active.map((link) => link.invitation_id).filter((id): id is string => !!id);
+    const { data: invitations, error: invitationError } = await supabaseAdmin
+      .from("attorney_invitations")
+      .select("id,status,accepted_by,client_user_id")
+      .in("id", ids)
+      .eq("status", "accepted")
+      .eq("accepted_by", attorneyId)
+      .eq("client_user_id", clientId);
+    if (invitationError) throw new Error("Could not verify invitation provenance.");
+    if ((invitations ?? []).some((inv) => active.some((link) => link.invitation_id === inv.id))) {
+      return { entitled: true, reason: "free" };
+    }
+  }
   return { entitled: false, reason: "paywall" };
 }
 

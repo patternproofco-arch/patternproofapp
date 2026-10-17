@@ -4,12 +4,15 @@ import { useCallback, useEffect, useState } from "react";
 import {
   getFounderOperations,
   reviewAttorney,
+  declineAttorney,
   inviteVettedAttorney,
   retrySignupAlerts,
 } from "@/lib/founder-operations.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { EarlierAttorneyRequests } from "@/components/admin/EarlierAttorneyRequests";
 import {
   Table,
   TableHeader,
@@ -33,6 +36,11 @@ export const Route = createFileRoute("/_authenticated/admin/operations")({
 function OperationsPage() {
   const get = useServerFn(getFounderOperations);
   const review = useServerFn(reviewAttorney);
+  const decline = useServerFn(declineAttorney);
+  const [declining, setDeclining] = useState<string | null>(null);
+  const [reason, setReason] = useState("");
+  const [sendReason, setSendReason] = useState(false);
+  const [notice, setNotice] = useState("");
   const invite = useServerFn(inviteVettedAttorney);
   const retryAlerts = useServerFn(retrySignupAlerts);
   const [alertResult, setAlertResult] = useState("");
@@ -68,6 +76,30 @@ function OperationsPage() {
       setBusy(false);
     }
   }
+  async function confirmDecline(id: string) {
+    setBusy(true);
+    setNotice("");
+    try {
+      const result = await decline({ data: { id, reason, sendEmail: sendReason } });
+      setNotice(
+        result.emailed
+          ? result.emailProblem
+            ? "Declined. Your reason was sent to the attorney, but the email record could not be saved."
+            : "Declined. Your reason was emailed to the attorney."
+          : result.emailProblem
+            ? "Declined and the reason was saved, but the email could not be sent. Contact the attorney another way."
+            : "Declined. No email was sent.",
+      );
+      setDeclining(null);
+      setReason("");
+      setSendReason(false);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not save the review.");
+    } finally {
+      setBusy(false);
+    }
+  }
   async function sendInvite(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -99,19 +131,45 @@ function OperationsPage() {
         </div>
       </div>
       {error && <p role="alert">{error}</p>}
+      {notice && <p role="status">{notice}</p>}
       {!data && !error && <p role="status">Loading operations…</p>}
       {data && (
         <>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded border p-4">
+              <div className="text-2xl">
+                {data.applications.filter((a) => a.status === "pending_review").length}
+              </div>
+              <div>Attorney applications waiting</div>
+            </div>
+            <div className="rounded border p-4">
+              <div className="text-2xl">
+                {
+                  data.tickets.filter((t) => t.status !== "closed" && t.status !== "resolved")
+                    .length
+                }
+              </div>
+              <div>Open help requests</div>
+            </div>
+            <div className="rounded border p-4">
+              <div className="text-2xl">{data.signups.length}</div>
+              <div>Recent signups</div>
+            </div>
+          </div>
           <Tabs defaultValue="applications">
-            <TabsList className="h-auto flex-wrap">
+            <TabsList className="h-auto flex-wrap gap-2">
               <TabsTrigger value="applications">
                 Attorney reviews (
                 {data.applications.filter((a) => a.status === "pending_review").length})
               </TabsTrigger>
-              <TabsTrigger value="support">Support</TabsTrigger>
-              <TabsTrigger value="signups">Signups</TabsTrigger>
+              <TabsTrigger value="support">Help requests ({data.tickets.length})</TabsTrigger>
+              <TabsTrigger value="signups">Signups ({data.signups.length})</TabsTrigger>
               <TabsTrigger value="email">Email activity</TabsTrigger>
+              <TabsTrigger value="earlier">Earlier requests</TabsTrigger>
             </TabsList>
+            <TabsContent value="earlier">
+              <EarlierAttorneyRequests />
+            </TabsContent>
             <TabsContent value="applications">
               <h2 className="my-4 font-serif text-xl">Attorney applications</h2>
               <p className="mb-4">
@@ -161,12 +219,63 @@ function OperationsPage() {
                               disabled={busy}
                               variant="outline"
                               size="sm"
-                              onClick={() => void decide(a.id, "rejected")}
+                              onClick={() => {
+                                setDeclining(a.id);
+                                setReason("");
+                                setSendReason(false);
+                              }}
                             >
                               Decline
                             </Button>
                           )}
                         </div>
+                        {a.status === "rejected" && a.decline_reason && (
+                          <p className="mt-2 text-sm whitespace-pre-wrap">
+                            Reason: {a.decline_reason}
+                            {a.decline_reason_emailed_at
+                              ? " (emailed to attorney)"
+                              : " (email not recorded)"}
+                          </p>
+                        )}
+                        {declining === a.id && (
+                          <div className="mt-3 max-w-sm space-y-2">
+                            <Label htmlFor={`reason-${a.id}`}>
+                              Reason for declining (optional)
+                            </Label>
+                            <Textarea
+                              id={`reason-${a.id}`}
+                              maxLength={1000}
+                              value={reason}
+                              onChange={(e) => setReason(e.target.value)}
+                            />
+                            <Label className="flex items-start gap-2">
+                              <input
+                                type="checkbox"
+                                checked={sendReason}
+                                disabled={!reason.trim()}
+                                onChange={(e) => setSendReason(e.target.checked)}
+                              />
+                              Email this reason to the attorney
+                            </Label>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                disabled={busy}
+                                onClick={() => void confirmDecline(a.id)}
+                              >
+                                Confirm decline
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={busy}
+                                onClick={() => setDeclining(null)}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}

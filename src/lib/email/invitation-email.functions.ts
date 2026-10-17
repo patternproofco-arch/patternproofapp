@@ -38,9 +38,8 @@ export const sendInvitationEmail = createServerFn({ method: "POST" })
         ]),
         discreet: z.boolean().optional(),
         recipientEmail: z.string().trim().min(3).max(320),
-        /** Pins an attorney-invitation email to the exact invitation it was created for. */
-        invitationId: z.string().uuid().optional(),
         idempotencyKey: z.string().max(300).optional(),
+        invitationId: z.string().uuid().optional(),
       })
       .parse(input),
   )
@@ -109,12 +108,11 @@ export const sendInvitationEmail = createServerFn({ method: "POST" })
       }
       const { data: prof } = await supabaseAdmin
         .from("advocate_profiles")
-        .select("full_name,org_name")
+        .select("full_name")
         .eq("user_id", userId)
         .maybeSingle();
       templateData = {
         advocateName: prof?.full_name ?? undefined,
-        orgName: prof?.org_name ?? undefined,
         survivorName: inv.survivor_name ?? undefined,
         personalNote: inv.personal_note ?? undefined,
         acceptUrl: `${origin}/advocate-survivor-invite/${inv.invite_token}`,
@@ -155,16 +153,20 @@ export const sendInvitationEmail = createServerFn({ method: "POST" })
         expiresLabel: daysLeft(inv.expires_at),
       };
     } else {
-      let invitationQuery = supabaseAdmin
+      // Never select a different invitation merely because it has the same recipient.
+      // The sender must identify the exact survivor-authorized invitation.
+      if (!data.invitationId) {
+        await logAttempt("invitation_id_required");
+        return { success: false };
+      }
+      const { data: inv } = await supabaseAdmin
         .from("attorney_invitations")
         .select("attorney_name, personal_note, invite_token, expires_at")
+        .eq("id", data.invitationId)
         .eq("client_user_id", userId)
         .eq("attorney_email", recipient)
         .eq("status", "pending")
-        .gt("expires_at", new Date().toISOString());
-      // The idempotency key belongs to one invitation, so the link in the email must too.
-      if (data.invitationId) invitationQuery = invitationQuery.eq("id", data.invitationId);
-      const { data: inv } = await invitationQuery
+        .gt("expires_at", new Date().toISOString())
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();

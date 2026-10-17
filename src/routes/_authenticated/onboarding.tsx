@@ -3,7 +3,6 @@ import { useState } from "react";
 import { AlertTriangle, DoorOpen, FileCheck, Scale, Smartphone } from "lucide-react";
 import { useSettings } from "@/lib/settings-context";
 import { supabase } from "@/integrations/supabase/client";
-import { QuickExitButton } from "@/components/QuickExitButton";
 import { BrandMark } from "@/components/BrandMark";
 import { toast } from "sonner";
 import { completeSurvivorOnboarding } from "@/lib/legal-consent.functions";
@@ -85,9 +84,8 @@ function Onboarding() {
         style={{ background: "var(--background)" }}
       >
         <BrandMark size={40} />
-        {/* Phones: Quick Exit docks over this reserved top-right slot. */}
+        {/* Quick Exit (button + double-Escape) comes from AppShell; one instance only. */}
         <span aria-hidden className="pp-qe-slot" />
-        <QuickExitButton phoneDock />
       </div>
 
       <div className="mb-6 text-center">

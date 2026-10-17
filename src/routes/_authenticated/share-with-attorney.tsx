@@ -18,9 +18,11 @@ import { toast } from "sonner";
 import {
   createInvitation,
   listMyInvitations,
+  resendInvitation,
   revokeInvitation,
   revokeLink,
 } from "@/lib/attorney-invitations.functions";
+import { INVITATION_STATUS_LABEL } from "@/lib/invitation-status";
 import { sendTransactionalEmail } from "@/lib/email/send";
 import {
   listMessages,
@@ -50,6 +52,8 @@ function ShareWithAttorney() {
   const list = useServerFn(listMyInvitations);
   const create = useServerFn(createInvitation);
   const revokeInv = useServerFn(revokeInvitation);
+  const resendInv = useServerFn(resendInvitation);
+  const [resendingId, setResendingId] = useState<string | null>(null);
   const revokeLk = useServerFn(revokeLink);
   const setPhrasingConsent = useServerFn(setDepositionPrepConsent);
   const setClioConsent = useServerFn(setClioShareConsent);
@@ -215,6 +219,34 @@ function ShareWithAttorney() {
       toast(e instanceof Error ? e.message : "Couldn't create invitation.");
     } finally {
       setBusy(false);
+    }
+  };
+
+  const resend = async (invitationId: string) => {
+    if (resendingId) return;
+    setResendingId(invitationId);
+    try {
+      const r = await resendInv({ data: { id: invitationId } });
+      const url = `${window.location.origin}/accept-invite/${r.invitation.invite_token}`;
+      const sent = await sendTransactionalEmail({
+        templateName: "attorney-invitation",
+        recipientEmail: r.attorney_email,
+        idempotencyKey: `attorney-invitation-${r.invitation.id}`,
+        invitationId: r.invitation.id,
+        templateData: {
+          attorneyName: r.attorney_name?.trim() || undefined,
+          clientLabel: "Your client",
+          personalNote: r.personal_note?.trim() || undefined,
+          acceptUrl: url,
+          expiresLabel: "30 days",
+        },
+      });
+      toast(sent ? "Invitation sent again." : "New link created, but the email could not be sent. Copy the link to share it.");
+      load();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Couldn't send the invitation again.");
+    } finally {
+      setResendingId(null);
     }
   };
 
@@ -722,13 +754,13 @@ function ShareWithAttorney() {
 
       <h2 className="mt-10 font-serif text-[20px]">Pending invitations</h2>
       <div className="mt-3 space-y-2">
-        {!data ? null : data.invitations.filter((i) => i.status === "pending").length === 0 ? (
+        {!data ? null : data.invitations.filter((i) => i.survivor_status !== "revoked" && i.survivor_status !== "accepted").length === 0 ? (
           <div className="card-pp text-[13px]" style={{ color: "var(--muted-foreground)" }}>
             No pending invitations.
           </div>
         ) : (
           data.invitations
-            .filter((i) => i.status === "pending")
+            .filter((i) => i.survivor_status !== "revoked" && i.survivor_status !== "accepted")
             .map((i) => (
               <div
                 key={i.id}
@@ -745,17 +777,32 @@ function ShareWithAttorney() {
                   <div className="text-[12px]" style={{ color: "var(--muted-foreground)" }}>
                     {i.attorney_email}
                   </div>
+                  <div className="mt-1 text-[12px]" role="status" data-testid="invite-status">
+                    {INVITATION_STATUS_LABEL[i.survivor_status]}
+                  </div>
                   <div className="mt-1 text-[11px]" style={{ color: "var(--muted-foreground)" }}>
-                    {i.expires_at && `expires ${new Date(i.expires_at).toLocaleDateString()}`}
+                    {i.expires_at &&
+                      `${i.survivor_status === "expired" ? "expired" : "expires"} ${new Date(i.expires_at).toLocaleDateString()}`}
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => copy(i.invite_token)}
-                    className="btn-ghost inline-flex items-center gap-1 text-[12px]"
-                  >
-                    <Copy size={13} /> Copy link
-                  </button>
+                  {i.can_resend ? (
+                    <button
+                      onClick={() => resend(i.id)}
+                      disabled={resendingId !== null}
+                      aria-busy={resendingId === i.id}
+                      className="btn-ghost inline-flex items-center gap-1 text-[12px]"
+                    >
+                      {resendingId === i.id ? "Sending..." : "Send again"}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => copy(i.invite_token)}
+                      className="btn-ghost inline-flex items-center gap-1 text-[12px]"
+                    >
+                      <Copy size={13} /> Copy link
+                    </button>
+                  )}
                   <button
                     onClick={async () => {
                       await revokeInv({ data: { id: i.id } });
