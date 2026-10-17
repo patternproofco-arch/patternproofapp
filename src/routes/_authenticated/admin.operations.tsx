@@ -157,7 +157,7 @@ function OperationsPage() {
             </div>
           </div>
           <Tabs defaultValue="applications">
-            <TabsList className="h-auto flex-wrap">
+            <TabsList className="h-auto flex-wrap gap-2">
               <TabsTrigger value="applications">
                 Attorney reviews (
                 {data.applications.filter((a) => a.status === "pending_review").length})
