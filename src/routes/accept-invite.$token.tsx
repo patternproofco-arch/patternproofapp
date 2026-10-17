@@ -83,6 +83,7 @@ function AcceptInvite() {
     if (loading || !user || peeked?.status !== "ok" || accepted) return;
     let cancelled = false;
     setBusy(true);
+    setFailed(false);
     getApplication()
       .then(async ({ application: row }) => {
         if (cancelled) return;
@@ -93,7 +94,7 @@ function AcceptInvite() {
         if (cancelled) return;
         setAccepted(true);
         toast("Access granted. One step left.");
-        navigate({ to: "/subscribe" });
+        navigate({ to: "/attorney" });
       })
       .catch(() => {
         if (!cancelled) setFailed(true);
@@ -111,6 +112,7 @@ function AcceptInvite() {
     setBusy(true);
     try {
       if (mode === "signup") {
+        sessionStorage.setItem(`pp-invite-draft-${token}`, JSON.stringify({ fullName, barNumber }));
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -175,7 +177,11 @@ function AcceptInvite() {
         </p>
       </div>
 
-      {user ? (
+      {user && appChecked && application?.status !== "approved" ? (
+        <InviteApprovalStep application={application} draft={{ fullName, barNumber }} onSubmitted={() => setRecheck((n) => n + 1)} />
+      ) : user && failed ? (
+        <div className="att-card"><p>We could not verify your approval status. Please try again.</p><button className="att-btn-primary" onClick={() => setRecheck((n) => n + 1)}>Retry</button></div>
+      ) : user ? (
         <div className="att-card" style={{ textAlign: "center" }}>
           <ShieldCheck size={28} style={{ color: "var(--att-green)", margin: "0 auto 8px" }} />
           <p style={{ fontSize: 14, color: "var(--att-text-2)" }}>
