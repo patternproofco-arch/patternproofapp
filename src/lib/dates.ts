@@ -31,7 +31,8 @@ export function formatDateLocal(
  */
 export function formatMonthKey(key: string): string {
   const m = /^(\d{4})-(\d{2})$/.exec(key);
-  if (!m || Number(m[1]) < 1000 || Number(m[2]) < 1 || Number(m[2]) > 12) return "Date not documented";
+  if (!m || Number(m[1]) < 1000 || Number(m[2]) < 1 || Number(m[2]) > 12)
+    return "Date not documented";
   return new Date(Number(m[1]), Number(m[2]) - 1, 1).toLocaleDateString("en-US", {
     month: "long",
     year: "numeric",

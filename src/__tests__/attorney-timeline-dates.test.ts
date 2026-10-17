@@ -15,12 +15,16 @@ describe("attorney timeline dates show the calendar date that was stored", () =>
   });
 
   it("an exact entry is labelled with its own date", () => {
-    expect(formatIncidentDate({ date: "2025-08-14", date_precision: "exact" })).toBe("Aug 14, 2025");
+    expect(formatIncidentDate({ date: "2025-08-14", date_precision: "exact" })).toBe(
+      "Aug 14, 2025",
+    );
     expect(formatIncidentDate({ date: "2025-08-14" })).toBe("Aug 14, 2025");
   });
 
   it("an entry whose date was not known reads 'Date not documented'", () => {
-    expect(formatIncidentDate({ date: null, date_precision: "unknown" })).toBe("Date not documented");
+    expect(formatIncidentDate({ date: null, date_precision: "unknown" })).toBe(
+      "Date not documented",
+    );
     expect(formatIncidentDate({ date: null })).toBe("Date not documented");
   });
 

@@ -336,7 +336,13 @@ function ClientCaseView() {
         {tab === "Intake" && <IntakeTab data={data} clientId={clientId} />}
         {tab === "Overview" && <Overview data={data} />}
         {tab === "Timeline" && (
-          <TimelineTab data={data} clientId={clientId} notes={notes} onNotes={setNotes} notesFailed={notesFailed} />
+          <TimelineTab
+            data={data}
+            clientId={clientId}
+            notes={notes}
+            onNotes={setNotes}
+            notesFailed={notesFailed}
+          />
         )}
         {tab === "Patterns" && <Patterns data={data} clientId={clientId} />}
         {tab === "Checklist" && <ChecklistTab data={data} />}
@@ -585,10 +591,7 @@ async function generateWordDoc(args: {
     const months = Object.keys(byMonth).sort().reverse();
     for (const key of months) {
       const list = byMonth[key];
-      const label =
-        key === "Undated"
-          ? "Undated"
-          : formatMonthKey(key);
+      const label = key === "Undated" ? "Undated" : formatMonthKey(key);
       children.push(h3(`${label} — ${list.length} incident(s)`));
       for (const inc of list) {
         const head = `${inc.date ?? "—"}${inc.time ? " · " + inc.time : ""} · Severity ${inc.severity_level ?? "—"}`;
@@ -1709,8 +1712,7 @@ function TimelineTab({
         Object.entries(byMonth).map(([month, items]) => (
           <section key={month} style={{ marginBottom: 24 }}>
             <div className="att-eyebrow" style={{ marginBottom: 8 }}>
-              {formatMonthKey(month)}{" "}
-              · {items.length} incident{items.length === 1 ? "" : "s"}
+              {formatMonthKey(month)} · {items.length} incident{items.length === 1 ? "" : "s"}
             </div>
             <ol style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 10 }}>
               {items.map((i) => {
@@ -1798,7 +1800,8 @@ function TimelineTab({
                       </summary>
                       {notesFailed && (
                         <p role="alert" style={{ fontSize: 12 }}>
-                          Your private notes didn't load, so they can't be edited right now. Reload the page.
+                          Your private notes didn't load, so they can't be edited right now. Reload
+                          the page.
                         </p>
                       )}
                       <textarea
@@ -2810,7 +2813,8 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
                         </option>
                       ))}
                     </select>
-                    <input aria-label="Exhibit label (e.g. Exhibit A)"
+                    <input
+                      aria-label="Exhibit label (e.g. Exhibit A)"
                       type="text"
                       placeholder="Exhibit label (e.g. Exhibit A)"
                       defaultValue={r?.exhibit_label ?? ""}
@@ -3567,8 +3571,14 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
           {first && last ? (
             <>
               {" "}
-              spanning <strong>{formatDateLocal(first, { year: "numeric", month: "numeric", day: "numeric" })}</strong> to{" "}
-              <strong>{formatDateLocal(last, { year: "numeric", month: "numeric", day: "numeric" })}</strong>
+              spanning{" "}
+              <strong>
+                {formatDateLocal(first, { year: "numeric", month: "numeric", day: "numeric" })}
+              </strong>{" "}
+              to{" "}
+              <strong>
+                {formatDateLocal(last, { year: "numeric", month: "numeric", day: "numeric" })}
+              </strong>
             </>
           ) : null}
           , with{" "}
@@ -3609,18 +3619,24 @@ function IntakeTab({ data, clientId }: { data: CaseData; clientId: string }) {
         <ul style={{ fontSize: 13, paddingLeft: 18, lineHeight: 1.7, margin: 0 }}>
           {first && (
             <li>
-              First documented incident: <strong>{formatDateLocal(first, { year: "numeric", month: "numeric", day: "numeric" })}</strong>
+              First documented incident:{" "}
+              <strong>
+                {formatDateLocal(first, { year: "numeric", month: "numeric", day: "numeric" })}
+              </strong>
             </li>
           )}
           {last && (
             <li>
-              Most recent incident: <strong>{formatDateLocal(last, { year: "numeric", month: "numeric", day: "numeric" })}</strong>
+              Most recent incident:{" "}
+              <strong>
+                {formatDateLocal(last, { year: "numeric", month: "numeric", day: "numeric" })}
+              </strong>
             </li>
           )}
           {highSev.slice(0, 4).map((i) => (
             <li key={i.id}>
-              {formatIncidentDate(i)} — severity{" "}
-              {i.severity_level}: {(i.description ?? "").slice(0, 80)}
+              {formatIncidentDate(i)} — severity {i.severity_level}:{" "}
+              {(i.description ?? "").slice(0, 80)}
             </li>
           ))}
           {!first && <li style={{ color: "var(--att-text-2)" }}>No dated incidents on file.</li>}
@@ -3950,11 +3966,7 @@ function ThreadsTab({ clientId }: { clientId: string }) {
         )}
         {openId && loadingOpen && <div style={{ fontSize: 13 }}>Loading conversation…</div>}
         {openId && !loadingOpen && openThread && (
-          <ThreadViewer
-            t={openThread.thread}
-            messages={openThread.messages}
-            clientId={clientId}
-          />
+          <ThreadViewer t={openThread.thread} messages={openThread.messages} clientId={clientId} />
         )}
       </div>
     </div>
@@ -4385,8 +4397,11 @@ function TimeTab({ clientId }: { clientId: string }) {
           }}
         >
           <div>
-            <label style={{ fontSize: 11, color: "var(--att-text-2)" }} htmlFor="clients-date">Date</label>
-            <input id="clients-date"
+            <label style={{ fontSize: 11, color: "var(--att-text-2)" }} htmlFor="clients-date">
+              Date
+            </label>
+            <input
+              id="clients-date"
               className="att-input"
               type="date"
               value={entryDate}
@@ -4394,8 +4409,11 @@ function TimeTab({ clientId }: { clientId: string }) {
             />
           </div>
           <div>
-            <label style={{ fontSize: 11, color: "var(--att-text-2)" }} htmlFor="clients-hours">Hours</label>
-            <input id="clients-hours"
+            <label style={{ fontSize: 11, color: "var(--att-text-2)" }} htmlFor="clients-hours">
+              Hours
+            </label>
+            <input
+              id="clients-hours"
               className="att-input"
               type="number"
               min={0}
@@ -4405,8 +4423,11 @@ function TimeTab({ clientId }: { clientId: string }) {
             />
           </div>
           <div>
-            <label style={{ fontSize: 11, color: "var(--att-text-2)" }} htmlFor="clients-minutes">Minutes</label>
-            <input id="clients-minutes"
+            <label style={{ fontSize: 11, color: "var(--att-text-2)" }} htmlFor="clients-minutes">
+              Minutes
+            </label>
+            <input
+              id="clients-minutes"
               className="att-input"
               type="number"
               min={0}
@@ -4416,8 +4437,14 @@ function TimeTab({ clientId }: { clientId: string }) {
             />
           </div>
           <div>
-            <label style={{ fontSize: 11, color: "var(--att-text-2)" }} htmlFor="clients-description">Description</label>
-            <input id="clients-description"
+            <label
+              style={{ fontSize: 11, color: "var(--att-text-2)" }}
+              htmlFor="clients-description"
+            >
+              Description
+            </label>
+            <input
+              id="clients-description"
               className="att-input"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
