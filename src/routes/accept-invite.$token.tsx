@@ -1,16 +1,15 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Scale, ShieldCheck, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { peekInvitation, acceptInvitation } from "@/lib/attorney-invitations.functions";
 import {
-  applyAsAttorney,
   getMyAttorneyApplication,
   type AttorneyApplication,
 } from "@/lib/founder-operations.functions";
-import { nextInviteStep } from "@/lib/invite-accept-step";
+import { InviteApprovalStep } from "@/components/attorney/InviteApprovalStep";
 import { toast } from "sonner";
 import attorneyCss from "@/styles/attorney.css?url";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
@@ -45,54 +44,25 @@ function AcceptInvite() {
   const [confidentialityOk, setConfidentialityOk] = useState(false);
   const [fullName, setFullName] = useState("");
   const [barNumber, setBarNumber] = useState("");
-  const [jurisdiction, setJurisdiction] = useState("");
   const getApplication = useServerFn(getMyAttorneyApplication);
-  const apply = useServerFn(applyAsAttorney);
   const [application, setApplication] = useState<AttorneyApplication | null>(null);
-  const [checked, setChecked] = useState(false);
-  const [lookupFailed, setLookupFailed] = useState(false);
-  const [acceptError, setAcceptError] = useState("");
-  // Sign-up details are only a convenience prefill for the application form.
-  // Approval stays database-owned and is never decided from this metadata.
-  const meta = (user?.user_metadata ?? {}) as Record<string, unknown>;
-  const metaText = (key: string) => (typeof meta[key] === "string" ? (meta[key] as string) : "");
-  const [appName, setAppName] = useState("");
-  const [appBar, setAppBar] = useState("");
-  const [appJurisdiction, setAppJurisdiction] = useState("");
-  // One accept attempt per sign-in: guards against a repeated effect run sending it twice.
-  const acceptRequested = useRef(false);
-  const userId = user?.id;
+  const [appChecked, setAppChecked] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [recheck, setRecheck] = useState(0);
 
+  // Keep what the attorney typed at signup so the approval step is prefilled
+  // after they confirm their email (same browser tab session only).
   useEffect(() => {
-    if (!userId) return;
-    setAppName((v) => v || metaText("full_name"));
-    setAppBar((v) => v || metaText("bar_number"));
-    setAppJurisdiction((v) => v || metaText("jurisdiction"));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]);
-
-  useEffect(() => {
-    // A different account must never inherit the previous account's lookup or result.
-    setChecked(false);
-    setApplication(null);
-    setAcceptError("");
-    acceptRequested.current = false;
-    if (loading || !userId) return;
-    let cancelled = false;
-    setLookupFailed(false);
-    getApplication()
-      .then(({ application: row }) => {
-        if (cancelled) return;
-        setApplication(row);
-        setChecked(true);
-      })
-      .catch(() => {
-        if (!cancelled) setLookupFailed(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [loading, userId, getApplication]);
+    const saved = sessionStorage.getItem(`pp-invite-draft-${token}`);
+    if (!saved) return;
+    try {
+      const d = JSON.parse(saved) as { fullName?: string; barNumber?: string };
+      if (d.fullName) setFullName(d.fullName);
+      if (d.barNumber) setBarNumber(d.barNumber);
+    } catch {
+      /* ignore malformed draft */
+    }
+  }, [token]);
 
   useEffect(() => {
     peek({ data: { token } })
@@ -106,64 +76,35 @@ function AcceptInvite() {
     }
   }, [peeked, email]);
 
-  const step = nextInviteStep({
-    hasUser: !loading && !!user,
-    checked,
-    status: application?.status ?? null,
-    accountEmail: user?.email,
-    invitedEmail: peeked?.status === "ok" ? peeked.invitation?.attorney_email : null,
-  });
-
+  // Signed in: check approval first. Only an approved attorney attempts
+  // acceptance (the server enforces this too); everyone else sees the
+  // approval step instead of a stuck "Linking…" screen.
   useEffect(() => {
-    if (
-      step === "accepting" &&
-      peeked?.status === "ok" &&
-      !accepted &&
-      !acceptError &&
-      !acceptRequested.current
-    ) {
-      acceptRequested.current = true;
-      setBusy(true);
-      accept({ data: { token } })
-        .then(() => {
-          setAccepted(true);
-          toast("Access granted. One step left.");
-          navigate({ to: "/subscribe" });
-        })
-        .catch((e) =>
-          setAcceptError(e instanceof Error ? e.message : "We couldn't open this invitation."),
-        )
-        .finally(() => setBusy(false));
-    }
-  }, [step, peeked, accepted, acceptError, accept, token, navigate]);
-
-  const submitApplication = async (e: React.FormEvent) => {
-    e.preventDefault();
+    if (loading || !user || peeked?.status !== "ok" || accepted) return;
+    let cancelled = false;
     setBusy(true);
-    try {
-      await apply({
-        data: {
-          full_name: appName,
-          firm_name: "",
-          bar_number: appBar,
-          jurisdiction: appJurisdiction,
-        },
+    getApplication()
+      .then(async ({ application: row }) => {
+        if (cancelled) return;
+        setApplication(row);
+        setAppChecked(true);
+        if (row?.status !== "approved") return;
+        await accept({ data: { token } });
+        if (cancelled) return;
+        setAccepted(true);
+        toast("Access granted. One step left.");
+        navigate({ to: "/subscribe" });
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      })
+      .finally(() => {
+        if (!cancelled) setBusy(false);
       });
-    } catch (err) {
-      toast(err instanceof Error ? err.message : "We couldn't submit your application.");
-      setBusy(false);
-      return;
-    }
-    // The application is saved. If re-reading it fails, show it as submitted rather than failed.
-    try {
-      const { application: row } = await getApplication();
-      setApplication(row);
-    } catch {
-      toast("Your application was submitted. Refresh this page to see its status.");
-    } finally {
-      setBusy(false);
-    }
-  };
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, user, peeked, accepted, accept, getApplication, token, navigate, recheck]);
 
   const auth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,10 +114,7 @@ function AcceptInvite() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            emailRedirectTo: window.location.origin + `/accept-invite/${token}`,
-            data: { full_name: fullName, bar_number: barNumber, jurisdiction },
-          },
+          options: { emailRedirectTo: window.location.origin + `/accept-invite/${token}` },
         });
         if (error) throw error;
       } else {
@@ -237,140 +175,12 @@ function AcceptInvite() {
         </p>
       </div>
 
-      {step !== "signed-out" ? (
-        <div
-          className="att-card"
-          style={{ textAlign: "center" }}
-          role={step === "rejected" || acceptError || lookupFailed ? "alert" : "status"}
-          aria-live="polite"
-        >
+      {user ? (
+        <div className="att-card" style={{ textAlign: "center" }}>
           <ShieldCheck size={28} style={{ color: "var(--att-green)", margin: "0 auto 8px" }} />
-          {step === "wrong-account" ? (
-            <>
-              <h2 style={{ fontSize: 20, marginBottom: 4 }}>Different account</h2>
-              <p style={{ fontSize: 14, color: "var(--att-text-2)" }}>
-                This invitation was sent to {peeked.invitation?.attorney_email}, but you are signed
-                in as {user?.email}. Sign out, then sign in with the invited address.
-              </p>
-              <button
-                type="button"
-                className="att-btn-primary"
-                style={{ width: "100%", marginTop: 16 }}
-                onClick={() => supabase.auth.signOut()}
-              >
-                Sign out
-              </button>
-            </>
-          ) : lookupFailed ? (
-            <>
-              <p style={{ fontSize: 14, color: "var(--att-text-2)" }}>
-                We couldn't check your account. Nothing has been shared or changed.
-              </p>
-              <button
-                type="button"
-                className="att-btn-primary"
-                style={{ width: "100%", marginTop: 16 }}
-                onClick={() => window.location.reload()}
-              >
-                Try again
-              </button>
-            </>
-          ) : step === "apply" ? (
-            <form
-              onSubmit={submitApplication}
-              style={{ display: "grid", gap: 12, textAlign: "left" }}
-            >
-              <h2 style={{ fontSize: 20, textAlign: "center" }}>
-                One step before you see this case
-              </h2>
-              <p style={{ fontSize: 13, color: "var(--att-text-2)", textAlign: "center" }}>
-                We confirm every attorney's bar number before a client's file opens. Your client's
-                invitation is held for you. Please send no client information.
-              </p>
-              <div>
-                <label className="att-eyebrow" htmlFor="apply-invite-name">
-                  Full name
-                </label>
-                <input
-                  id="apply-invite-name"
-                  className="att-input"
-                  required
-                  minLength={2}
-                  maxLength={120}
-                  value={appName}
-                  onChange={(e) => setAppName(e.target.value)}
-                  style={{ marginTop: 4 }}
-                />
-              </div>
-              <div>
-                <label className="att-eyebrow" htmlFor="apply-invite-bar">
-                  Bar number
-                </label>
-                <input
-                  id="apply-invite-bar"
-                  className="att-input"
-                  required
-                  maxLength={60}
-                  value={appBar}
-                  onChange={(e) => setAppBar(e.target.value)}
-                  style={{ marginTop: 4 }}
-                />
-              </div>
-              <div>
-                <label className="att-eyebrow" htmlFor="apply-invite-jurisdiction">
-                  Licensing state or jurisdiction
-                </label>
-                <input
-                  id="apply-invite-jurisdiction"
-                  className="att-input"
-                  required
-                  minLength={2}
-                  maxLength={120}
-                  value={appJurisdiction}
-                  onChange={(e) => setAppJurisdiction(e.target.value)}
-                  style={{ marginTop: 4 }}
-                />
-              </div>
-              <button className="att-btn-primary" disabled={busy} style={{ width: "100%" }}>
-                {busy ? "Submitting…" : "Submit for review"}
-              </button>
-            </form>
-          ) : step === "pending" ? (
-            <>
-              <h2 style={{ fontSize: 20, marginBottom: 4 }}>Your access is being reviewed</h2>
-              <p style={{ fontSize: 14, color: "var(--att-text-2)" }}>
-                Your client's invitation is held for you. We'll email {user?.email} when you're
-                approved, then you can return to this link.
-                {peeked.invitation?.expires_at
-                  ? ` This invitation expires on ${new Date(peeked.invitation.expires_at).toLocaleDateString()}; if it does first, ask your client to send a new link.`
-                  : ""}
-              </p>
-            </>
-          ) : step === "rejected" ? (
-            <>
-              <h2 style={{ fontSize: 20, marginBottom: 4 }}>
-                We couldn't approve this application
-              </h2>
-              <p style={{ fontSize: 14, color: "var(--att-text-2)" }}>
-                Client records stay unavailable. Contact support if you think this is a mistake.
-              </p>
-            </>
-          ) : acceptError ? (
-            <>
-              <h2 style={{ fontSize: 20, marginBottom: 4 }}>We couldn't open this invitation</h2>
-              <p style={{ fontSize: 14, color: "var(--att-text-2)" }}>{acceptError}</p>
-              <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 8 }}>
-                Reload this page to try again. If it keeps happening, ask your client to send a new
-                link.
-              </p>
-            </>
-          ) : (
-            <p style={{ fontSize: 14, color: "var(--att-text-2)" }}>
-              {step === "accepting" || busy
-                ? "Granting case file access…"
-                : "Checking your account…"}
-            </p>
-          )}
+          <p style={{ fontSize: 14, color: "var(--att-text-2)" }}>
+            {busy ? "Granting case file access…" : "Linking your account…"}
+          </p>
         </div>
       ) : (
         <div className="att-card">
@@ -385,11 +195,8 @@ function AcceptInvite() {
             {mode === "signup" && (
               <>
                 <div>
-                  <label className="att-eyebrow" htmlFor="accept-invite-full-name">
-                    Full name
-                  </label>
-                  <input
-                    id="accept-invite-full-name"
+                  <label className="att-eyebrow" htmlFor="accept-invite-full-name">Full name</label>
+                  <input id="accept-invite-full-name"
                     className="att-input"
                     required
                     value={fullName}
@@ -398,11 +205,8 @@ function AcceptInvite() {
                   />
                 </div>
                 <div>
-                  <label className="att-eyebrow" htmlFor="accept-invite-bar-number">
-                    Bar number
-                  </label>
-                  <input
-                    id="accept-invite-bar-number"
+                  <label className="att-eyebrow" htmlFor="accept-invite-bar-number">Bar number</label>
+                  <input id="accept-invite-bar-number"
                     className="att-input"
                     required
                     value={barNumber}
@@ -410,30 +214,11 @@ function AcceptInvite() {
                     style={{ marginTop: 4 }}
                   />
                 </div>
-                <div>
-                  <label className="att-eyebrow" htmlFor="accept-invite-jurisdiction">
-                    Licensing state or jurisdiction
-                  </label>
-                  <input
-                    id="accept-invite-jurisdiction"
-                    className="att-input"
-                    required
-                    minLength={2}
-                    maxLength={120}
-                    value={jurisdiction}
-                    onChange={(e) => setJurisdiction(e.target.value)}
-                    style={{ marginTop: 4 }}
-                  />
-                </div>
               </>
             )}
             <div>
-              <label className="att-eyebrow" htmlFor="accept-invite-work-email">
-                Work email
-              </label>
-              <input
-                autoComplete="email"
-                id="accept-invite-work-email"
+              <label className="att-eyebrow" htmlFor="accept-invite-work-email">Work email</label>
+              <input autoComplete="email" id="accept-invite-work-email"
                 className="att-input"
                 type="email"
                 required
@@ -443,12 +228,8 @@ function AcceptInvite() {
               />
             </div>
             <div>
-              <label className="att-eyebrow" htmlFor="accept-invite-password">
-                Password
-              </label>
-              <input
-                autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                id="accept-invite-password"
+              <label className="att-eyebrow" htmlFor="accept-invite-password">Password</label>
+              <input autoComplete={mode === "signup" ? "new-password" : "current-password"} id="accept-invite-password"
                 className="att-input"
                 type="password"
                 required
