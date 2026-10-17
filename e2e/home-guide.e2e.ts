@@ -89,10 +89,10 @@ test("new account sees Add your first Note; after saving a Note the rest card sh
   await expect(page).toHaveURL(/\/journal/);
   // The Note is saved (the fixture's stats now report one entry) and she returns Home.
   entries = 1;
-  // She returns Home the way a person does: Back. A second full page load races the
-  // move to /journal in WebKit ("interrupted by another navigation"), and Home
-  // re-reads its stats each time it mounts, so Back shows the new count.
-  await page.goBack();
+  // She returns Home with the Home tab. A second full page load races the move to
+  // /journal in WebKit ("interrupted by another navigation"), and Back can restore a
+  // frozen page; the tab remounts Home, which re-reads its stats.
+  await page.locator("nav[aria-label='Main']").getByRole("link", { name: "Home" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(card(page)).toHaveAttribute("data-state", "rest");
   await expect(card(page)).toContainText("That's enough for today.");
