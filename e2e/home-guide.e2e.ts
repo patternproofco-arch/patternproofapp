@@ -89,6 +89,8 @@ test("new account sees Add your first Note; after saving a Note the rest card sh
   await expect(page).toHaveURL(/\/journal/);
   // The Note is saved (the fixture's stats now report one entry) and she returns Home.
   entries = 1;
+  // WebKit rejects a goto issued while the move to /journal is still loading.
+  await page.waitForLoadState("load");
   await page.goto("/dashboard");
   await expect(card(page)).toHaveAttribute("data-state", "rest");
   await expect(card(page)).toContainText("That's enough for today.");
