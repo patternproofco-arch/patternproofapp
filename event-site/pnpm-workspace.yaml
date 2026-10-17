@@ -1,0 +1,3 @@
+allowBuilds:
+  '@vitejs/plugin-react': true
+  esbuild: true
