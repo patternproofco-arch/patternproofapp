@@ -53,4 +53,11 @@
 - [ ] Jev AI: survivor draft tidy-up (possible duplicates, missing date/place flags; confirm everything)
 - [ ] Jev AI: missing-items nudge on evidence requests (match request text to shared files)
 - [ ] Drive/OneDrive scan: per-user connector (google_drive, microsoft_onedrive) so Jev can identify relevant files even with unhelpful names — needs client configured + per-user OAuth + storage table
+- [x] Attorney-invite funnel fixes (Oct 17, from Lovable's read-only audit; typecheck/lint clean, 1,405 tests pass):
+  - Invite page: invited attorney now files their application (name, bar number, jurisdiction) instead of spinning on "Linking your account…"; calm pending/declined/error/wrong-account screens; one accept attempt per sign-in; state resets when the account changes
+  - Approval email: approving an attorney now sends a plain, case-free notice (best effort, never blocks the review)
+  - Invite email is pinned to the exact invitation id (was "newest pending for this recipient")
+  - `peekInvitation` (unauthenticated) trimmed to attorney email/name/expiry — no case names, other-party name or scope flags
+  - A newer invite to the same attorney + case now revokes the older pending one (a narrowed share no longer leaves the wider link live)
+- [ ] Decisions parked on purpose: (a) invite expiry keeps running during approval — extending it would exceed what the survivor consented to; survivor must re-send. Show survivors a "waiting on attorney approval" status. (b) Free-first-client entitlement not changed — first nine attorneys already get a 90-day trial; revisit pricing as its own decision. (c) Attribution (which survivor invite produced which attorney signup/subscription) still missing; needs a column or join table on muy
 - [ ] Jev prerequisites: TYPESAFE_API_KEY as a server secret; documented AI policy review (provider retention/training/subprocessors) before PATTERNPROOF_AI_POLICY_APPROVED=true; route Jev calls through the same policy gate; send minimal fields only, within share scope

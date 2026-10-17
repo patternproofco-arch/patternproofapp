@@ -38,6 +38,8 @@ export const sendInvitationEmail = createServerFn({ method: "POST" })
         ]),
         discreet: z.boolean().optional(),
         recipientEmail: z.string().trim().min(3).max(320),
+        /** Pins an attorney-invitation email to the exact invitation it was created for. */
+        invitationId: z.string().uuid().optional(),
         idempotencyKey: z.string().max(300).optional(),
       })
       .parse(input),
@@ -153,13 +155,16 @@ export const sendInvitationEmail = createServerFn({ method: "POST" })
         expiresLabel: daysLeft(inv.expires_at),
       };
     } else {
-      const { data: inv } = await supabaseAdmin
+      let invitationQuery = supabaseAdmin
         .from("attorney_invitations")
         .select("attorney_name, personal_note, invite_token, expires_at")
         .eq("client_user_id", userId)
         .eq("attorney_email", recipient)
         .eq("status", "pending")
-        .gt("expires_at", new Date().toISOString())
+        .gt("expires_at", new Date().toISOString());
+      // The idempotency key belongs to one invitation, so the link in the email must too.
+      if (data.invitationId) invitationQuery = invitationQuery.eq("id", data.invitationId);
+      const { data: inv } = await invitationQuery
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();

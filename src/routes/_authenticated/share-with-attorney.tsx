@@ -193,6 +193,7 @@ function ShareWithAttorney() {
         templateName: "attorney-invitation",
         recipientEmail: recipient,
         idempotencyKey: `attorney-invitation-${r.invitation.id}`,
+        invitationId: r.invitation.id,
         templateData: {
           attorneyName: name.trim() || undefined,
           clientLabel: "Your client",
