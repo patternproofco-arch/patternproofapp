@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
+import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { Scale, ShieldCheck, Lock } from "lucide-react";
@@ -31,7 +31,6 @@ type Peek = Awaited<ReturnType<typeof peekInvitation>>;
 function AcceptInvite() {
   const { token } = useParams({ from: "/accept-invite/$token" });
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
   const peek = useServerFn(peekInvitation);
   const accept = useServerFn(acceptInvitation);
 
@@ -94,7 +93,7 @@ function AcceptInvite() {
         if (cancelled) return;
         setAccepted(true);
         toast("Access granted. One step left.");
-        navigate({ to: "/setup" });
+        // Stay on the invitation confirmation; never send a newly approved attorney to a paywall.
       })
       .catch(() => {
         if (!cancelled) setFailed(true);
@@ -105,7 +104,7 @@ function AcceptInvite() {
     return () => {
       cancelled = true;
     };
-  }, [loading, user, peeked, accepted, accept, getApplication, token, navigate, recheck]);
+  }, [loading, user, peeked, accepted, accept, getApplication, token, recheck]);
 
   const auth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,6 +135,7 @@ function AcceptInvite() {
         <p>Opening invitation…</p>
       </Frame>
     );
+  if (accepted) return <Frame><Msg title="Client invitation accepted" body="Your access has been granted. You can continue to your attorney workspace from your account navigation." /></Frame>;
   if (peeked.status === "not-found")
     return (
       <Frame>
