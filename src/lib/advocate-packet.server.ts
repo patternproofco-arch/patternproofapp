@@ -1,7 +1,14 @@
 import { advocateLinkIsAuthorized } from "@/lib/advocate-access.server";
 import { toSafeCsv } from "@/lib/csv-safe";
+import { selectAllPages, selectInChunksPaged } from "@/lib/in-chunks.server";
 import JSZip from "jszip";
-import { createHash } from "crypto";
+import {
+  addExportVerification,
+  compareRecordedHash,
+  readExportFile,
+  type FileHash,
+  type IntegrityCheck,
+} from "@/lib/export-integrity.server";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
 /**
@@ -132,51 +139,35 @@ export type ScopedContent = {
 
 export async function loadScopedContent(admin: Admin, g: ResolvedGrant): Promise<ScopedContent> {
   const uid = g.client_user_id;
-  const incQ = g.include_all_incidents
-    ? admin
-        .from("incidents")
-        .select("*")
-        .eq("user_id", uid)
-        .is("deleted_at", null)
-        .or("source.neq.ai_extracted,confirmed_at.not.is.null")
+  const read = (table: string, ids: string[] | null) => {
+    const page = (chunk: string[] | null, from: number, to: number) => {
+      let query = admin.from(table).select("*").eq("user_id", uid).is("deleted_at", null);
+      if (chunk) query = query.in("id", chunk);
+      query =
+        table === "incidents"
+          ? query.or("source.neq.ai_extracted,confirmed_at.not.is.null")
+          : query.neq("review_status", "suggested");
+      return query
         .order("date", { ascending: true })
-    : g.scope_incidents.length
-      ? admin
-          .from("incidents")
-          .select("*")
-          .eq("user_id", uid)
-          .in("id", g.scope_incidents)
-          .is("deleted_at", null)
-          .or("source.neq.ai_extracted,confirmed_at.not.is.null")
-          .order("date", { ascending: true })
-      : Promise.resolve({ data: [] });
-  const evQ = g.include_all_evidence
-    ? admin
-        .from("evidence")
-        .select("*")
-        .eq("user_id", uid)
-        .is("deleted_at", null)
-        .neq("review_status", "suggested")
-        .order("date", { ascending: true })
-    : g.scope_evidence.length
-      ? admin
-          .from("evidence")
-          .select("*")
-          .eq("user_id", uid)
-          .in("id", g.scope_evidence)
-          .is("deleted_at", null)
-          .neq("review_status", "suggested")
-          .order("date", { ascending: true })
-      : Promise.resolve({ data: [] });
+        .order("id", { ascending: true })
+        .range(from, to);
+    };
+    return ids === null
+      ? selectAllPages((from, to) => page(null, from, to), { what: table })
+      : selectInChunksPaged(ids, (chunk, from, to) => page(chunk, from, to), { what: table });
+  };
+  const incQ = read("incidents", g.include_all_incidents ? null : g.scope_incidents);
+  const evQ = read("evidence", g.include_all_evidence ? null : g.scope_evidence);
   const caseQ = g.case_id
     ? admin.from("cases").select("*").eq("id", g.case_id).eq("user_id", uid).maybeSingle()
     : Promise.resolve({ data: null });
 
   const [inc, ev, cs] = await Promise.all([incQ, evQ, caseQ]);
+  if (cs.error) throw new Error("Could not load the shared case. Please try again.");
   return {
     caseRow: (cs.data as Record<string, unknown> | null) ?? null,
-    incidents: inc.data ?? [],
-    evidence: ev.data ?? [],
+    incidents: inc,
+    evidence: ev,
   };
 }
 
@@ -376,21 +367,22 @@ export async function buildAdvocateZip(
   );
 
   const files: Array<Record<string, unknown>> = [];
+  const fileHashes: FileHash[] = [];
+  const integrityChecks: IntegrityCheck[] = [];
   if (input.includeFiles) {
     const folder = zip.folder("evidence");
     await Promise.all(
       input.content.evidence.map(async (e) => {
-        if (!folder || !e.file_url) return;
-        const { data } = await admin.storage.from("evidence-files").download(e.file_url);
-        if (!data) return;
-        const buf = new Uint8Array(await data.arrayBuffer());
+        if (!folder) return;
+        const { buffer: buf, sha256 } = await readExportFile(admin, "evidence-files", e.file_url);
         const ext = String(e.file_url).split(".").pop() || "bin";
-        const safe = `${e.date ?? "undated"}_${String(e.id).slice(0, 8)}_${String(
-          e.title ?? "evidence",
-        )
+        const safe = `${e.date ?? "undated"}_${e.id}_${String(e.title ?? "evidence")
           .replace(/[^a-zA-Z0-9-_]+/g, "_")
           .slice(0, 60)}.${ext}`;
         folder.file(safe, buf);
+        const integrity = compareRecordedHash(`evidence/${safe}`, e.sha256, sha256);
+        integrityChecks.push(integrity);
+        fileHashes.push({ path: `evidence/${safe}`, bytes: buf.byteLength, sha256 });
         files.push({
           file: `evidence/${safe}`,
           evidence_id: e.id,
@@ -402,33 +394,32 @@ export async function buildAdvocateZip(
             ? e.linked_incident_id
             : null,
           bytes: buf.byteLength,
-          sha256: createHash("sha256").update(Buffer.from(buf)).digest("hex"),
+          sha256,
+          recorded_sha256: integrity.recorded_sha256,
+          matches_recorded_hash: integrity.matches_recorded_hash,
         });
       }),
     );
   }
 
-  zip.file(
-    "manifest.json",
-    JSON.stringify(
-      {
-        generated_at: input.generatedAt,
-        generated_for: input.audience,
-        grant_id: g.link_id,
-        incident_ids: input.content.incidents.map((i) => i.id),
-        evidence_ids: input.content.evidence.map((e) => e.id),
-        files,
-        contents: [
-          "PatternProof-Advocate-Packet.pdf",
-          "timeline.csv",
-          "consent-manifest.json",
-          ...(input.includeFiles ? ["evidence/"] : []),
-        ],
-      },
-      null,
-      2,
-    ),
-  );
+  await addExportVerification(zip, {
+    generated_at: input.generatedAt,
+    generated_for: input.audience,
+    grant_id: g.link_id,
+    incident_ids: input.content.incidents.map((i) => i.id),
+    evidence_ids: input.content.evidence.map((e) => e.id),
+    files,
+    file_hashes: fileHashes,
+    integrity_checks: integrityChecks,
+    contents: [
+      "PatternProof-Advocate-Packet.pdf",
+      "timeline.csv",
+      "consent-manifest.json",
+      "FILE-CHECKS.txt",
+      "verify.sh",
+      ...(input.includeFiles ? ["evidence/"] : []),
+    ],
+  });
 
   return await zip.generateAsync({ type: "uint8array" });
 }

@@ -278,6 +278,53 @@ describe("loadScopedContent — only authorized items load", () => {
 });
 
 describe("buildAdvocateZip — real package with authorized files only", () => {
+  it("reads a large shared selection without exceeding the request ID limit", async () => {
+    const t = world([link()]);
+    const sample = t.evidence[0];
+    t.evidence = Array.from({ length: 450 }, (_, i) => ({ ...sample, id: `shared-${i}` }));
+    const admin = fakeAdmin(t, {}, { maxRows: 1000, maxInIds: 250 });
+    const grant = (await resolveAdvocateGrant(admin, {
+      advocateUserId: ADVOCATE,
+      clientUserId: SURVIVOR,
+    }))!;
+    grant.scope_evidence = t.evidence.map((e) => String(e.id));
+    expect((await loadScopedContent(admin, grant)).evidence).toHaveLength(450);
+  });
+
+  async function packet(files: Record<string, Uint8Array>, recordedHash?: string) {
+    const admin = fakeAdmin(world([link()]), files);
+    const grant = (await resolveAdvocateGrant(admin, {
+      advocateUserId: ADVOCATE,
+      clientUserId: SURVIVOR,
+    }))!;
+    const content = await loadScopedContent(admin, grant);
+    if (recordedHash) content.evidence[0].sha256 = recordedHash;
+    return buildAdvocateZip(admin, {
+      grant,
+      content,
+      advocate: null,
+      generatedAt: "2026-10-17T00:00:00Z",
+      audience: "advocate",
+      includeFiles: true,
+    });
+  }
+
+  it("refuses to generate a package when a shared original cannot be read", async () => {
+    await expect(packet({})).rejects.toThrow("A file could not be read");
+  });
+
+  it("reports a changed shared original without replacing its saved fingerprint", async () => {
+    const zip = await JSZip.loadAsync(
+      await packet({ "shared.jpg": new Uint8Array([1, 2, 3, 4]) }, "0".repeat(64)),
+    );
+    const manifest = JSON.parse(await zip.file("manifest.json")!.async("string"));
+    expect(manifest.files[0].recorded_sha256).toBe("0".repeat(64));
+    expect(manifest.files[0].matches_recorded_hash).toBe(false);
+    expect(manifest.integrity_warning_count).toBe(1);
+    expect(await zip.file("INTEGRITY-WARNINGS.txt")!.async("string")).toContain("1 file(s) differ");
+    expect(zip.file("verify.sh")).not.toBeNull();
+  });
+
   it("produces a ZIP holding a real PDF, timeline, manifests and only shared evidence", async () => {
     const files = {
       "shared.jpg": new Uint8Array([1, 2, 3, 4]),
