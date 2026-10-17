@@ -108,12 +108,11 @@ export const sendInvitationEmail = createServerFn({ method: "POST" })
       }
       const { data: prof } = await supabaseAdmin
         .from("advocate_profiles")
-        .select("full_name,org_name")
+        .select("full_name")
         .eq("user_id", userId)
         .maybeSingle();
       templateData = {
         advocateName: prof?.full_name ?? undefined,
-        orgName: prof?.org_name ?? undefined,
         survivorName: inv.survivor_name ?? undefined,
         personalNote: inv.personal_note ?? undefined,
         acceptUrl: `${origin}/advocate-survivor-invite/${inv.invite_token}`,
