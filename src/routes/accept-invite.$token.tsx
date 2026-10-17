@@ -92,7 +92,7 @@ function AcceptInvite() {
         await accept({ data: { token } });
         if (cancelled) return;
         setAccepted(true);
-        toast("Access granted. One step left.");
+        toast("Client invitation accepted.");
         // Stay on the invitation confirmation; never send a newly approved attorney to a paywall.
       })
       .catch(() => {
@@ -177,10 +177,10 @@ function AcceptInvite() {
         </p>
       </div>
 
-      {user && appChecked && application?.status !== "approved" ? (
+      {user && failed ? (
+        <div className="att-card"><p>We could not complete the approval or invitation check. Please try again.</p><button type="button" className="att-btn-primary" onClick={() => setRecheck((n) => n + 1)}>Retry</button></div>
+      ) : user && appChecked && application?.status !== "approved" ? (
         <InviteApprovalStep application={application} draft={{ fullName, barNumber }} onSubmitted={() => setRecheck((n) => n + 1)} />
-      ) : user && failed ? (
-        <div className="att-card"><p>We could not verify your approval status. Please try again.</p><button className="att-btn-primary" onClick={() => setRecheck((n) => n + 1)}>Retry</button></div>
       ) : user ? (
         <div className="att-card" style={{ textAlign: "center" }}>
           <ShieldCheck size={28} style={{ color: "var(--att-green)", margin: "0 auto 8px" }} />
