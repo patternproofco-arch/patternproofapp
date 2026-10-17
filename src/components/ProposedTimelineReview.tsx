@@ -276,7 +276,7 @@ export function ProposedTimelineReview({ onAccepted }: { onAccepted?: () => void
             <li>· Organize uploads can suggest chronological entries from what you already saved.</li>
             <li>
               · Answers you send to a professional can also queue a draft here for your timeline —
-              soft claims only; you still approve.
+              you still approve it.
             </li>
           </ul>
           <p className="mt-3 text-[12px]" style={{ color: "var(--pp-muted)" }}>

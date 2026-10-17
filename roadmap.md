@@ -26,6 +26,14 @@
 - [x] Upload auto soft drafts: photo/audio/video → pending proposed_incidents for /drafts (soft claims; survivor approves)
 - [x] Drafts accept → timeline + binder consistency; survivor transcript/OCR review tray (soft claims; no share bypass)
 
+## Oct 10
+- [x] Sharing-record lockdown (no reopen/extend/widen from browser) — verified at database level
+- [x] Remaining Sept–Oct database updates applied (marketing_leads skipped)
+- [x] Founder dashboard /admin; attorney request page /attorney-apply; approve/decline + direct invite
+- [x] Published; test help request + attorney request alerts delivered to founder Gmail
+- [ ] On-screen survivor→attorney re-check — needs Grace signed in on attorney account (2-step sign-in)
+- [ ] Signup alert proof — approve the test attorney request in /admin to trigger it
+
 ## Open (Oct 12)
 - [x] Paste 1 Section 0 run (read-only), output saved to Files
 - [ ] Paste 1 Section 1 — HELD: written for PR #214 code, which is not in this project yet; running it now locks every attorney out of the live site
@@ -34,3 +42,14 @@
 - [ ] Approve fictional test attorneys in /admin — after all three pastes
 - [ ] End-to-end pilot for each upload format (consent, processing, Journal, revocation, privacy, survivor-approved Timeline) — after pastes
 - [ ] Grace: delete real-survivor "New survivor signup" emails in Gmail; turn on Lovable 2FA; set AI database access to ask each time; remove unneeded project members
+
+## Oct 16
+- [x] "Enable Supabase for this project" — checked: the backend is already enabled, managed and live (not paused); nothing to turn on, no change made
+## Oct 16 (later)
+- [x] link_id type errors fixed by aligning with the generated schema (no link_id column on attorney_evidence_reviews; unique key is attorney_user_id+evidence_id); tests updated, typecheck clean
+- [ ] Jev AI: attorney entry-link suggestions (file ↔ documented entry, confirm to apply)
+- [ ] Jev AI: record-type grouping of shared files in the review queue (display-only)
+- [ ] Jev AI: survivor draft tidy-up (possible duplicates, missing date/place flags; confirm everything)
+- [ ] Jev AI: missing-items nudge on evidence requests (match request text to shared files)
+- [ ] Drive/OneDrive scan: per-user connector (google_drive, microsoft_onedrive) so Jev can identify relevant files even with unhelpful names — needs client configured + per-user OAuth + storage table
+- [ ] Preview build error: attorney evidence review notes need a share-link field the live database doesn't have — RESOLVED: fixed code-side by aligning with the generated schema; no database change needed

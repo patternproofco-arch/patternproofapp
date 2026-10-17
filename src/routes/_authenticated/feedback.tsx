@@ -98,7 +98,7 @@ function SurvivorFeedbackPage() {
           </h1>
           <p style={{ color: "var(--pp-muted)", lineHeight: 1.6, marginBottom: 24 }}>
             Your response is stored privately. We only see the words you chose to share here — not
-            anything from your Archive or evidence.
+            anything from your notes or files.
           </p>
           <button onClick={() => navigate({ to: "/dashboard" })} style={ctaBtn}>
             Back to dashboard

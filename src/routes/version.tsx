@@ -32,6 +32,7 @@ type Info = {
   commit: string;
   commit_short: string;
   commit_source: string;
+  source_digest?: string;
   build_id: string;
   built_at: string;
 };
@@ -80,6 +81,7 @@ function VersionPage() {
               <Row label="Commit" value={info.commit} mono />
               <Row label="Short" value={info.commit_short} mono />
               <Row label="Commit source" value={info.commit_source} />
+              <Row label="Source digest" value={info.source_digest ?? "Unavailable"} />
               <Row label="Build ID" value={info.build_id} mono />
               <Row
                 label="Built at"
@@ -90,14 +92,17 @@ function VersionPage() {
                 }`}
               />
               <Row label="Deployment ID" value={deploymentId ?? "not reported by hosting"} mono />
-              <Row label="Address" value={typeof window === "undefined" ? "" : window.location.host} />
+              <Row
+                label="Address"
+                value={typeof window === "undefined" ? "" : window.location.host}
+              />
             </>
           )}
         </div>
 
         <p className="mt-4 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-          Commit is the git revision embedded at build time. When the build environment can't
-          supply one, this page says "unknown" rather than guessing.
+          Commit is the git revision embedded at build time. When the build environment can't supply
+          one, this page says "unknown" rather than guessing.
         </p>
         <p className="mt-2 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
           PatternProof is operated by G. BURNS COMPANY LLC.

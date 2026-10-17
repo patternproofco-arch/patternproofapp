@@ -30,7 +30,7 @@ export function RecentActivityList({
   title,
   rows,
   viewAll,
-  emptyMessage = "Nothing here yet — when you're ready, this is a safe place to start.",
+  emptyMessage = "Nothing here yet — when you're ready, this is a good place to start.",
   loadingMessage = "Loading…",
 }: Props) {
   const t = portalTheme(variant);

@@ -55,3 +55,16 @@ test("public marketing page: kill switch clear and gtag.js lazy-injected (reques
     timeout: 30_000,
   });
 });
+
+// A loaded widget can retain observers after its DOM nodes are removed. The
+// launch build omits it entirely, including the marketing page before sign-in.
+test("marketing to sign-in never loads the external feedback widget", async ({ page }) => {
+  const attempted = await blockAndRecord(page);
+  await page.goto("/pricing", { waitUntil: "domcontentloaded" });
+  await expect(page.locator('script[src*="googletagmanager.com/gtag/js"]')).toHaveCount(1);
+  await expect(page.locator('script[src*="leaveadot.com"]')).toHaveCount(0);
+  await page.getByRole("link", { name: "Sign in", exact: true }).first().click();
+  await expect(page).toHaveURL(/\/signin/);
+  expect(await gaDisabled(page)).toBe(true);
+  expect(attempted.filter((url) => /leaveadot\.com/.test(url))).toEqual([]);
+});

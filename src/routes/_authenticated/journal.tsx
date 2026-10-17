@@ -1,4 +1,5 @@
 import { confirmOptionalAiProcessing } from "@/lib/optional-ai-consent";
+import { MuseumHero } from "@/components/survivor/MuseumHero";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CorrectionHistory } from "@/components/survivor/CorrectionHistory";
 import { useCallback, useEffect, useState } from "react";
@@ -120,6 +121,8 @@ function JournalPage() {
   const [trustEditId, setTrustEditId] = useState<string | null>(null);
   const [pendingShareReadiness, setPendingShareReadiness] = useState<ShareReadiness>("private");
   const [loadError, setLoadError] = useState(false);
+  const [listLoaded, setListLoaded] = useState(false);
+  const [focusForm, setFocusForm] = useState(false);
   const ingestFn = useServerFn(ingestEvidenceBatch);
 
   // Unfinished entries are kept privately in her own account row as she types, so locking,
@@ -159,6 +162,7 @@ function JournalPage() {
     setLoadError(false);
     const rows = (data as FullIncident[] | null) ?? [];
     setList(rows);
+    setListLoaded(true);
     findContradictions()
       .then((r) => setContradictions(r.contradictions ?? []))
       .catch(() => setContradictions([]));
@@ -541,10 +545,45 @@ function JournalPage() {
     toast("Filled in what I could. Please review every field before saving.");
   };
 
+  useEffect(() => {
+    if (!focusForm || !logOpen) return;
+    const t = window.setTimeout(() => {
+      document.getElementById("entry-what")?.focus();
+      setFocusForm(false);
+    }, 0);
+    return () => window.clearTimeout(t);
+  }, [focusForm, logOpen]);
+
+  // Notes empty (museum): only the art, the text and one CTA. Tapping opens the
+  // form in place and moves focus to it. With 1+ Notes the normal form/list shows.
+  if (listLoaded && !loadError && list.length === 0 && !logOpen && !editingId) {
+    return (
+      <div>
+        <HubTabs tabs={ARCHIVE_TABS} />
+        <MuseumHero
+          art="threads-gather"
+          eyebrow="Notes"
+          title="Nothing here yet."
+          body="When you're ready, this is a good place to start."
+          headingLevel={1}
+          cta={{
+            label: "Add your first Note",
+            testId: "notes-empty-cta",
+            onClick: () => {
+              setLogOpen(true);
+              setFocusForm(true);
+            },
+          }}
+          testId="notes-empty"
+        />
+      </div>
+    );
+  }
+
   return (
     <div>
       <HubTabs tabs={ARCHIVE_TABS} />
-      <div className="label-eyebrow">Your Archive</div>
+      <div className="label-eyebrow">Notes</div>
       <h1 className="mt-2 font-serif text-[34px] leading-tight">
         Add what happened.
         <br />
@@ -558,7 +597,7 @@ function JournalPage() {
             className="pp-chip inline-flex items-center gap-2 px-3.5 py-2.5 text-[13px] font-semibold"
           >
             <Mic size={15} />
-            Add a spoken Mark
+            Add a spoken Note
           </Link>
           <button
             type="button"
@@ -574,11 +613,11 @@ function JournalPage() {
             className="pp-chip inline-flex items-center gap-2 px-3.5 py-2.5 text-[13px] font-semibold"
           >
             <Clock size={15} />
-            Add Multiple Past Marks
+            Add several past Notes
           </button>
         </div>
         <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
-          Upload a written page, or recall older Marks one memory at a time.
+          Upload a written page, or recall older Notes one memory at a time.
         </p>
       </div>
 
@@ -586,10 +625,10 @@ function JournalPage() {
         <section
           className="card-pp mt-6"
           style={{ borderLeft: "4px solid var(--pp-approximate)" }}
-          aria-label="Same-day Marks with different details"
+          aria-label="Same-day Notes with different details"
         >
           <h2 className="font-serif text-[18px]" style={{ color: "var(--foreground)" }}>
-            A few Marks on the same day have different details — worth a look
+            A few Notes on the same day have different details — worth a look
           </h2>
           <p className="mt-1 text-[12px]" style={{ color: "var(--muted-foreground)" }}>
             Nothing has been changed. Review each one and edit whichever feels right — or leave them
@@ -630,7 +669,7 @@ function JournalPage() {
                         className="text-[10px] font-semibold uppercase tracking-wide"
                         style={{ color: "var(--muted-foreground)" }}
                       >
-                        Review Mark A
+                        Review Note A
                       </div>
                       <div className="mt-0.5 line-clamp-2">{a.description}</div>
                     </button>
@@ -644,7 +683,7 @@ function JournalPage() {
                         className="text-[10px] font-semibold uppercase tracking-wide"
                         style={{ color: "var(--muted-foreground)" }}
                       >
-                        Review Mark B
+                        Review Note B
                       </div>
                       <div className="mt-0.5 line-clamp-2">{b.description}</div>
                     </button>
@@ -688,7 +727,7 @@ function JournalPage() {
           className="btn-ghost inline-flex items-center gap-2 px-6 py-3.5 text-[15px]"
         >
           <List size={17} />
-          All entries {list.length > 0 && <span className="opacity-80">· {list.length}</span>}
+          All notes {list.length > 0 && <span className="opacity-80">· {list.length}</span>}
           <ChevronDown
             size={16}
             style={{
@@ -1248,11 +1287,9 @@ function JournalPage() {
                   </p>
                 </div>
               ) : list.length === 0 ? (
-                <div className="card-pp">
-                  <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
-                    Nothing here yet — when you're ready, this is a safe place to start.
-                  </p>
-                </div>
+                <p className="text-[14px]" style={{ color: "var(--muted-foreground)" }}>
+                  Nothing here yet.
+                </p>
               ) : (
                 <div className="space-y-3">
                   {list.map((i) => (
@@ -1339,7 +1376,7 @@ function JournalPage() {
         onCancel={() => setConfirmDelete(null)}
       />
       <CognitiveClose
-        title="See your Marks on a timeline"
+        title="See your Notes on a timeline"
         body="One date next to another is where the pattern starts to show. Take a look when you're ready."
         cta="Open timeline"
         to="/timeline"

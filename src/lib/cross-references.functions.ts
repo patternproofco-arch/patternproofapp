@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAttorneyPortalAuth } from "@/lib/attorney-portal-auth";
 import { normalizeName } from "@/lib/name-match";
 
 /**
@@ -396,7 +397,7 @@ export const findCrossReferences = createServerFn({ method: "GET" })
  * on their own timeline).
  */
 export const findClientCrossReferences = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((d: unknown) => {
     const o = (d ?? {}) as { clientId?: unknown };
     if (typeof o.clientId !== "string" || !o.clientId) throw new Error("clientId required");

@@ -4,6 +4,7 @@ import { isRevoked, isExpired } from "@/lib/attorney-access.server";
 import type { RequestOutcome } from "@/lib/request-response";
 import { respondToRequest } from "@/lib/request-response.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAttorneyPortalAuth } from "@/lib/attorney-portal-auth";
 
 /**
  * Structured evidence requests.
@@ -294,7 +295,7 @@ async function activeLinkFor(attorneyId: string, clientId: string) {
 }
 
 export const createEvidenceRequest = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((i) =>
     z
       .object({
@@ -322,7 +323,7 @@ export const createEvidenceRequest = createServerFn({ method: "POST" })
   });
 
 export const listClientEvidenceRequests = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireAttorneyPortalAuth])
   .inputValidator((i) => z.object({ clientId: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }): Promise<{ items: ProfessionalRequest[] }> => {
     const { admin, link } = await activeLinkFor(context.userId, data.clientId);

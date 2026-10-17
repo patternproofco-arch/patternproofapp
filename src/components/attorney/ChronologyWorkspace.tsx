@@ -509,7 +509,7 @@ function Loaded({ clientId, ws }: { clientId: string; ws: Workspace }) {
                       .filter((s) => s !== st)
                       .map((s) => (
                         <button key={s} className="underline" onClick={() => markReview(r.key, s)}>
-                          Mark {QUEUE_LABEL[s].toLowerCase()}
+                          {s === "reviewed" ? "Done reviewing" : `Mark ${QUEUE_LABEL[s].toLowerCase()}`}
                         </button>
                       ))}
                     <button className="underline" onClick={() => setQuestionFor(questionFor === r.key ? null : r.key)}>

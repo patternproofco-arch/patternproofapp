@@ -14,12 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      incident_revisions: {
-        Row: { id: string; incident_id: string; user_id: string; changed_at: string; changed_by: string | null; prior_record: Json }
-        Insert: { id?: string; incident_id: string; user_id: string; changed_at?: string; changed_by?: string | null; prior_record: Json }
-        Update: { prior_record?: Json }
-        Relationships: []
-      }
       _reconcile_secdef_acl_snapshot: {
         Row: {
           captured_at: string
@@ -709,8 +703,8 @@ export type Database = {
           kind: string
           link_id: string
           response_evidence_ids: string[]
-          response_outcome: string | null
           response_note: string | null
+          response_outcome: string | null
           status: string
           submitted_at: string | null
           title: string
@@ -728,8 +722,8 @@ export type Database = {
           kind?: string
           link_id: string
           response_evidence_ids?: string[]
-          response_outcome?: string | null
           response_note?: string | null
+          response_outcome?: string | null
           status?: string
           submitted_at?: string | null
           title: string
@@ -747,8 +741,8 @@ export type Database = {
           kind?: string
           link_id?: string
           response_evidence_ids?: string[]
-          response_outcome?: string | null
           response_note?: string | null
+          response_outcome?: string | null
           status?: string
           submitted_at?: string | null
           title?: string
@@ -822,6 +816,7 @@ export type Database = {
           evidence_id: string
           exhibit_label: string | null
           id: string
+          link_id: string | null
           linked_incident_id: string | null
           notes: string | null
           status: string
@@ -834,6 +829,7 @@ export type Database = {
           evidence_id: string
           exhibit_label?: string | null
           id?: string
+          link_id?: string | null
           linked_incident_id?: string | null
           notes?: string | null
           status?: string
@@ -846,6 +842,7 @@ export type Database = {
           evidence_id?: string
           exhibit_label?: string | null
           id?: string
+          link_id?: string | null
           linked_incident_id?: string | null
           notes?: string | null
           status?: string
@@ -857,6 +854,13 @@ export type Database = {
             columns: ["evidence_id"]
             isOneToOne: false
             referencedRelation: "evidence"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attorney_evidence_reviews_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "attorney_client_links"
             referencedColumns: ["id"]
           },
           {
@@ -2533,6 +2537,41 @@ export type Database = {
           },
         ]
       }
+      evidence_revisions: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          evidence_id: string
+          id: string
+          prior_record: Json
+          user_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          evidence_id: string
+          id?: string
+          prior_record: Json
+          user_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          evidence_id?: string
+          id?: string
+          prior_record?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evidence_revisions_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "evidence"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feedback_submissions: {
         Row: {
           audience: string
@@ -2770,6 +2809,41 @@ export type Database = {
           },
           {
             foreignKeyName: "incident_evidence_links_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incidents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incident_revisions: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          id: string
+          incident_id: string
+          prior_record: Json
+          user_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          incident_id: string
+          prior_record: Json
+          user_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          incident_id?: string
+          prior_record?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_revisions_incident_id_fkey"
             columns: ["incident_id"]
             isOneToOne: false
             referencedRelation: "incidents"
@@ -4652,10 +4726,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      respond_to_evidence_request: {
-        Args: { p_request_id: string; p_action: string; p_note?: string; p_evidence_ids?: string[] }
-        Returns: Json
-      }
       accept_attorney_share: {
         Args: {
           _actor_id: string
@@ -4728,6 +4798,19 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      record_has_live_disclosure: {
+        Args: { owner_id: string; record_id: string; record_kind: string }
+        Returns: boolean
+      }
+      respond_to_evidence_request: {
+        Args: {
+          p_action: string
+          p_evidence_ids?: string[]
+          p_note?: string
+          p_request_id: string
+        }
+        Returns: Json
       }
       review_attorney_application: {
         Args: { _id: string; _reviewer: string; _status: string }

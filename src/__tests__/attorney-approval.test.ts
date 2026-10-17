@@ -56,3 +56,60 @@ describe("database-owned attorney approval", () => {
     ).toBe("/clients");
   });
 });
+
+describe("mixed-role admin accounts", () => {
+  it("an unreviewed attorney role does not block an admin's account-level access", async () => {
+    for (const roles of [
+      ["survivor", "attorney", "admin"],
+      ["attorney", "admin"],
+    ]) {
+      const db = fakeAdmin({
+        user_roles: roles.map((role) => ({ user_id: "g", role })),
+        attorney_access_applications: [],
+      });
+      await expect(assertApprovedAttorneyAccount(db, "g")).resolves.toBeUndefined();
+    }
+  });
+  it("attorney-only endpoints still require approval for admins", async () => {
+    const db = fakeAdmin({
+      user_roles: [
+        { user_id: "g", role: "attorney" },
+        { user_id: "g", role: "admin" },
+      ],
+      attorney_access_applications: [],
+    });
+    await expect(assertApprovedAttorney(db, "g")).rejects.toThrow("Attorney approval required");
+  });
+  it("survivor+attorney+admin keeps the survivor space (admin pages render inside it)", () => {
+    expect(
+      resolvePortal({
+        roles: ["survivor", "attorney", "admin"],
+        is_survivor: true,
+        is_org_partner: false,
+        attorney_approved: false,
+      }),
+    ).toBe("survivor");
+  });
+  it("attorney+admin without approval is routed to /admin, not intake", () => {
+    expect(
+      resolvePortal({
+        roles: ["attorney", "admin"],
+        is_survivor: false,
+        is_org_partner: false,
+        attorney_approved: false,
+      }),
+    ).toBe("/admin");
+  });
+  it("a non-admin unreviewed attorney is still gated", async () => {
+    const db = fakeAdmin({
+      user_roles: [
+        { user_id: "a", role: "attorney" },
+        { user_id: "a", role: "survivor" },
+      ],
+      attorney_access_applications: [],
+    });
+    await expect(assertApprovedAttorneyAccount(db, "a")).rejects.toThrow(
+      "Attorney approval required",
+    );
+  });
+});

@@ -106,7 +106,7 @@ function SupportPage() {
 
   return (
     <div style={page}>
-      <QuickExitButton />
+      <QuickExitButton phoneDock />
       <div style={{ maxWidth: 680, margin: "0 auto" }}>
         <Link to="/" style={backLink}>
           <ArrowLeft size={14} /> Back to home

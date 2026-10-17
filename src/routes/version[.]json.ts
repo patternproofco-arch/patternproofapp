@@ -1,10 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-/**
- * Build/version marker so QA can prove exactly which commit is serving
- * production. Values are injected at build time from the build environment's
- * git metadata (env var, git CLI, .git files, or a committed stamp — whichever
- * is available, reported in commit_source). No secrets are exposed.
+/** Real commit metadata when available, plus deterministic source provenance.
+ * Hosted builds without git report an unavailable commit honestly. The source
+ * digest lets QA compare their source against the deployed artifact regardless.
+ * Environment files and credentials never contribute to that digest.
  */
 export const Route = createFileRoute("/version.json")({
   server: {
@@ -16,6 +15,8 @@ export const Route = createFileRoute("/version.json")({
               commit: __GIT_COMMIT_SHA__,
               commit_short: __GIT_COMMIT_SHA__.slice(0, 12),
               commit_source: __COMMIT_SOURCE__,
+              source_digest: __SOURCE_DIGEST__,
+              source_digest_algorithm: "patternproof-source-v1-sha256",
               build_id: __BUILD_ID__,
               built_at: __BUILD_TIME__,
             },

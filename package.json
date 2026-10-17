@@ -14,7 +14,8 @@
     "test:e2e": "playwright test",
     "seo:check": "node scripts/seo-check.mjs",
     "security:audit": "bun audit || npm audit",
-    "test:security:sql": "node scripts/run-launch-isolation-test.mjs"
+    "test:security:sql": "node scripts/run-launch-isolation-test.mjs",
+    "test:security:bringup": "node scripts/run-muy-bringup-test.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.51",
@@ -95,9 +96,10 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@electric-sql/pglite": "0.3.14",
     "@eslint/js": "^9.32.0",
-    "@lovable.dev/vite-tanstack-config": "2.25.3",
+    "@lovable.dev/vite-tanstack-config": "2.26.5",
     "@playwright/test": "1.56.1",
     "@types/node": "^26.6.2",
     "@types/react": "^19.2.0",

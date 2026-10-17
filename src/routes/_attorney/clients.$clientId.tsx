@@ -87,7 +87,7 @@ import {
   generateCaseManagementPackage,
 } from "@/lib/payments.functions";
 import { findClientCrossReferences, type XrefCluster } from "@/lib/cross-references.functions";
-import { typeLabel } from "@/lib/abuse-types";
+import { formalTypeLabel as typeLabel } from "@/lib/abuse-types";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { toast } from "sonner";
 import {
@@ -1762,7 +1762,9 @@ function TimelineTab({
                           className="att-btn-ghost"
                           style={{ color: n?.reviewed ? "var(--att-green)" : "var(--att-text-2)" }}
                           onClick={() => update(i.id, { reviewed: !n?.reviewed })}
-                          title="Mark reviewed"
+                          title={n?.reviewed ? "Reviewed" : "Done reviewing"}
+                          aria-label={n?.reviewed ? "Reviewed" : "Done reviewing"}
+                          aria-pressed={!!n?.reviewed}
                         >
                           <CheckCircle2 size={13} />
                         </button>

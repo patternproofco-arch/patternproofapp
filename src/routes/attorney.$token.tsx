@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { ShieldCheck, Lock, Printer, AlertTriangle } from "lucide-react";
 import { fetchSharedBundle } from "@/lib/attorney-public.functions";
-import { typeLabel } from "@/lib/abuse-types";
+import { formalTypeLabel as typeLabel } from "@/lib/abuse-types";
 import { PublicQuickExit } from "@/components/PublicQuickExit";
 
 export const Route = createFileRoute("/attorney/$token")({
