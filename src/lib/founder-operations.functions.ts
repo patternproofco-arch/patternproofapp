@@ -221,6 +221,24 @@ export const reviewAttorney = createServerFn({ method: "POST" })
       _status: data.status,
     });
     if (error) throw new Error("Could not save the review.");
+    if (data.status === "approved") {
+      // Best effort: the approval is already saved, so a mail failure must never undo it.
+      try {
+        const { data: app } = await (db as any)
+          .from("attorney_access_applications")
+          .select("email")
+          .eq("id", data.id)
+          .maybeSingle();
+        if (app?.email) {
+          const { getEmailSiteOrigin } = await import("@/lib/email/site-origin.server");
+          const { attorneyApprovedEmail } = await import("@/lib/attorney-approved-email");
+          const mail = attorneyApprovedEmail(getEmailSiteOrigin());
+          await alert(mail.subject, mail.text, `attorney-approved-${data.id}`, String(app.email));
+        }
+      } catch {
+        /* the founder can still tell the attorney directly */
+      }
+    }
     return { ok: true as const };
   });
 

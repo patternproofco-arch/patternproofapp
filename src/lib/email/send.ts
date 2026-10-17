@@ -9,6 +9,7 @@ export async function sendTransactionalEmail(input: {
   templateName: string;
   recipientEmail: string;
   idempotencyKey?: string;
+  invitationId?: string;
   templateData?: Record<string, unknown>;
   discreet?: boolean;
 }): Promise<boolean> {
@@ -25,6 +26,7 @@ export async function sendTransactionalEmail(input: {
         templateName: input.templateName,
         recipientEmail: input.recipientEmail,
         idempotencyKey: input.idempotencyKey,
+        invitationId: input.invitationId,
         discreet: input.discreet,
       },
     });

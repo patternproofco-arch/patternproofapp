@@ -132,6 +132,13 @@ export const createInvitation = createServerFn({ method: "POST" })
       .select("id,invite_token,expires_at")
       .single();
     if (error) throw new Error(error.message);
+    const { supersedePendingInvitations } = await import("@/lib/supersede-invitations.server");
+    await supersedePendingInvitations(supabaseAdmin, {
+      clientId: context.userId,
+      attorneyEmail: data.attorney_email,
+      caseId: scopedCaseId,
+      keepId: row.id,
+    });
     return {
       invitation: row,
       shared: { incidents: frozen.scope_incidents.length, files: frozen.scope_evidence.length },
@@ -385,25 +392,23 @@ export const peekInvitation = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: inv } = await supabaseAdmin
       .from("attorney_invitations")
-      .select(
-        "id,attorney_email,attorney_name,status,expires_at,include_all_incidents,include_all_evidence,include_patterns,include_voice_notes,include_communications,include_legal_documents,case_id",
-      )
+      .select("attorney_email,attorney_name,status,expires_at")
       .eq("invite_token", data.token)
       .maybeSingle();
     if (!inv) return { status: "not-found" as const };
     if (inv.status !== "pending") return { status: inv.status as "accepted" | "revoked" };
     if (inv.expires_at && new Date(inv.expires_at) < new Date())
       return { status: "expired" as const };
-    let case_label: string | null = null;
-    if (inv.case_id) {
-      const { data: c } = await supabaseAdmin
-        .from("cases")
-        .select("case_name,other_party")
-        .eq("id", inv.case_id)
-        .maybeSingle();
-      if (c) case_label = (c.case_name?.trim() || c.other_party?.trim() || "Case") as string;
-    }
-    return { status: "ok" as const, invitation: { ...inv, case_label } };
+    // This runs before anyone signs in, so it returns only what the invite page shows.
+    // Case names, the other party, and the scope of what was shared never leave here.
+    return {
+      status: "ok" as const,
+      invitation: {
+        attorney_email: inv.attorney_email,
+        attorney_name: inv.attorney_name,
+        expires_at: inv.expires_at,
+      },
+    };
   });
 
 export const acceptInvitation = createServerFn({ method: "POST" })
