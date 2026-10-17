@@ -56,5 +56,6 @@ export const generateExportZip = createServerFn({ method: "POST" })
       counts: built.counts,
       case_id: built.case_id,
       case_label: built.case_label,
+      integrity_warning_count: built.integrity_warning_count,
     };
   });

@@ -221,7 +221,10 @@ describe("survivor archive export — imported chat files", () => {
 
   async function build(t: Tables) {
     // Keyed by bucket: the file only resolves from message-exports, as in production.
-    const db = fakeAdmin(t, { [`message-exports:${CHAT_PATH}`]: CHAT });
+    const db = fakeAdmin(t, {
+      [`message-exports:${CHAT_PATH}`]: CHAT,
+      [`${SURV_A}/photo.jpg`]: PHOTO,
+    });
     const built = await buildSurvivorExportZip(db, { userId: SURV_A, caseId: null });
     if (!built.ok) throw new Error(built.reason);
     return { db, zip: await JSZip.loadAsync(built.zipBuf) };
