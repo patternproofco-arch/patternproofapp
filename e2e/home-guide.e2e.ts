@@ -89,11 +89,13 @@ test("new account sees Add your first Note; after saving a Note the rest card sh
   await expect(page).toHaveURL(/\/journal/);
   // The Note is saved (the fixture's stats now report one entry) and she returns Home.
   entries = 1;
-  // She returns Home with the Home tab. A second full page load races the move to
-  // /journal in WebKit ("interrupted by another navigation"), and Back can restore a
-  // frozen page; the tab remounts Home, which re-reads its stats.
-  await page.locator("nav[aria-label='Main']").getByRole("link", { name: "Home" }).click();
-  await expect(page).toHaveURL(/\/dashboard$/);
+  // Home reads its stats on a fresh load (Back and the Home tab both show the old count
+  // here, because the fixture changes behind the app's back), so reload to /dashboard.
+  // page.goto races the move to /journal in WebKit ("interrupted by another
+  // navigation"); a script-driven location change waits for the page to settle first.
+  await page.waitForLoadState("networkidle");
+  await page.evaluate(() => window.location.assign("/dashboard")).catch(() => {});
+  await page.waitForURL(/\/dashboard$/);
   await expect(card(page)).toHaveAttribute("data-state", "rest");
   await expect(card(page)).toContainText("That's enough for today.");
   await expect(card(page).getByRole("link", { name: "Add another Note" })).toBeVisible();
