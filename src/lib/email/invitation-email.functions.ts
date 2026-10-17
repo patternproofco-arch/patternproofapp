@@ -39,6 +39,7 @@ export const sendInvitationEmail = createServerFn({ method: "POST" })
         discreet: z.boolean().optional(),
         recipientEmail: z.string().trim().min(3).max(320),
         idempotencyKey: z.string().max(300).optional(),
+        invitationId: z.string().uuid().optional(),
       })
       .parse(input),
   )
@@ -153,9 +154,16 @@ export const sendInvitationEmail = createServerFn({ method: "POST" })
         expiresLabel: daysLeft(inv.expires_at),
       };
     } else {
+      // Never select a different invitation merely because it has the same recipient.
+      // The sender must identify the exact survivor-authorized invitation.
+      if (!data.invitationId) {
+        await logAttempt("invitation_id_required");
+        return { success: false };
+      }
       const { data: inv } = await supabaseAdmin
         .from("attorney_invitations")
         .select("attorney_name, personal_note, invite_token, expires_at")
+        .eq("id", data.invitationId)
         .eq("client_user_id", userId)
         .eq("attorney_email", recipient)
         .eq("status", "pending")
