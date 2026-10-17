@@ -94,7 +94,7 @@ function AcceptInvite() {
         if (cancelled) return;
         setAccepted(true);
         toast("Access granted. One step left.");
-        navigate({ to: "/attorney" });
+        navigate({ to: "/setup" });
       })
       .catch(() => {
         if (!cancelled) setFailed(true);
