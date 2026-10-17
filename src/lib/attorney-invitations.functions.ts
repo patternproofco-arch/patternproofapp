@@ -2,6 +2,11 @@ import { isActiveShareLink } from "@/lib/attorney-access.server";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import {
+  canResendInvitation,
+  INVITATION_RESEND_DAYS,
+  invitationSurvivorStatus,
+} from "@/lib/invitation-status";
 
 async function verifiedAccountEmail(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -206,11 +211,126 @@ export const listMyInvitations = createServerFn({ method: "GET" })
         };
       })(),
     }));
-    const invitationsOut = (invitations ?? []).map((i) => ({
-      ...i,
-      case_label: labelFor(i.case_id),
-    }));
+    // The only thing a survivor learns about an attorney's review: an application for the
+    // email she invited is still pending. Never declined, never reasons, never details.
+    const livePending = (invitations ?? []).filter(
+      (i) => i.status === "pending" && (!i.expires_at || Date.parse(i.expires_at) > Date.now()),
+    );
+    const pendingEmails = new Set<string>();
+    await Promise.all(
+      Array.from(new Set(livePending.map((i) => String(i.attorney_email).trim().toLowerCase()))).map(
+        async (em) => {
+          const escaped = em.replace(/[\\%_]/g, (c) => `\\${c}`);
+          const { data: app } = await supabaseAdmin
+            .from("attorney_access_applications")
+            .select("status")
+            .ilike("email", escaped)
+            .eq("status", "pending")
+            .limit(1);
+          if ((app ?? []).length > 0) pendingEmails.add(em);
+        },
+      ),
+    );
+    const invitationsOut = (invitations ?? []).map((i) => {
+      const survivor_status = invitationSurvivorStatus({
+        status: i.status,
+        expiresAt: i.expires_at,
+        applicationPending: pendingEmails.has(String(i.attorney_email).trim().toLowerCase()),
+      });
+      return {
+        ...i,
+        case_label: labelFor(i.case_id),
+        survivor_status,
+        can_resend: canResendInvitation(survivor_status),
+      };
+    });
     return { invitations: invitationsOut, links: linksOut };
+  });
+
+/**
+ * Send an expired invitation again. Only on the survivor's request, only after expiry.
+ * The new invitation carries the old one's exact records, narrowed only: anything she has
+ * since deleted drops out and nothing is ever added. Review never pauses the 30 day clock.
+ */
+export const resendInvitation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: old } = await supabaseAdmin
+      .from("attorney_invitations")
+      .select("*")
+      .eq("id", data.id)
+      .eq("client_user_id", context.userId)
+      .maybeSingle();
+    if (!old) throw new Error("Invitation not found.");
+    const state = invitationSurvivorStatus({ status: old.status, expiresAt: old.expires_at, applicationPending: false });
+    if (!canResendInvitation(state)) {
+      throw new Error("This invitation can only be sent again after it has expired.");
+    }
+    if (old.status !== "pending") throw new Error("Invitation no longer valid");
+    if (old.include_all_incidents === true || old.include_all_evidence === true) {
+      throw new Error("This older invitation can't be sent again. Please create a new one so you can review what is shared.");
+    }
+    const email = String(old.attorney_email).trim().toLowerCase();
+    // One live invitation per attorney and case, so two links never pile up.
+    const { data: live } = await supabaseAdmin
+      .from("attorney_invitations")
+      .select("id,expires_at,case_id")
+      .eq("client_user_id", context.userId)
+      .eq("status", "pending")
+      .ilike("attorney_email", email.replace(/[\\%_]/g, (c) => `\\${c}`));
+    const hasLive = (live ?? []).some(
+      (r) =>
+        r.id !== old.id &&
+        (r.case_id ?? null) === (old.case_id ?? null) &&
+        (!r.expires_at || Date.parse(r.expires_at) > Date.now()),
+    );
+    if (hasLive) throw new Error("You already have a live invitation for this attorney. Cancel it first if you want to send a new one.");
+
+    const { scopeForAcceptance } = await import("@/lib/invitation-scope.server");
+    const frozen = await scopeForAcceptance(supabaseAdmin, old);
+    if (frozen.scope_incidents.length === 0 && frozen.scope_evidence.length === 0) {
+      throw new Error("Nothing from the original invitation is left to share, so it wasn't sent again.");
+    }
+    const expires = new Date(Date.now() + INVITATION_RESEND_DAYS * 86400000).toISOString();
+    const { data: row, error } = await supabaseAdmin
+      .from("attorney_invitations")
+      .insert({
+        client_user_id: context.userId,
+        attorney_email: email,
+        attorney_name: old.attorney_name,
+        firm_name: old.firm_name,
+        personal_note: old.personal_note,
+        date_range_start: old.date_range_start,
+        date_range_end: old.date_range_end,
+        include_all_incidents: false,
+        include_all_evidence: false,
+        scope_incidents: frozen.scope_incidents,
+        scope_evidence: frozen.scope_evidence,
+        include_patterns: old.include_patterns,
+        include_voice_notes: old.include_voice_notes,
+        include_communications: old.include_communications,
+        include_legal_documents: old.include_legal_documents,
+        expires_at: expires,
+        case_id: old.case_id,
+      })
+      .select("id,invite_token,expires_at")
+      .single();
+    if (error) throw new Error(error.message);
+    // The expired one is retired so only the new link works.
+    await supabaseAdmin
+      .from("attorney_invitations")
+      .update({ status: "revoked" })
+      .eq("id", old.id)
+      .eq("client_user_id", context.userId);
+    return {
+      invitation: row,
+      attorney_email: email,
+      attorney_name: old.attorney_name,
+      personal_note: old.personal_note,
+      shared: { incidents: frozen.scope_incidents.length, files: frozen.scope_evidence.length },
+    };
   });
 
 export const revokeInvitation = createServerFn({ method: "POST" })
