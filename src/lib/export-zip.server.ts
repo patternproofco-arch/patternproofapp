@@ -1,8 +1,20 @@
 import { toSafeCsv } from "@/lib/csv-safe";
 import JSZip from "jszip";
-import { createHash } from "crypto";
 import { buildPatternExport } from "@/lib/pattern-export";
-import { byDateAscNullsLast, selectAllPages, selectInChunks } from "@/lib/in-chunks.server";
+import {
+  byDateAscNullsLast,
+  selectAllPages,
+  selectInChunks,
+  selectInChunksPaged,
+} from "@/lib/in-chunks.server";
+import {
+  addExportVerification,
+  compareRecordedHash,
+  ExportFileUnavailable,
+  hashFileInventory,
+  readExportFile,
+  type IntegrityCheck,
+} from "@/lib/export-integrity.server";
 
 /**
  * Builds the survivor's full archive as ZIP bytes.
@@ -15,12 +27,6 @@ import { byDateAscNullsLast, selectAllPages, selectInChunks } from "@/lib/in-chu
 
 function toCsv(rows: Array<Record<string, unknown>>): string {
   return toSafeCsv(rows);
-}
-
-function sha256(buf: ArrayBuffer | Uint8Array): string {
-  return createHash("sha256")
-    .update(Buffer.from(buf as ArrayBuffer))
-    .digest("hex");
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -43,9 +49,22 @@ export type BuiltExport =
       counts: ExportCounts;
       case_id: string | null;
       case_label: string | null;
+      integrity_warning_count: number;
     };
 
 export async function buildSurvivorExportZip(
+  db: Db,
+  args: { userId: string; caseId?: string | null; includeThreads?: boolean },
+): Promise<BuiltExport> {
+  try {
+    return await buildArchive(db, args);
+  } catch (error) {
+    if (error instanceof ExportFileUnavailable) return { ok: false, reason: "file-unavailable" };
+    throw error;
+  }
+}
+
+async function buildArchive(
   db: Db,
   args: { userId: string; caseId?: string | null; includeThreads?: boolean },
 ): Promise<BuiltExport> {
@@ -81,6 +100,20 @@ export async function buildSurvivorExportZip(
   const scopedThreadIds: string[] | null = scopedCase
     ? ((scopedCase.attached_thread_ids as string[] | null) ?? [])
     : null;
+
+  const readOwned = (table: string, ids: string[] | null = null, column = "id", order = "id") => {
+    const page = (chunk: string[] | null, from: number, to: number) => {
+      let query = db.from(table).select("*").eq("user_id", userId);
+      if (chunk) query = query.in(column, chunk);
+      return query
+        .order(order, { ascending: true })
+        .order("id", { ascending: true })
+        .range(from, to);
+    };
+    return ids === null
+      ? selectAllPages((from, to) => page(null, from, to), { what: table })
+      : selectInChunksPaged(ids, (chunk, from, to) => page(chunk, from, to), { what: table });
+  };
 
   // Long id lists are read in batches and unscoped reads are paged: the API silently
   // caps one request at 1,000 rows and rejects very long id lists, so a plain select
@@ -141,18 +174,14 @@ export async function buildSurvivorExportZip(
           { what: "file" },
         )
   ).then((rows) => ({ data: rows as unknown[] }));
-  const ldQ = scopedLegalIds
-    ? scopedLegalIds.length
-      ? db.from("legal_documents").select("*").eq("user_id", userId).in("id", scopedLegalIds)
-      : Promise.resolve({ data: [] as unknown[] })
-    : db.from("legal_documents").select("*").eq("user_id", userId);
+  const ldQ = readOwned("legal_documents", scopedLegalIds).then((data) => ({ data }));
 
   const [incRes, evRes, commsRes, vnRes, ldRes, paRes, singleCaseRes] = await Promise.all([
     incQ,
     evQ,
     // Communications and voice notes aren't attached per-case; export all when unscoped.
-    db.from("communications").select("*").eq("user_id", userId).order("date", { ascending: true }),
-    db.from("voice_notes").select("*").eq("user_id", userId).order("date", { ascending: true }),
+    readOwned("communications", null, "id", "date").then((data) => ({ data })),
+    readOwned("voice_notes", null, "id", "date").then((data) => ({ data })),
     ldQ,
     db
       .from("pattern_analyses")
@@ -170,6 +199,8 @@ export async function buildSurvivorExportZip(
           .order("updated_at", { ascending: false })
           .limit(1),
   ]);
+  if (paRes.error || singleCaseRes.error)
+    throw new Error("Could not read the export details. Please try again.");
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const incidents = (incRes.data ?? []) as any[];
@@ -201,11 +232,21 @@ export async function buildSurvivorExportZip(
   );
   const familyCanonical = new Map<string, string>();
   if (familyIds.length > 0) {
-    const famRes = await db
-      .from("evidence_families")
-      .select("id, canonical_evidence_id")
-      .in("id", familyIds);
-    for (const f of famRes.data ?? []) {
+    const families = await selectInChunksPaged<{
+      id: string;
+      canonical_evidence_id: string | null;
+    }>(
+      familyIds,
+      (chunk, from, to) =>
+        db
+          .from("evidence_families")
+          .select("id,canonical_evidence_id")
+          .in("id", chunk)
+          .order("id", { ascending: true })
+          .range(from, to),
+      { what: "file families" },
+    );
+    for (const f of families) {
       if (f.canonical_evidence_id) familyCanonical.set(f.id, f.canonical_evidence_id);
     }
   }
@@ -227,6 +268,7 @@ export async function buildSurvivorExportZip(
   const zip = new JSZip();
   const exportedAt = new Date().toISOString();
   const fileHashes: Array<{ path: string; sha256: string; bytes: number }> = [];
+  const integrityChecks: IntegrityCheck[] = [];
 
   // CSV exports
   zip.file("incidents.csv", toCsv(incidents as Array<Record<string, unknown>>));
@@ -304,14 +346,6 @@ export async function buildSurvivorExportZip(
   }
   zip.file("narrative.md", lines.join("\n"));
 
-  // Download evidence files (parallel, modest concurrency)
-  const downloadFile = async (bucket: string, path: string) => {
-    const { data } = await db.storage.from(bucket).download(path);
-    if (!data) return null;
-    const buf = await data.arrayBuffer();
-    return buf;
-  };
-
   const evidenceFolder = zip.folder("evidence");
   const evidenceCustody: Array<{
     id: string;
@@ -329,12 +363,12 @@ export async function buildSurvivorExportZip(
   await Promise.all(
     evidence.map(async (e) => {
       if (!evidenceFolder) return;
-      const buf = await downloadFile("evidence-files", e.file_url);
-      if (!buf) return;
+      const { buffer: buf, sha256: hash } = await readExportFile(db, "evidence-files", e.file_url);
       const ext = e.file_url.split(".").pop() || "bin";
-      const safeName = `${e.date}_${e.id.slice(0, 8)}_${e.title.replace(/[^a-zA-Z0-9-_]+/g, "_").slice(0, 60)}.${ext}`;
+      const safeName = `${e.date}_${e.id}_${e.title.replace(/[^a-zA-Z0-9-_]+/g, "_").slice(0, 60)}.${ext}`;
       evidenceFolder.file(safeName, buf);
-      const hash = sha256(buf);
+      const integrity = compareRecordedHash(`evidence/${safeName}`, e.sha256, hash);
+      integrityChecks.push(integrity);
       evidenceFolder.file(
         `${safeName}.meta.json`,
         JSON.stringify(
@@ -346,6 +380,8 @@ export async function buildSurvivorExportZip(
             file_type: e.file_type,
             linked_incident_id: e.linked_incident_id,
             sha256: hash,
+            recorded_sha256: integrity.recorded_sha256,
+            matches_recorded_hash: integrity.matches_recorded_hash,
             original_path: e.file_url,
             family_id: e.family_id ?? null,
             is_canonical: isCanonical(e),
@@ -375,12 +411,11 @@ export async function buildSurvivorExportZip(
   await Promise.all(
     voiceNotes.map(async (n) => {
       if (!vnFolder) return;
-      const buf = await downloadFile("voice-notes", n.audio_url);
-      if (!buf) return;
-      const safeName = `${n.date}_${n.id.slice(0, 8)}_${(n.title || "voice_note").replace(/[^a-zA-Z0-9-_]+/g, "_").slice(0, 60)}.webm`;
+      const { buffer: buf, sha256: hash } = await readExportFile(db, "voice-notes", n.audio_url);
+      const safeName = `${n.date}_${n.id}_${(n.title || "voice_note").replace(/[^a-zA-Z0-9-_]+/g, "_").slice(0, 60)}.webm`;
       vnFolder.file(safeName, buf);
-      const hash = sha256(buf);
       fileHashes.push({ path: `voice-notes/${safeName}`, sha256: hash, bytes: buf.byteLength });
+      integrityChecks.push(compareRecordedHash(`voice-notes/${safeName}`, n.sha256, hash));
       if (n.transcript) {
         vnFolder.file(`${safeName}.transcript.txt`, n.transcript);
       }
@@ -390,12 +425,7 @@ export async function buildSurvivorExportZip(
   // Imported message conversations: original screenshots + extracted text +
   // the full correction history, so nothing about provenance is lost.
   if (includeThreads) {
-    const thQ = scopedThreadIds
-      ? scopedThreadIds.length
-        ? db.from("message_threads").select("*").eq("user_id", userId).in("id", scopedThreadIds)
-        : Promise.resolve({ data: [] as unknown[] })
-      : db.from("message_threads").select("*").eq("user_id", userId);
-    const { data: thData } = await thQ;
+    const thData = await readOwned("message_threads", scopedThreadIds);
     // Earlier imports stored AI summaries / flags / exhibit labels on the thread.
     // They are unverified characterisations, so they never leave in an export.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -406,25 +436,23 @@ export async function buildSurvivorExportZip(
     if (threadIds.length) {
       const [messagesAll, docRes] = await Promise.all([
         // A long chat is far more than one page: read every message, in order.
-        selectAllPages(
-          (from, to) =>
+        selectInChunksPaged(
+          threadIds,
+          (chunk, from, to) =>
             db
               .from("thread_messages")
               .select("*")
               .eq("user_id", userId)
-              .in("thread_id", threadIds)
+              .in("thread_id", chunk)
               .order("thread_id", { ascending: true })
               .order("position", { ascending: true })
               .order("id", { ascending: true })
               .range(from, to),
           { what: "message" },
         ),
-        db
-          .from("thread_source_documents")
-          .select("*")
-          .eq("user_id", userId)
-          .in("thread_id", threadIds)
-          .order("upload_index", { ascending: true }),
+        readOwned("thread_source_documents", threadIds, "thread_id", "upload_index").then(
+          (data) => ({ data }),
+        ),
       ]);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const messages = messagesAll as any[];
@@ -435,15 +463,17 @@ export async function buildSurvivorExportZip(
       let corrections: any[] = [];
       if (messageIds.length) {
         // Thousands of message ids cannot go in one request; read the history in batches.
-        corrections = await selectInChunks(
+        corrections = await selectInChunksPaged(
           messageIds,
-          (chunk) =>
+          (chunk, from, to) =>
             db
               .from("thread_message_corrections")
               .select("*")
               .eq("user_id", userId)
               .in("message_id", chunk)
-              .order("created_at", { ascending: true }),
+              .order("created_at", { ascending: true })
+              .order("id", { ascending: true })
+              .range(from, to),
           { what: "correction" },
         );
         corrections.sort((a, b) =>
@@ -469,8 +499,8 @@ export async function buildSurvivorExportZip(
             "The original screenshots are in the screenshots/ folder, hashed in manifest.json.",
             "Conversations added from an exported chat file (.txt/.zip) keep that file, unchanged,",
             "in original-exports/. Its .meta.json shows the fingerprint recorded when it was saved",
-            "and whether the stored file still matches it. That proves the file is unchanged since",
-            "it was added — not that the chat was untouched before it was exported.",
+            "and whether the stored file still matches it. Read FILE-CHECKS.txt before using it.",
+            "A matching fingerprint does not prove that the chat was untouched before import.",
           ].join("\n"),
         );
 
@@ -483,16 +513,21 @@ export async function buildSurvivorExportZip(
             const folder = isOriginalExport ? originalsFolder : shotsFolder;
             const folderName = isOriginalExport ? "original-exports" : "screenshots";
             if (!folder) return;
-            const buf = await downloadFile(
+            const { buffer: buf, sha256: hash } = await readExportFile(
+              db,
               isOriginalExport ? "message-exports" : "evidence-files",
               d.storage_path,
             );
-            if (!buf) return;
             const ext =
               String(d.storage_path).split(".").pop() || (isOriginalExport ? "txt" : "png");
-            const safeName = `${String(d.upload_index).padStart(3, "0")}_${String(d.id).slice(0, 8)}.${ext}`;
+            const safeName = `${String(d.upload_index).padStart(3, "0")}_${d.id}.${ext}`;
             folder.file(safeName, buf);
-            const hash = sha256(buf);
+            const integrity = compareRecordedHash(
+              `message-threads/${folderName}/${safeName}`,
+              d.sha256,
+              hash,
+            );
+            integrityChecks.push(integrity);
             fileHashes.push({
               path: `message-threads/${folderName}/${safeName}`,
               sha256: hash,
@@ -510,14 +545,8 @@ export async function buildSurvivorExportZip(
                   ocr_confidence: d.ocr_confidence,
                   sha256: hash,
                   original_path: d.storage_path,
-                  // For an exported chat file: the fingerprint recorded when it was
-                  // first saved, and whether the stored bytes still match it.
-                  ...(isOriginalExport
-                    ? {
-                        recorded_sha256: d.sha256 ?? null,
-                        matches_recorded_hash: d.sha256 ? d.sha256 === hash : null,
-                      }
-                    : {}),
+                  recorded_sha256: integrity.recorded_sha256,
+                  matches_recorded_hash: integrity.matches_recorded_hash,
                 },
                 null,
                 2,
@@ -529,42 +558,26 @@ export async function buildSurvivorExportZip(
     }
   }
 
-  // Manifest
-  // Hash-of-hashes — tamper-evident root for the whole evidence set
-  const hashOfHashes = createHash("sha256")
-    .update(
-      fileHashes
-        .map((f) => `${f.path}\t${f.sha256}\t${f.bytes}`)
-        .sort()
-        .join("\n"),
-    )
-    .digest("hex");
-
-  zip.file(
-    "manifest.json",
-    JSON.stringify(
-      {
-        exported_at: exportedAt,
-        user_id: userId,
-        counts: {
-          incidents: incidents.length,
-          evidence: evidence.length,
-          communications: comms.length,
-          voice_notes: voiceNotes.length,
-          legal_documents: legalDocs.length,
-        },
-        file_hashes: fileHashes,
-        hash_of_hashes: hashOfHashes,
-        generator: "PatternProof Export v1",
-        integrity_note:
-          "Each file in evidence/ and voice-notes/ has a SHA-256 hash listed above. Re-hash any file with `shasum -a 256 <file>` to verify the stored bytes match the preserved version. A hash does not prove truth, authorship, creation date, or admissibility.",
-        disclaimer:
-          "PatternProof helps organize and preserve documentation for professional review. It does not determine admissibility, make legal findings, or replace professional judgment.",
-      },
-      null,
-      2,
-    ),
-  );
+  const hashOfHashes = hashFileInventory(fileHashes);
+  const manifest = {
+    exported_at: exportedAt,
+    user_id: userId,
+    counts: {
+      incidents: incidents.length,
+      evidence: evidence.length,
+      communications: comms.length,
+      voice_notes: voiceNotes.length,
+      legal_documents: legalDocs.length,
+    },
+    file_hashes: fileHashes,
+    integrity_checks: integrityChecks,
+    hash_of_hashes: hashOfHashes,
+    generator: "PatternProof Export v1",
+    integrity_note:
+      "Exported originals are listed in file_hashes. archive_hashes also covers reports and metadata. integrity_checks compares each original with its saved fingerprint where available. The inventory is unsigned; a hash does not prove truth, authorship, creation date, or admissibility.",
+    disclaimer:
+      "PatternProof helps organize and preserve documentation for professional review. It does not determine admissibility, make legal findings, or replace professional judgment.",
+  };
 
   // Provenance & integrity report (Markdown — renders cleanly in any viewer)
   const coc: string[] = [
@@ -581,8 +594,10 @@ export async function buildSurvivorExportZip(
     "it matches the value recorded here and in `manifest.json`. Run `bash verify.sh`",
     "from the archive root to verify every file at once.",
     "",
-    "A SHA-256 hash proves that the stored bytes match the preserved version. It",
-    "does not prove truth, authorship, creation date, or admissibility.",
+    "Read FILE-CHECKS.txt for comparisons with fingerprints saved at import.",
+    "Changed files are included with warnings; files with no saved fingerprint",
+    "have not had their earlier history verified. This inventory is unsigned.",
+    "These checks do not prove truth, authorship, creation date, or admissibility.",
     "",
     "**PatternProof helps organize and preserve documentation for professional",
     "review. It does not determine admissibility, make legal findings, or replace",
@@ -652,31 +667,7 @@ export async function buildSurvivorExportZip(
     "This file has been renamed to provenance-and-integrity.md. See that file for the same content and clearer language about what a SHA-256 hash does and does not prove.\n",
   );
 
-  // Verification helper — re-hashes every file and diffs against manifest.json
-  const verifySh = `#!/usr/bin/env bash
-# Verifies that every file in this archive matches the SHA-256 recorded in manifest.json.
-# Usage: bash verify.sh
-set -e
-if ! command -v shasum >/dev/null 2>&1 && ! command -v sha256sum >/dev/null 2>&1; then
-  echo "Need 'shasum' or 'sha256sum' installed." >&2; exit 1
-fi
-HASHER=$(command -v shasum >/dev/null 2>&1 && echo "shasum -a 256" || echo "sha256sum")
-FAILED=0
-CHECKED=0
-python3 -c "import json,sys; [print(f['path']+chr(9)+f['sha256']) for f in json.load(open('manifest.json'))['file_hashes']]" \\
-  | while IFS=$'\\t' read -r path expected; do
-  if [ ! -f "$path" ]; then echo "MISSING  $path"; FAILED=$((FAILED+1)); continue; fi
-  actual=$($HASHER "$path" | awk '{print $1}')
-  if [ "$actual" = "$expected" ]; then
-    echo "OK       $path"
-  else
-    echo "MISMATCH $path"; FAILED=$((FAILED+1))
-  fi
-  CHECKED=$((CHECKED+1))
-done
-echo "Done."
-`;
-  zip.file("verify.sh", verifySh);
+  await addExportVerification(zip, manifest);
 
   const zipBuf = await zip.generateAsync({
     type: "uint8array",
@@ -702,5 +693,7 @@ echo "Done."
     },
     case_id: requestedCaseId,
     case_label: latestCase ? caseLabel : null,
+    integrity_warning_count: integrityChecks.filter((f) => f.matches_recorded_hash === false)
+      .length,
   };
 }

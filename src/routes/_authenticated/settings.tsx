@@ -346,10 +346,20 @@ function SettingsPage() {
       const r = await exportFn({ data: {} });
       if (r.ok) {
         setExportResult({ url: r.url, filename: r.filename, bytes: r.bytes });
-        toast("Export ready.");
+        toast(
+          r.integrity_warning_count > 0
+            ? "Export ready. Some files differ from their saved copies. Read INTEGRITY-WARNINGS.txt before sharing."
+            : "Export ready.",
+        );
       } else {
-        toast("Couldn't build the export. Try again in a moment.");
+        toast(
+          r.reason === "file-unavailable"
+            ? "A file couldn't be read, so the export wasn't created. Try again in a moment."
+            : "Couldn't build the export. Try again in a moment.",
+        );
       }
+    } catch {
+      toast("Couldn't build the export. Try again in a moment.");
     } finally {
       setExporting(false);
     }
