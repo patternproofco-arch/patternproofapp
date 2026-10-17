@@ -33,8 +33,9 @@ test("pending attorney sees a review status without client records", async ({ pa
 
 test("founder can review applications and see support, signup and mail activity", async ({
   page,
-}) => {
+}, testInfo) => {
   let declined = false;
+  let earlierApproved = false;
   await mockLoggedIn(page, {
     persona: "attorney",
     serverFnHandlers: {
@@ -90,6 +91,25 @@ test("founder can review applications and see support, signup and mail activity"
         ],
       }),
       retrySignupAlerts: () => ({ attempted: 1, submitted: 1 }),
+      getEarlierAttorneyRequests: () => ({
+        applications: [
+          {
+            id: "00000000-0000-4000-8000-000000000002",
+            full_name: "Earlier QA Attorney",
+            email: "earlier-qa@example.invalid",
+            firm_name: "Fictional QA Firm",
+            bar_number: "EARLIER-QA-000",
+            jurisdiction: "QA jurisdiction",
+            source: "public-intake",
+            created_at: "2026-10-09T10:00:00Z",
+            status: earlierApproved ? "approved" : "pending_review",
+          },
+        ],
+      }),
+      reviewAttorneyApplication: () => {
+        earlierApproved = true;
+        return { ok: true };
+      },
       declineAttorney: () => {
         declined = true;
         return { ok: true, emailed: false };
@@ -122,6 +142,52 @@ test("founder can review applications and see support, signup and mail activity"
   await expect(
     page.getByRole("status").filter({ hasText: "Submitted 1 of 1 eligible signup alerts" }),
   ).toBeVisible();
+  await page.getByRole("tab", { name: "Earlier requests", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Attorney requests (earlier form)" }),
+  ).toBeVisible();
+  await expect(page.getByText("Earlier QA Attorney", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Approve", exact: true }).click();
+  await expect(page.getByText("Approved", { exact: true })).toBeVisible();
+  await testInfo.attach("earlier-requests", {
+    body: await page.screenshot(),
+    contentType: "image/png",
+  });
+});
+
+test("earlier request errors stay visible and can be retried", async ({ page }) => {
+  let attempts = 0;
+  await mockLoggedIn(page, {
+    persona: "attorney",
+    serverFnHandlers: {
+      ensureSurvivorRole: () => ({
+        roles: ["attorney", "admin"],
+        is_survivor: false,
+        is_org_partner: false,
+        attorney_approved: true,
+      }),
+      getFounderOperations: () => ({
+        applications: [],
+        tickets: [],
+        signups: [],
+        emailActivity: [],
+        pendingAlerts: [],
+      }),
+      getEarlierAttorneyRequests: () => {
+        if (++attempts === 1) throw new Error("Fictional temporary outage");
+        return { applications: [] };
+      },
+    },
+  });
+  await page.goto("/admin/operations");
+  await page.getByRole("tab", { name: "Earlier requests", exact: true }).click();
+  await expect(page.getByRole("alert")).toHaveText(
+    "Could not load earlier attorney requests. Try again.",
+  );
+  await expect(page.getByText(/No attorney requests yet/)).toHaveCount(0);
+  await page.getByRole("button", { name: "Retry earlier requests" }).click();
+  await expect(page.getByText(/No attorney requests yet/)).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveCount(0);
 });
 
 for (const outcome of [

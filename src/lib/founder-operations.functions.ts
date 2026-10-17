@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireAccountAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { declineAttorneyApplication, type DeclineDb } from "@/lib/decline-attorney";
+import type { FounderOverview } from "@/lib/founder-ops.functions";
 
 export type AttorneyApplication = {
   id: string;
@@ -120,6 +121,20 @@ export const applyAsAttorney = createServerFn({ method: "POST" })
         `attorney-application-${id}`,
       );
     return { ok: true as const };
+  });
+
+// Keep the earlier intake available without loading unrelated signup/support data.
+export const getEarlierAttorneyRequests = createServerFn({ method: "GET" })
+  .middleware([requireAccountAuth])
+  .handler(async ({ context }) => {
+    const db = await founder(context.userId);
+    const { data, error } = await (db as any)
+      .from("attorney_applications")
+      .select("id,email,full_name,firm_name,bar_number,jurisdiction,source,status,created_at")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (error) throw new Error("Could not load earlier attorney requests.");
+    return { applications: (data ?? []) as FounderOverview["applications"] };
   });
 
 export const getFounderOperations = createServerFn({ method: "GET" })

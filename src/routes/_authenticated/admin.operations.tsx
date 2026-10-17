@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { EarlierAttorneyRequests } from "@/components/admin/EarlierAttorneyRequests";
 import {
   Table,
   TableHeader,
@@ -164,7 +165,11 @@ function OperationsPage() {
               <TabsTrigger value="support">Help requests ({data.tickets.length})</TabsTrigger>
               <TabsTrigger value="signups">Signups ({data.signups.length})</TabsTrigger>
               <TabsTrigger value="email">Email activity</TabsTrigger>
+              <TabsTrigger value="earlier">Earlier requests</TabsTrigger>
             </TabsList>
+            <TabsContent value="earlier">
+              <EarlierAttorneyRequests />
+            </TabsContent>
             <TabsContent value="applications">
               <h2 className="my-4 font-serif text-xl">Attorney applications</h2>
               <p className="mb-4">

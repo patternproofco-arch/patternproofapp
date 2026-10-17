@@ -19,7 +19,7 @@ vi.mock("@tanstack/react-start", () => ({
     return builder;
   },
 }));
-import { retrySignupAlerts } from "@/lib/founder-operations.functions";
+import { getEarlierAttorneyRequests, retrySignupAlerts } from "@/lib/founder-operations.functions";
 
 beforeEach(() => {
   state.actor = "founder";
@@ -29,6 +29,7 @@ beforeEach(() => {
       { user_id: "founder", role: "admin" },
       { user_id: "survivor", role: "survivor" },
     ],
+    attorney_applications: [{ id: "earlier-request", full_name: "Fictional QA Attorney" }],
     signup_alert_outbox: [
       { user_id: "signup", role: "survivor", completed_at: null, next_attempt_at: "2020-01-01" },
       {
@@ -39,6 +40,23 @@ beforeEach(() => {
       },
       { user_id: "leased", role: "attorney", completed_at: null, next_attempt_at: "2099-01-01" },
     ],
+  });
+});
+describe("earlier attorney requests", () => {
+  it("denies a non-admin before reading the earlier intake", async () => {
+    state.actor = "survivor";
+    await expect(getEarlierAttorneyRequests()).rejects.toThrow("Not authorized");
+    expect(state.admin.selects.some((s: any) => s.table === "attorney_applications")).toBe(false);
+  });
+  it("reads only the earlier intake for staff without sending notifications", async () => {
+    expect(await getEarlierAttorneyRequests()).toEqual({
+      applications: [{ id: "earlier-request", full_name: "Fictional QA Attorney" }],
+    });
+    expect(state.admin.selects.map((s: any) => s.table)).toEqual([
+      "user_roles",
+      "attorney_applications",
+    ]);
+    expect(state.notify).not.toHaveBeenCalled();
   });
 });
 describe("founder signup alert retry", () => {
