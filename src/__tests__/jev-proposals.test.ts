@@ -1,15 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { makeRwAdmin } from "./helpers/fake-rw-supabase";
-
+import { consentKey, JEV_CONSENT_VERSION, jevScopeHash } from "@/lib/jev-consent.server";
+import { jevFingerprint, rankJevSource, requestTerms } from "@/lib/jev-retrieval.server";
 const state = vi.hoisted(() => ({
-  admin: null as any,
+  db: null as any,
   actor: "attorney",
   evaluate: vi.fn(),
   available: vi.fn(),
+  metadata: {} as Record<string, any>,
+  failAuth: false,
+  claims: {} as any,
+  passwordCheck: vi.fn(),
 }));
 vi.mock("@/integrations/supabase/client.server", () => ({
   get supabaseAdmin() {
-    return state.admin;
+    return state.db;
   },
 }));
 vi.mock("@/integrations/supabase/auth-middleware", () => ({
@@ -21,6 +26,9 @@ vi.mock("@/lib/jev.server", () => ({
   evaluateJev: state.evaluate,
   assertJevAvailable: state.available,
 }));
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: () => ({ auth: { signInWithPassword: state.passwordCheck } }),
+}));
 vi.mock("@tanstack/react-start", () => ({
   createServerFn: () => {
     let validate = (input: any) => input;
@@ -30,334 +38,430 @@ vi.mock("@tanstack/react-start", () => ({
         validate = fn;
         return builder;
       },
-      handler: (fn: any) => async (args: any) =>
-        fn({ data: validate(args.data), context: { userId: state.actor, supabase: state.admin } }),
+      handler:
+        (fn: any) =>
+        async (args: any = {}) =>
+          fn({
+            data: validate(args.data),
+            context: { userId: state.actor, supabase: state.db, claims: state.claims },
+          }),
     };
     return builder;
   },
 }));
-import {
-  checkDraftWithJev,
-  suggestEntryLink,
-  suggestRecordGroups,
-  suggestRequestMatches,
-} from "@/lib/jev-proposals.functions";
-import { permitsJev } from "@/lib/jev-proposals";
-
+import { suggestRequestMatches } from "@/lib/jev-proposals.functions";
+import { getMyJevSharePermissions, setMyJevSharePermission } from "@/lib/jev-consent.functions";
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const clientId = id(1),
   fileId = id(2),
-  entryId = id(3),
-  draftId = id(4),
-  otherDraftId = id(5);
-const input = { clientId, aiConsent: true as const };
-const choose = (choice: string, confidence = 0.95) => ({
-  type: "choice",
-  choice,
-  confidence,
-  probabilities: { [choice]: confidence },
+  linkId = id(3);
+const input = {
+  clientId,
+  title: "electric utility payment",
+  details: "",
+  aiConsent: true as const,
+};
+const choice = (label = "file_0", confidence = 0.95) => ({
+  model: "jev-1.13.0",
+  answers: {
+    match: { type: "choice", choice: label, confidence, probabilities: { [label]: confidence } },
+  },
 });
-const response = (answers: unknown) => ({ model: "jev-1.13.0", answers });
-beforeEach(() => {
+function file(n = 2) {
+  return {
+    id: id(n),
+    user_id: clientId,
+    title: "Saved document",
+    description: null,
+    mime: "text/plain",
+    file_type: "document",
+    ai_permission: "organize",
+    is_sealed: false,
+    deleted_at: null,
+    transcript_status: "pending",
+    transcript: "DO NOT SEND UNREADY",
+    extracted_text: "Electric utility payment for August",
+    file_url: "PRIVATE STORAGE",
+    gps_lat: 40,
+  };
+}
+async function allow() {
+  state.metadata[consentKey(linkId)] = {
+    version: JEV_CONSENT_VERSION,
+    clientId,
+    attorneyId: "attorney",
+    scopeHash: await jevScopeHash(state.db.tables.attorney_client_links[0]),
+    nonce: "consent-one",
+    expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+  };
+}
+beforeEach(async () => {
+  vi.unstubAllEnvs();
   state.actor = "attorney";
-  state.evaluate.mockReset();
+  state.passwordCheck.mockReset().mockResolvedValue({ error: null });
+  state.failAuth = false;
+  state.claims = { amr: [{ method: "oauth", timestamp: Math.floor(Date.now() / 1000) }] };
+  state.metadata = {};
   state.available.mockReset();
-  state.evaluate.mockResolvedValue(response({ match: choose(entryId) }));
-  state.admin = makeRwAdmin({
-    user_roles: [{ user_id: "attorney", role: "attorney" }],
-    attorney_client_links: [
-      {
-        id: "grant",
-        attorney_user_id: "attorney",
-        client_user_id: clientId,
-        status: "active",
-        revoked_at: null,
-        expires_at: null,
-        case_id: null,
-        include_all_incidents: false,
-        include_all_evidence: false,
-        scope_evidence: [fileId],
-        scope_incidents: [entryId],
-      },
-    ],
-    evidence: [
-      {
-        id: fileId,
-        user_id: clientId,
-        title: "Fictional letter",
-        description: "Fictional source",
-        ai_permission: "organize",
-        is_sealed: false,
-        deleted_at: null,
-        file_type: "document",
-        mime: "text/plain",
-        file_url: "PRIVATE STORAGE PATH",
-        gps_lat: 40,
-        transcript_status: "pending",
-        transcript: "UNREADY TRANSCRIPT",
-      },
-    ],
-    incidents: [
-      {
-        id: entryId,
-        user_id: clientId,
-        description: "Fictional documented event",
-        date: "2026-01-01",
-        ai_permission: "organize",
-        is_sealed: false,
-        is_draft: false,
-        deleted_at: null,
-        abuse_types: ["DO NOT SEND"],
-      },
-    ],
-    proposed_incidents: [
-      {
-        id: draftId,
-        user_id: clientId,
-        status: "pending",
-        source_evidence_ids: [fileId],
-        draft: { description: "Fictional draft", share_with_link_id: "PRIVATE SHARE" },
-      },
-      {
-        id: otherDraftId,
-        user_id: clientId,
-        status: "pending",
-        source_evidence_ids: [],
-        draft: { description: "Another fictional draft" },
-      },
-    ],
-  });
+  state.evaluate.mockReset().mockResolvedValue(choice());
+  state.db = makeRwAdmin(
+    {
+      user_roles: [{ user_id: "attorney", role: "attorney" }],
+      attorney_client_links: [
+        {
+          id: linkId,
+          attorney_user_id: "attorney",
+          client_user_id: clientId,
+          status: "active",
+          revoked_at: null,
+          expires_at: null,
+          case_id: null,
+          include_all_incidents: false,
+          include_all_evidence: false,
+          scope_incidents: [],
+          scope_evidence: [fileId],
+        },
+      ],
+      evidence: [file()],
+      attorney_profiles: [{ user_id: "attorney", full_name: "Fictional Attorney" }],
+    },
+    { maxInIds: 100 },
+  );
+  state.db.auth = {
+    admin: {
+      getUserById: vi.fn(async () => ({
+        data: {
+          user: state.failAuth
+            ? null
+            : {
+                app_metadata: state.metadata,
+                identities: [],
+                last_sign_in_at: new Date().toISOString(),
+              },
+        },
+        error: state.failAuth ? new Error("unavailable") : null,
+      })),
+      updateUserById: vi.fn(async (_id: string, input: any) => {
+        Object.assign(state.metadata, input.app_metadata);
+        return { error: null };
+      }),
+    },
+  };
+  await allow();
 });
 
-describe("Jev attorney proposal privacy", () => {
-  it("uses only currently shared sources, strips unrelated metadata, and never writes a link", async () => {
-    state.admin.tables.incidents.push({
-      ...state.admin.tables.incidents[0],
-      id: id(30),
-      description: "HIDDEN ENTRY",
-    });
-    const before = structuredClone(state.admin.tables);
-    const result = await suggestEntryLink({ data: { ...input, evidenceId: fileId } });
-    expect(result.suggestion?.id).toBe(entryId);
-    const sent = JSON.stringify(state.evaluate.mock.calls[0]);
-    for (const hidden of [
-      "HIDDEN ENTRY",
-      "PRIVATE STORAGE PATH",
-      "gps_lat",
-      "DO NOT SEND",
-      "UNREADY TRANSCRIPT",
-    ])
-      expect(sent).not.toContain(hidden);
-    expect(state.admin.tables).toEqual(before);
+describe("request matching follows source and consent boundaries", () => {
+  it("searches beyond 40 IDs and finds request-relevant text past character 1200", async () => {
+    state.db.tables.evidence = Array.from({ length: 150 }, (_, n) => ({
+      ...file(n + 20),
+      extracted_text: "Unrelated material",
+    }));
+    state.db.tables.evidence[149].extracted_text =
+      "Unrelated material. ".repeat(500) + "Electric utility payment from August";
+    state.db.tables.attorney_client_links[0].scope_evidence = state.db.tables.evidence.map(
+      (r: any) => r.id,
+    );
+    await allow();
+    const result = await suggestRequestMatches({ data: input });
+    expect(result.searchedCount).toBe(150);
+    expect(result.checkedCount).toBe(1);
+    expect(result.suggestion?.evidenceId).toBe(id(169));
+    expect(result.suggestion?.excerptStart).toBeGreaterThan(1200);
+    expect(result.suggestion?.excerpt).toContain("Electric utility payment");
   });
-  it("requires explicit consent before doing any provider work", async () => {
+  it("sends relevant excerpts with aliases, not private metadata or the full documents", async () => {
+    state.db.tables.evidence[0].extracted_text =
+      "PRIVATE PREFIX ".repeat(1000) + "Electric utility payment";
+    const result = await suggestRequestMatches({ data: input });
+    const sent = JSON.stringify(state.evaluate.mock.calls[0]);
+    expect(result.suggestion?.sourceRevision).toMatch(/^[a-f0-9]{64}$/);
+    expect(result.instructionVersion).toBe("request-match-v2");
+    expect(sent).not.toMatch(/PRIVATE STORAGE|gps_lat|DO NOT SEND UNREADY/);
+    expect(sent).not.toContain(fileId);
+    expect(sent.length).toBeLessThan(4000);
+    expect(state.db.audits[0].p_meta).toMatchObject({
+      action: "suggestion_only",
+      instruction_version: "request-match-v2",
+    });
+    expect(JSON.stringify(state.db.audits)).not.toContain("Electric utility payment");
+  });
+  it("never sends or considers unshared or other people's files", async () => {
+    state.db.tables.evidence.push({ ...file(99), title: "HIDDEN FILE" });
+    state.db.tables.evidence[0].user_id = "someone else";
+    const result = await suggestRequestMatches({ data: input });
+    expect(result.searchedCount).toBe(0);
+    expect(result.suggestion).toBeNull();
+    expect(state.evaluate).not.toHaveBeenCalled();
+  });
+  it.each(["none", "denied", "unknown", null])("excludes AI permission %s", async (permission) => {
+    state.db.tables.evidence[0].ai_permission = permission;
+    expect((await suggestRequestMatches({ data: input })).searchedCount).toBe(0);
+    expect(state.evaluate).not.toHaveBeenCalled();
+  });
+  it.each(["sealed", "deleted"])("excludes %s records", async (kind) => {
+    if (kind === "sealed") state.db.tables.evidence[0].is_sealed = true;
+    else state.db.tables.evidence[0].deleted_at = "2026-01-01";
+    expect((await suggestRequestMatches({ data: input })).suggestion).toBeNull();
+    expect(state.evaluate).not.toHaveBeenCalled();
+  });
+  it.each([
+    "missing",
+    "expired",
+    "wrong attorney",
+    "wrong provider version",
+    "scope changed",
+    "auth unavailable",
+  ])("requires current survivor authorization: %s", async (kind) => {
+    const permission = state.metadata[consentKey(linkId)];
+    if (kind === "missing") delete state.metadata[consentKey(linkId)];
+    if (kind === "expired") permission.expiresAt = "2000-01-01T00:00:00.000Z";
+    if (kind === "wrong attorney") permission.attorneyId = "other";
+    if (kind === "wrong provider version") permission.version = "some-other-purpose";
+    if (kind === "scope changed")
+      state.db.tables.attorney_client_links[0].scope_evidence.push(id(99));
+    if (kind === "auth unavailable") state.failAuth = true;
+    await expect(suggestRequestMatches({ data: input })).rejects.toThrow("hasn't authorized");
+    expect(state.evaluate).not.toHaveBeenCalled();
+    expect(state.db.selects.some((s: any) => s.table === "evidence")).toBe(false);
+  });
+  it.each(["revoked", "expired", "role removed"])("denies %s attorney access", async (kind) => {
+    if (kind === "revoked") state.db.tables.attorney_client_links[0].revoked_at = "2026-01-01";
+    if (kind === "expired") state.db.tables.attorney_client_links[0].expires_at = "2000-01-01";
+    if (kind === "role removed") state.db.tables.user_roles = [];
+    await expect(suggestRequestMatches({ data: input })).rejects.toThrow();
+    expect(state.evaluate).not.toHaveBeenCalled();
+  });
+  it("requires fresh survivor authorization after case scope changes", async () => {
+    const grant = state.db.tables.attorney_client_links[0];
+    grant.case_id = "case";
+    state.db.tables.cases = [
+      { id: "case", user_id: clientId, attached_evidence_ids: [], highlighted_incident_ids: [] },
+    ];
+    await expect(suggestRequestMatches({ data: input })).rejects.toThrow("hasn't authorized");
+    expect(state.evaluate).not.toHaveBeenCalled();
+  });
+  it.each(["source edit", "permission withdrawn", "new consent", "share revoked"])(
+    "rejects results after %s during inference",
+    async (kind) => {
+      state.evaluate.mockImplementationOnce(async () => {
+        if (kind === "source edit") state.db.tables.evidence[0].extracted_text = "Changed content";
+        if (kind === "permission withdrawn")
+          state.metadata[consentKey(linkId)] = { enabled: false };
+        if (kind === "new consent") state.metadata[consentKey(linkId)].nonce = "consent-two";
+        if (kind === "share revoked")
+          state.db.tables.attorney_client_links[0].revoked_at = "2026-01-01";
+        return choice();
+      });
+      await expect(suggestRequestMatches({ data: input })).rejects.toThrow();
+      expect(state.db.audits).toHaveLength(0);
+    },
+  );
+  it.each([choice("none"), choice("file_0", 0.2)])(
+    "abstains without inferring missing items",
+    async (response) => {
+      state.evaluate.mockResolvedValueOnce(response);
+      expect((await suggestRequestMatches({ data: input })).suggestion).toBeNull();
+    },
+  );
+  it("does not call Jev for generic or unrelated requests", async () => {
+    for (const title of ["Please send the files", "Medical appointment invoice"]) {
+      const result = await suggestRequestMatches({ data: { ...input, title } });
+      expect(result.model).toBeNull();
+      expect(result.suggestion).toBeNull();
+    }
+    expect(state.evaluate).not.toHaveBeenCalled();
+  });
+  it("bounds external candidates, and never mutates evidence, reviews, or requests", async () => {
+    state.db.tables.evidence = Array.from({ length: 30 }, (_, n) => file(n + 20));
+    state.db.tables.attorney_client_links[0].scope_evidence = state.db.tables.evidence.map(
+      (r: any) => r.id,
+    );
+    await allow();
+    const before = structuredClone(state.db.tables);
+    const result = await suggestRequestMatches({ data: input });
+    expect(result.checkedCount).toBe(12);
+    expect(state.db.tables).toEqual(before);
+  });
+  it("requires explicit attorney processing confirmation", async () => {
     await expect(
-      suggestEntryLink({ data: { clientId, evidenceId: fileId, aiConsent: false as any } }),
+      suggestRequestMatches({ data: { ...input, aiConsent: false as any } }),
     ).rejects.toThrow();
     expect(state.evaluate).not.toHaveBeenCalled();
   });
-  it("rejects browser-supplied file ids outside current share", async () => {
-    await expect(suggestEntryLink({ data: { ...input, evidenceId: id(99) } })).rejects.toThrow(
-      "current share",
-    );
-    await expect(
-      suggestRecordGroups({ data: { ...input, evidenceIds: [id(99)] } }),
-    ).rejects.toThrow("current share");
-    expect(state.evaluate).not.toHaveBeenCalled();
-  });
-  it.each(["none", "denied", null, "unknown"])(
-    "never sends a file with AI permission %s",
-    async (permission) => {
-      state.admin.tables.evidence[0].ai_permission = permission;
-      await expect(suggestEntryLink({ data: { ...input, evidenceId: fileId } })).rejects.toThrow(
-        "manually",
-      );
-      expect(
-        (await suggestRecordGroups({ data: { ...input, evidenceIds: [fileId] } })).groups,
-      ).toEqual([]);
-      expect(state.evaluate).not.toHaveBeenCalled();
-    },
-  );
-  it.each(["sealed", "deleted", "different owner"])("does not send %s files", async (kind) => {
-    const row = state.admin.tables.evidence[0];
-    if (kind === "sealed") row.is_sealed = true;
-    if (kind === "deleted") row.deleted_at = "2026-01-01";
-    if (kind === "different owner") row.user_id = "someone else";
-    await expect(suggestEntryLink({ data: { ...input, evidenceId: fileId } })).rejects.toThrow(
-      "manually",
-    );
-    expect(state.evaluate).not.toHaveBeenCalled();
-  });
-  it.each(["no AI", "sealed", "deleted", "draft", "different owner"])(
-    "does not send %s entries",
-    async (kind) => {
-      const row = state.admin.tables.incidents[0];
-      if (kind === "no AI") row.ai_permission = "none";
-      if (kind === "sealed") row.is_sealed = true;
-      if (kind === "deleted") row.deleted_at = "2026-01-01";
-      if (kind === "draft") row.is_draft = true;
-      if (kind === "different owner") row.user_id = "someone else";
-      expect(
-        (await suggestEntryLink({ data: { ...input, evidenceId: fileId } })).suggestion,
-      ).toBeNull();
-      expect(state.evaluate).not.toHaveBeenCalled();
-    },
-  );
-  it.each(["revoked", "expired", "role removed"])("denies %s access before AI", async (kind) => {
-    if (kind === "revoked") state.admin.tables.attorney_client_links[0].revoked_at = "2026-01-01";
-    if (kind === "expired") state.admin.tables.attorney_client_links[0].expires_at = "2000-01-01";
-    if (kind === "role removed") state.admin.tables.user_roles = [];
-    await expect(suggestEntryLink({ data: { ...input, evidenceId: fileId } })).rejects.toThrow();
-    expect(state.evaluate).not.toHaveBeenCalled();
-  });
-  it("checks the case's current attachment scope", async () => {
-    state.admin.tables.attorney_client_links[0].case_id = "case";
-    state.admin.tables.cases = [
-      {
-        id: "case",
-        user_id: clientId,
-        highlighted_incident_ids: [entryId],
-        attached_evidence_ids: [],
-      },
-    ];
-    await expect(suggestEntryLink({ data: { ...input, evidenceId: fileId } })).rejects.toThrow(
-      "current share",
-    );
-    expect(state.evaluate).not.toHaveBeenCalled();
-  });
-  it("rechecks revocation after a provider response", async () => {
-    state.evaluate.mockImplementationOnce(async () => {
-      state.admin.tables.attorney_client_links[0].revoked_at = "2026-01-01";
-      return response({ match: choose(entryId) });
-    });
-    await expect(suggestEntryLink({ data: { ...input, evidenceId: fileId } })).rejects.toThrow(
-      "No active access",
-    );
-  });
-  it("suppresses a proposal whose referenced entry leaves scope during the check", async () => {
-    state.evaluate.mockImplementationOnce(async () => {
-      state.admin.tables.attorney_client_links[0].scope_incidents = [];
-      return response({ match: choose(entryId) });
-    });
-    expect(
-      (await suggestEntryLink({ data: { ...input, evidenceId: fileId } })).suggestion,
-    ).toBeNull();
-  });
-  it.each([choose("none"), choose(entryId, 0.5), choose(id(99))])(
-    "allows uncertainty without substituting a match",
-    async (answer) => {
-      state.evaluate.mockResolvedValueOnce(response({ match: answer }));
-      expect(
-        (await suggestEntryLink({ data: { ...input, evidenceId: fileId } })).suggestion,
-      ).toBeNull();
-    },
-  );
-  it("returns display-only groups and puts low confidence in other", async () => {
-    const before = structuredClone(state.admin.tables);
-    state.evaluate.mockResolvedValueOnce(response({ [fileId]: choose("document", 0.5) }));
-    expect(
-      (await suggestRecordGroups({ data: { ...input, evidenceIds: [fileId] } })).groups,
-    ).toEqual([{ evidenceId: fileId, group: "other" }]);
-    expect(state.admin.tables).toEqual(before);
-  });
-  it("matches request text only to shared files, never to private response drafts", async () => {
-    state.admin.tables.attorney_document_requests = [{ response_note: "PRIVATE ANSWER DRAFT" }];
-    state.admin.tables.evidence.push({
-      ...state.admin.tables.evidence[0],
-      id: id(99),
-      title: "HIDDEN FILE",
-    });
-    state.evaluate.mockResolvedValueOnce(response({ match: choose(fileId) }));
-    const before = structuredClone(state.admin.tables);
-    const result = await suggestRequestMatches({
-      data: { ...input, title: "Letter", details: "Court letter" },
-    });
-    expect(result.suggestion?.id).toBe(fileId);
-    expect(result.checkedCount).toBe(1);
-    expect(JSON.stringify(state.evaluate.mock.calls)).not.toMatch(
-      /PRIVATE ANSWER DRAFT|HIDDEN FILE/,
-    );
-    expect(state.admin.tables).toEqual(before);
-  });
 });
 
-describe("Jev survivor draft privacy and control", () => {
-  const run = () =>
-    checkDraftWithJev({
-      data: { proposalId: draftId, candidateIds: [otherDraftId], aiConsent: true },
-    });
+describe("survivor manages a named share's permission", () => {
   beforeEach(() => {
     state.actor = clientId;
-    state.evaluate.mockResolvedValue(
-      response({
-        date: { type: "noul", noul: 0.9 },
-        place: { type: "noul", noul: 0.5 },
-        duplicate: choose(otherDraftId),
+  });
+  it("starts off, shows named share, and enables only for its owner", async () => {
+    state.metadata = { unrelated_setting: true };
+    expect((await getMyJevSharePermissions()).shares[0]).toMatchObject({
+      attorneyName: "Fictional Attorney",
+      enabled: false,
+    });
+    await setMyJevSharePermission({
+      data: {
+        linkId,
+        enabled: true,
+        scopeFingerprint: await jevScopeHash(state.db.tables.attorney_client_links[0]),
+      },
+    });
+    expect(state.metadata[consentKey(linkId)]).toMatchObject({
+      clientId,
+      attorneyId: "attorney",
+      version: JEV_CONSENT_VERSION,
+    });
+    expect(state.metadata.unrelated_setting).toBe(true);
+    expect((await getMyJevSharePermissions()).shares[0].enabled).toBe(true);
+  });
+  it("rejects a changed scope instead of authorizing files not reviewed", async () => {
+    const reviewed = await jevScopeHash(state.db.tables.attorney_client_links[0]);
+    state.db.tables.attorney_client_links[0].scope_evidence.push(id(99));
+    await expect(
+      setMyJevSharePermission({ data: { linkId, enabled: true, scopeFingerprint: reviewed } }),
+    ).rejects.toThrow("changed since you reviewed");
+    expect(state.db.auth.admin.updateUserById).not.toHaveBeenCalled();
+  });
+  it("does not accept token issue time as a fresh sign-in", async () => {
+    state.claims = { iat: Math.floor(Date.now() / 1000) };
+    await expect(
+      setMyJevSharePermission({
+        data: {
+          linkId,
+          enabled: true,
+          scopeFingerprint: await jevScopeHash(state.db.tables.attorney_client_links[0]),
+        },
       }),
-    );
+    ).rejects.toThrow("Sign out");
+    expect(state.db.auth.admin.updateUserById).not.toHaveBeenCalled();
   });
-  it("only flags fields and possible duplicates, preserving all original content and status", async () => {
-    const before = structuredClone(state.admin.tables);
-    const result = await run();
-    expect(result).toMatchObject({
-      checkDate: true,
-      checkPlace: false,
-      duplicate: { id: otherDraftId },
-      checkedCount: 1,
-    });
-    expect(JSON.stringify(state.evaluate.mock.calls)).not.toContain("PRIVATE SHARE");
-    expect(state.admin.tables).toEqual(before);
+  it("an attorney cannot grant permission on the survivor's behalf", async () => {
+    state.actor = "attorney";
+    await expect(
+      setMyJevSharePermission({
+        data: {
+          linkId,
+          enabled: true,
+          scopeFingerprint: await jevScopeHash(state.db.tables.attorney_client_links[0]),
+        },
+      }),
+    ).rejects.toThrow("isn't available");
+    expect(state.db.auth.admin.updateUserById).not.toHaveBeenCalled();
   });
-  it.each(["no AI", "sealed", "deleted", "different owner", "missing"])(
-    "keeps the whole draft out when any source is %s",
-    async (kind) => {
-      const row = state.admin.tables.evidence[0];
-      if (kind === "no AI") row.ai_permission = "none";
-      if (kind === "sealed") row.is_sealed = true;
-      if (kind === "deleted") row.deleted_at = "2026-01-01";
-      if (kind === "different owner") row.user_id = "someone else";
-      if (kind === "missing") state.admin.tables.evidence = [];
-      await expect(run()).rejects.toThrow("manually");
-      expect(state.evaluate).not.toHaveBeenCalled();
-    },
-  );
-  it("filters other users' and accepted drafts out of candidates", async () => {
-    state.admin.tables.proposed_incidents[1].user_id = "someone else";
-    state.admin.tables.proposed_incidents.push({
-      id: id(99),
-      user_id: clientId,
-      status: "accepted",
-      source_evidence_ids: [],
-      draft: { description: "HIDDEN ACCEPTED" },
+  it("turning off requires neither an active share nor a configured provider", async () => {
+    state.db.tables.attorney_client_links[0].revoked_at = "2026-01-01";
+    state.available.mockImplementation(() => {
+      throw new Error("off");
     });
-    const result = await checkDraftWithJev({
-      data: { proposalId: draftId, candidateIds: [otherDraftId, id(99)], aiConsent: true },
-    });
-    expect(result.duplicate).toBeNull();
-    expect(result.checkedCount).toBe(0);
-    expect(JSON.stringify(state.evaluate.mock.calls)).not.toMatch(
-      /Another fictional draft|HIDDEN ACCEPTED/,
-    );
+    await setMyJevSharePermission({ data: { linkId, enabled: false } });
+    expect(state.metadata[consentKey(linkId)]).toEqual({ enabled: false });
   });
-  it("cannot check someone else's draft", async () => {
-    state.actor = "someone else";
-    await expect(run()).rejects.toThrow("manually");
-    expect(state.evaluate).not.toHaveBeenCalled();
-  });
-  it("rejects results when the source permission is withdrawn during the check", async () => {
-    state.evaluate.mockImplementationOnce(async () => {
-      state.admin.tables.evidence[0].ai_permission = "none";
-      return response({ date: { type: "noul", noul: 0.9 }, place: { type: "noul", noul: 0.9 } });
+  it("requires a fresh requesting session even if the account signed in elsewhere recently", async () => {
+    state.claims = { amr: [{ method: "oauth", timestamp: Math.floor(Date.now() / 1000) - 3600 }] };
+    state.db.auth.admin.getUserById.mockResolvedValueOnce({
+      data: { user: { identities: [], last_sign_in_at: new Date().toISOString() } },
+      error: null,
     });
-    await expect(run()).rejects.toThrow("changed");
+    await expect(
+      setMyJevSharePermission({
+        data: {
+          linkId,
+          enabled: true,
+          scopeFingerprint: await jevScopeHash(state.db.tables.attorney_client_links[0]),
+        },
+      }),
+    ).rejects.toThrow("Sign out");
+    expect(state.db.auth.admin.updateUserById).not.toHaveBeenCalled();
+  });
+  it("requires password confirmation on a stale email session", async () => {
+    state.claims = {};
+    state.db.auth.admin.getUserById.mockResolvedValueOnce({
+      data: { user: { email: "fictional@example.invalid", identities: [{ provider: "email" }] } },
+      error: null,
+    });
+    await expect(
+      setMyJevSharePermission({
+        data: {
+          linkId,
+          enabled: true,
+          scopeFingerprint: await jevScopeHash(state.db.tables.attorney_client_links[0]),
+        },
+      }),
+    ).rejects.toThrow("password");
+    expect(state.db.auth.admin.updateUserById).not.toHaveBeenCalled();
+  });
+  it.each([true, false])("verifies the supplied account password (valid: %s)", async (valid) => {
+    state.claims = {};
+    vi.stubEnv("SUPABASE_URL", "https://example.invalid");
+    vi.stubEnv("SUPABASE_PUBLISHABLE_KEY", "fictional-publishable-key");
+    state.db.auth.admin.getUserById.mockResolvedValueOnce({
+      data: { user: { email: "fictional@example.invalid", identities: [{ provider: "email" }] } },
+      error: null,
+    });
+    state.passwordCheck.mockResolvedValueOnce({ error: valid ? null : new Error("invalid") });
+    const call = setMyJevSharePermission({
+      data: {
+        linkId,
+        enabled: true,
+        password: "fictional-password",
+        scopeFingerprint: await jevScopeHash(state.db.tables.attorney_client_links[0]),
+      },
+    });
+    if (valid) await expect(call).resolves.toMatchObject({ ok: true });
+    else {
+      await expect(call).rejects.toThrow("isn't right");
+      expect(state.db.auth.admin.updateUserById).not.toHaveBeenCalled();
+    }
+    expect(state.passwordCheck).toHaveBeenCalledWith({
+      email: "fictional@example.invalid",
+      password: "fictional-password",
+    });
+  });
+  it("permits a fresh verified email OTP session without assuming an email identity has a password", async () => {
+    state.claims = { amr: [{ method: "otp", timestamp: Math.floor(Date.now() / 1000) }] };
+    state.db.auth.admin.getUserById.mockResolvedValueOnce({
+      data: { user: { email: "fictional@example.invalid", identities: [{ provider: "email" }] } },
+      error: null,
+    });
+    await expect(
+      setMyJevSharePermission({
+        data: {
+          linkId,
+          enabled: true,
+          scopeFingerprint: await jevScopeHash(state.db.tables.attorney_client_links[0]),
+        },
+      }),
+    ).resolves.toMatchObject({ ok: true });
+    expect(state.passwordCheck).not.toHaveBeenCalled();
+  });
+  it("never enables after a failed authorization lookup", async () => {
+    state.failAuth = true;
+    await expect(
+      setMyJevSharePermission({
+        data: {
+          linkId,
+          enabled: true,
+          scopeFingerprint: await jevScopeHash(state.db.tables.attorney_client_links[0]),
+        },
+      }),
+    ).rejects.toThrow("check your account");
+    expect(state.db.auth.admin.updateUserById).not.toHaveBeenCalled();
   });
 });
 
-describe("Jev permission allowlist", () => {
-  it("only allows known organization permissions", () => {
-    expect(permitsJev({ ai_permission: "organize" })).toBe(true);
-    expect(permitsJev({ ai_permission: "all" })).toBe(true);
-    expect(permitsJev({})).toBe(false);
-    expect(permitsJev({ ai_permission: "organize", is_sealed: true })).toBe(false);
+describe("local retrieval", () => {
+  it("doesn't match substrings inside unrelated words", async () => {
+    expect(
+      await rankJevSource(
+        { ...file(), extracted_text: "A different document" },
+        requestTerms("rent"),
+      ),
+    ).toBeNull();
+  });
+  it("fingerprints change when analyzed text changes", async () => {
+    expect(await jevFingerprint(file())).not.toBe(
+      await jevFingerprint({ ...file(), extracted_text: "changed" }),
+    );
   });
 });

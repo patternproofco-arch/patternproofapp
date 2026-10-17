@@ -199,18 +199,23 @@ function PrivacyPage() {
 
           <H3>AI providers and subprocessors</H3>
           <p>
-            When enabled, optional Jev checks send bounded saved text and record metadata to
-            TypeSafe to suggest entry references, record-type groups, possible duplicate drafts,
-            date/place review flags, and request-to-file matches. Each check asks before sending.
-            Attorney checks use only currently shared, AI-eligible records; sealed records and
-            records marked no AI are excluded. Suggestions stay in the current view unless an
-            attorney confirms an entry reference in their review notes. These checks do not scan
-            Google Drive or OneDrive. TypeSafe processing requires a separate host policy review;
-            PatternProof makes no retention or training promise on TypeSafe's behalf. See{" "}
+            When enabled, Jev can help an attorney check whether an explicitly requested item may
+            already be among files you shared with them. You must separately allow TypeSafe
+            processing for that attorney's current sharing record in Settings. Permission expires
+            after 30 days and pauses if its shared file scope changes. The attorney also confirms
+            before each check. PatternProof searches the eligible shared files locally, then sends
+            only the request text and relevant excerpts from up to 12 files to TypeSafe. Sealed,
+            deleted, unshared, and no-AI files are excluded. The result is a temporary possible
+            match with a source preview; it does not send or resolve requests or create evidence
+            links. Minimal activity records contain model and instruction versions, source IDs and
+            content fingerprints, and the initiating account, without request text or excerpts.
+            Turning permission off prevents new checks; material already sent cannot be recalled.
+            These checks do not scan Google Drive or OneDrive. PatternProof makes no retention or
+            training promise on TypeSafe's behalf. See{" "}
             <a href="https://docs.typesafe.ai/legal" target="_blank" rel="noreferrer">
               TypeSafe's policies
             </a>
-            . You can continue to review and organize manually.
+            . You can continue to review files manually.
           </p>
           <p>
             Several features rely on third-party AI providers reached through the Lovable AI

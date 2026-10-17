@@ -2,34 +2,43 @@
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
 const api = vi.hoisted(() => ({
-  link: vi.fn(),
-  groups: vi.fn(),
   request: vi.fn(),
-  draft: vi.fn(),
-  save: vi.fn(),
+  open: vi.fn(),
+  permissions: vi.fn(),
+  setPermission: vi.fn(),
 }));
 vi.mock("@tanstack/react-start", () => ({ useServerFn: (fn: unknown) => fn }));
-vi.mock("@/lib/jev-proposals.functions", () => ({
-  suggestEntryLink: api.link,
-  suggestRecordGroups: api.groups,
-  suggestRequestMatches: api.request,
-  checkDraftWithJev: api.draft,
+vi.mock("@/lib/jev-proposals.functions", () => ({ suggestRequestMatches: api.request }));
+vi.mock("@/lib/attorney-portal.functions", () => ({ getSignedEvidenceUrl: api.open }));
+vi.mock("@/lib/jev-consent.functions", () => ({
+  getMyJevSharePermissions: api.permissions,
+  setMyJevSharePermission: api.setPermission,
 }));
-vi.mock("@/lib/attorney-evidence-reviews.functions", () => ({ upsertEvidenceReview: api.save }));
 vi.mock("sonner", () => ({ toast: vi.fn() }));
-import {
-  JevEntryLinkSuggestion,
-  JevRecordGrouping,
-} from "@/components/attorney/JevEvidenceSuggestions";
 import { JevRequestNudge } from "@/components/attorney/JevRequestNudge";
-import { JevDraftCheck } from "@/components/JevDraftCheck";
-
-let root: Root, host: HTMLDivElement;
+import { JevSharePermissions } from "@/components/settings/JevSharePermissions";
+let host: HTMLDivElement, root: Root;
+const response = (match = true) => ({
+  model: "jev-1.13.0",
+  instructionVersion: "request-match-v2",
+  searchedCount: 100,
+  checkedCount: 12,
+  expiresAt: new Date(Date.now() + 5 * 60_000).toISOString(),
+  suggestion: match
+    ? {
+        evidenceId: "file",
+        title: "Fictional bill",
+        excerpt: "Electric utility payment for August",
+        sourceField: "extracted_text",
+        excerptStart: 5000,
+        sourceRevision: "abc",
+      }
+    : null,
+});
 beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
-  for (const mock of Object.values(api)) mock.mockReset();
+  for (const fn of Object.values(api)) fn.mockReset();
   vi.spyOn(window, "confirm").mockReturnValue(true);
   host = document.createElement("div");
   document.body.appendChild(host);
@@ -40,176 +49,130 @@ afterEach(async () => {
   host.remove();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
-async function render(element: React.ReactNode) {
-  await act(async () => root.render(element));
+async function render(node: React.ReactNode) {
+  await act(async () => root.render(node));
 }
-async function click(text: string) {
-  const button = [...host.querySelectorAll("button")].find((b) => b.textContent?.includes(text));
-  expect(button, text).toBeDefined();
-  await act(async () => button!.click());
+function button(label: string) {
+  const found = [...host.querySelectorAll("button")].find((b) => b.textContent?.includes(label));
+  expect(found, label).toBeDefined();
+  return found!;
 }
-
-describe("Jev review controls", () => {
-  it("does not call AI on render or after declining the processing notice", async () => {
+async function click(label: string) {
+  await act(async () => button(label).click());
+}
+describe("attorney request-match review", () => {
+  it("never calls AI on render or after declining the processing notice", async () => {
     vi.mocked(window.confirm).mockReturnValue(false);
-    await render(
-      <>
-        <JevEntryLinkSuggestion clientId="client" evidenceId="file" onApplied={vi.fn()} />
-        <JevRecordGrouping
-          clientId="client"
-          evidenceIds={["file"]}
-          groups={{}}
-          selected="all"
-          onGroups={vi.fn()}
-          onSelect={vi.fn()}
-        />
-        <JevRequestNudge clientId="client" title="Letter" details="" />
-        <JevDraftCheck proposalId="draft" candidateIds={[]} onEdit={vi.fn()} />
-      </>,
-    );
-    for (const text of ["Suggest entry link", "Group up to", "Check shared files", "Check draft"])
-      await click(text);
-    for (const mock of Object.values(api)) expect(mock).not.toHaveBeenCalled();
-    expect(window.confirm).toHaveBeenCalledTimes(4);
-    expect(window.confirm).toHaveBeenLastCalledWith(
-      expect.stringContaining("TypeSafe's Jev AI service"),
+    await render(<JevRequestNudge clientId="client" title="Utility bill" details="" />);
+    await click("Check already-shared files");
+    expect(api.request).not.toHaveBeenCalled();
+    expect(window.confirm).toHaveBeenCalledWith(
+      expect.stringContaining("survivor must separately authorize"),
     );
   });
-  it("requires a separate confirmation to save a proposed reference", async () => {
-    api.link.mockResolvedValue({
-      model: "jev-1.13.0",
-      checkedCount: 2,
-      suggestion: { id: "entry", label: "Fictional entry", confidence: 0.95 },
-    });
-    api.save.mockResolvedValue({ ok: true });
-    const applied = vi.fn();
-    await render(
-      <JevEntryLinkSuggestion clientId="client" evidenceId="file" onApplied={applied} />,
-    );
-    await click("Suggest entry link");
-    expect(api.link).toHaveBeenCalledWith({
-      data: { clientId: "client", evidenceId: "file", aiConsent: true },
-    });
-    expect(api.save).not.toHaveBeenCalled();
-    expect(host.textContent).toContain("Software suggestion");
-    await click("Confirm entry reference");
-    expect(api.save).toHaveBeenCalledExactlyOnceWith({
-      data: { clientId: "client", evidenceId: "file", linked_incident_id: "entry" },
-    });
-    expect(applied).toHaveBeenCalledWith("entry");
+  it("shows source excerpts, coverage and a separate scope-checked open action", async () => {
+    api.request.mockResolvedValue(response());
+    api.open.mockResolvedValue({ url: "https://example.invalid/file" });
+    const opened = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => undefined);
+    await render(<JevRequestNudge clientId="client" title="Utility bill" details="" />);
+    await click("Check already-shared files");
+    expect(host.textContent).toContain("Searched 100 eligible shared files locally");
+    expect(host.textContent).toContain("12 candidates");
+    expect(host.textContent).toContain("Electric utility payment for August");
+    expect(host.textContent).toContain("does not send, resolve");
+    expect(api.open).not.toHaveBeenCalled();
+    await click("Open shared file");
+    expect(api.open).toHaveBeenCalledWith({ data: { clientId: "client", evidenceId: "file" } });
+    expect(opened).toHaveBeenCalledOnce();
   });
-  it("doesn't present a failed save as applied", async () => {
-    api.link.mockResolvedValue({
-      model: "jev-1.13.0",
-      checkedCount: 1,
-      suggestion: { id: "entry", label: "Fictional entry", confidence: 0.95 },
-    });
-    api.save.mockRejectedValue(new Error("Revoked share"));
-    const applied = vi.fn();
-    await render(
-      <JevEntryLinkSuggestion clientId="client" evidenceId="file" onApplied={applied} />,
-    );
-    await click("Suggest entry link");
-    await click("Confirm entry reference");
-    expect(applied).not.toHaveBeenCalled();
-    expect(host.textContent).not.toContain("Reference saved");
-  });
-  it("dismisses a suggestion without saving anything", async () => {
-    api.link.mockResolvedValue({
-      model: "jev-1.13.0",
-      checkedCount: 1,
-      suggestion: { id: "entry", label: "Fictional entry", confidence: 0.95 },
-    });
-    await render(
-      <JevEntryLinkSuggestion clientId="client" evidenceId="file" onApplied={vi.fn()} />,
-    );
-    await click("Suggest entry link");
-    await click("Dismiss suggestion");
-    expect(host.textContent).not.toContain("Fictional entry");
-    expect(api.save).not.toHaveBeenCalled();
-  });
-  it("does not call an unmatched request item missing, and clears stale results on edit", async () => {
-    api.request.mockResolvedValue({ model: "jev-1.13.0", checkedCount: 3, suggestion: null });
-    await render(<JevRequestNudge clientId="client" title="Letter" details="" />);
-    await click("Check shared files");
+  it("does not turn an abstention into a claim that a record is missing", async () => {
+    api.request.mockResolvedValue(response(false));
+    await render(<JevRequestNudge clientId="client" title="Utility bill" details="" />);
+    await click("Check already-shared files");
     expect(host.textContent).toContain("does not mean the item is missing");
-    expect(api.save).not.toHaveBeenCalled();
-    await render(<JevRequestNudge clientId="client" title="Different request" details="" />);
-    expect(host.textContent).not.toContain("No confident match");
+    expect(api.open).not.toHaveBeenCalled();
   });
-  it("ignores a request response that arrives after its text changes", async () => {
+  it("clears results when request text changes, and ignores a delayed old result", async () => {
     let resolve!: (value: unknown) => void;
     api.request.mockReturnValue(
       new Promise((r) => {
         resolve = r;
       }),
     );
-    await render(<JevRequestNudge clientId="client" title="Letter" details="" />);
-    await click("Check shared files");
+    await render(<JevRequestNudge clientId="client" title="Utility bill" details="" />);
+    await click("Check already-shared files");
     await render(<JevRequestNudge clientId="client" title="Different request" details="" />);
-    await act(async () =>
-      resolve({
-        model: "jev-1.13.0",
-        checkedCount: 1,
-        suggestion: { id: "old", label: "STALE MATCH" },
-      }),
-    );
-    expect(host.textContent).not.toContain("STALE MATCH");
+    await act(async () => resolve(response()));
+    expect(host.textContent).not.toContain("Fictional bill");
   });
-  it("leaves draft decisions to the survivor and offers the existing editor", async () => {
-    api.draft.mockResolvedValue({
-      model: "jev-1.13.0",
-      checkedCount: 2,
-      checkDate: true,
-      checkPlace: true,
-      duplicate: { id: "other", label: "Other fictional draft", confidence: 0.9 },
-    });
-    const edit = vi.fn();
-    await render(
-      <JevDraftCheck proposalId="draft" candidateIds={["draft", "other"]} onEdit={edit} />,
-    );
-    await click("Check draft");
-    expect(host.textContent).toContain("Possible duplicate");
-    expect(host.textContent).toContain("Leave it unknown");
-    expect(host.textContent).toContain("Leave it blank");
-    expect(api.save).not.toHaveBeenCalled();
-    expect(edit).not.toHaveBeenCalled();
-    await click("Review and edit draft");
-    expect(edit).toHaveBeenCalledOnce();
+  it("expires displayed results and dismisses without any record action", async () => {
+    vi.useFakeTimers();
+    api.request.mockResolvedValue(response());
+    await render(<JevRequestNudge clientId="client" title="Utility bill" details="" />);
+    await click("Check already-shared files");
+    await act(async () => vi.advanceTimersByTime(5 * 60_000 + 1));
+    expect(host.textContent).not.toContain("Fictional bill");
+    api.request.mockResolvedValue(response());
+    await click("Check already-shared files");
+    await click("Dismiss suggestion");
+    expect(host.textContent).not.toContain("Fictional bill");
+    expect(api.open).not.toHaveBeenCalled();
   });
-  it("keeps grouping in display state and clears it without a server write", async () => {
-    api.groups.mockResolvedValue({
-      model: "jev-1.13.0",
-      groups: [{ evidenceId: "file", group: "document" }],
+  it("clears the preview if opening fails after sharing is revoked", async () => {
+    api.request.mockResolvedValue(response());
+    api.open.mockRejectedValue(new Error("No active access"));
+    await render(<JevRequestNudge clientId="client" title="Utility bill" details="" />);
+    await click("Check already-shared files");
+    await click("Open shared file");
+    expect(host.textContent).not.toContain("Fictional bill");
+  });
+});
+describe("survivor Jev authorization controls", () => {
+  const permissions = (enabled = false) => ({
+    available: true,
+    requiresPassword: false,
+    shares: [
+      {
+        linkId: "grant",
+        scopeFingerprint: "abc",
+        attorneyName: "Attorney Example",
+        fileCount: 12,
+        enabled,
+        expiresAt: enabled ? new Date(Date.now() + 86_400_000).toISOString() : null,
+      },
+    ],
+  });
+  it("requires an explicit named-provider checkbox before enabling", async () => {
+    api.permissions.mockResolvedValue(permissions());
+    api.setPermission.mockResolvedValue({ ok: true });
+    await render(<JevSharePermissions />);
+    expect(button("Allow checks").disabled).toBe(true);
+    expect(api.setPermission).not.toHaveBeenCalled();
+    expect(host.textContent).toContain("TypeSafe's Jev");
+    expect(host.textContent).toContain("pauses if the shared file scope changes");
+    await act(async () => host.querySelector<HTMLInputElement>('input[type="checkbox"]')!.click());
+    await click("Allow checks");
+    expect(api.setPermission).toHaveBeenCalledWith({
+      data: { linkId: "grant", scopeFingerprint: "abc", enabled: true },
     });
-    const onGroups = vi.fn(),
-      onSelect = vi.fn();
-    await render(
-      <JevRecordGrouping
-        clientId="client"
-        evidenceIds={["file"]}
-        groups={{}}
-        selected="all"
-        onGroups={onGroups}
-        onSelect={onSelect}
-      />,
-    );
-    await click("Group up to");
-    expect(onGroups).toHaveBeenCalledWith({ file: "document" });
-    expect(api.save).not.toHaveBeenCalled();
-    await render(
-      <JevRecordGrouping
-        clientId="client"
-        evidenceIds={["file"]}
-        groups={{ file: "document" }}
-        selected="document"
-        onGroups={onGroups}
-        onSelect={onSelect}
-      />,
-    );
-    await click("Clear suggested groups");
-    expect(onGroups).toHaveBeenLastCalledWith({});
-    expect(onSelect).toHaveBeenLastCalledWith("all");
+  });
+  it("lets the survivor revoke an existing permission when the provider is disabled", async () => {
+    api.permissions.mockResolvedValue({ ...permissions(true), available: false });
+    api.setPermission.mockResolvedValue({ ok: true });
+    await render(<JevSharePermissions />);
+    await click("Turn off for Attorney");
+    expect(api.setPermission).toHaveBeenCalledWith({
+      data: { linkId: "grant", enabled: false },
+    });
+  });
+  it("does not present failed permission reads as a safe off state", async () => {
+    api.permissions.mockRejectedValue(new Error("network"));
+    await render(<JevSharePermissions />);
+    expect(host.querySelector('[role="alert"]')?.textContent).toContain("may still be active");
+    expect(host.textContent).not.toContain("Jev request checks: Off");
   });
 });

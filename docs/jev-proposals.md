@@ -1,101 +1,119 @@
-# Jev review proposals
+# Jev: first rollout is request matching
 
-The evidence-review type fix is already on main: reviews use the real
-`attorney_user_id,evidence_id` unique key, without a `link_id` column. The
-existing 12 fresh-share privacy tests remain in place. Since reviews are not
-per-grant, earlier notes on a file can be visible again to the same attorney
-when the survivor actively re-shares that file. Revocation still removes access.
-Reviews that reference an entry outside the current share are hidden in full.
+The initial four-feature implementation has been narrowed to **Check already-shared
+files** in the attorney evidence-request panel. Entry-link, grouping and draft-AI
+controls and server endpoints have been removed from this rollout.
 
-## Available flows
+Latest main is merged. In particular, upstream PR #245 now supplies the
+`link_id` generated types and grant-specific `(link_id,evidence_id)` review key.
+This PR preserves that contract and its tests; it does not restore the older
+attorney+file-only upsert or its re-sharing tradeoff.
 
-| Screen                       | Optional action               | Result                                                                                                                                                                                                                               |
-| ---------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Attorney client → Evidence   | Suggest entry link with Jev   | Proposes one of up to 40 currently shared, AI-eligible documented entries, or no match. Confirm saves only a private attorney review reference through the existing scope-checked endpoint. Review also has a manual entry selector. |
-| Attorney client → Evidence   | Group up to 20 files with Jev | Temporary record-type groups and a group filter. Select Unchecked files to check the next batch; clear groups to restore the view. No file or review status changes.                                                                 |
-| Survivor → Drafts to review  | Check draft with Jev          | Date/place review flags and a possible duplicate among up to 20 other pending drafts. Opens the existing editor; never rewrites, fills fields, merges, deletes, accepts or shares.                                                   |
-| Attorney → Evidence requests | Check shared files with Jev   | Matches the unsent request text or an existing open request to one of up to 40 currently shared eligible files. No match means only that this bounded check found no confident match. Never creates, sends or resolves a request.    |
+## Survivor → attorney workflow
 
-Entry/request candidate limits follow the current grant's recorded ID order.
-They do not search the full vault or external drives. Group checks use the first
-20 files in the currently filtered queue. All UI copy is owned by the app;
-there is no generated narrative, conduct label, credibility score, diagnosis,
-severity/risk score, or legal conclusion. The 0.8 confidence threshold is a
-conservative UI filter, not an accuracy guarantee; every proposed link still
-requires human review. Noul values are yes-probabilities for review questions,
-not probabilities that an event occurred.
+1. In survivor Settings, **AI checks for already-shared files** names each active
+   attorney share and explains TypeSafe processing. It starts off. The survivor
+   checks an explicit authorization statement, confirms their account password
+   (or uses a recent verified sign-in in the requesting session), then allows
+   request checks for 30 days. This is independent of generic AI permissions and
+   the outside-assistant/MCP setting.
+2. Permission is bound to provider, purpose, version, survivor, attorney, grant,
+   current file-scope fingerprint and an expiry. The current case intersection
+   is included. Changes to file scope pause permission unless the exact authorized
+   scope is restored or the survivor authorizes the new scope. Every renewal has
+   a new nonce. Enabling must present the scope fingerprint shown when the survivor
+   reviewed the setting; a changed scope is rejected rather than silently authorized.
+   Turning off needs no password or configured provider.
+3. Before sending a request, or on an existing open request, the attorney chooses
+   **Check already-shared files** and confirms processing for that call.
+4. The server validates attorney access and survivor permission before reading
+   source content. It reads the entire effective shared file scope in batches,
+   excludes sealed/deleted/unowned/no-AI files, and ranks matches locally using
+   request terms and complete saved text. It does not pick the first grant IDs.
+5. Only up to 12 relevant candidates go to Jev. Each contains a bounded title,
+   format, relevant excerpt (up to 1,000 characters), field name and offset, plus
+   a temporary alias. Raw source IDs, original bytes, storage URLs, GPS, attorney
+   notes, private responses and whole documents do not go to the provider.
+6. Immediately before and after the provider call, the server rechecks role,
+   active share, survivor authorization nonce/scope/expiry, and fingerprints of
+   every analyzed source. Changed or unavailable sources invalidate the result.
+7. The attorney sees **Possible match**, a source excerpt, local-search and
+   provider-candidate counts, and **Open shared file**. Opening uses the existing
+   current-scope download endpoint. No match never means an item is missing.
+   Editing the request clears results, late old results are ignored, and previews
+   expire within five minutes. Nothing sends/resolves a request, links evidence,
+   rewrites an account, merges records, or expands sharing.
 
-## Enable on the host
+Requests that contain no useful searchable terms, or have no lexical candidate,
+remain a local search with no provider call. Lexical retrieval can miss synonyms,
+handwriting or unreadable content. Excerpts may omit needed context. Coverage is
+shown honestly; manual review remains available.
 
-The integration calls TypeSafe directly, independently of the Lovable gateway.
-It uses the fixed `https://api.typesafe.ai/v1/systemone` destination and pinned
-`jev-1.13.0` model. Source: [TypeSafe HTTP API](https://docs.typesafe.ai/api)
-and [models](https://docs.typesafe.ai/models), checked 2026-10-16.
+## Permission storage and activity provenance
 
-In the host's **server secret store**, configure:
+No new SQL table or migration is required. Survivor authorization lives in
+server-writable Supabase Auth `app_metadata`, under one key per share. The
+server reads it fresh rather than trusting cached permission claims or user metadata.
+Session-specific verified AMR timestamps establish passwordless sign-in freshness;
+account-wide last-sign-in and token refresh times are not accepted. Only an owner can
+change their share's permission. Partial top-level updates preserve unrelated
+metadata; Supabase Auth's `UpdateAppMetaData` merges supplied keys (verified in
+[the upstream source](https://github.com/supabase/auth/blob/master/internal/models/user.go)).
+Each grant stores a small fingerprint, not file lists or content.
+
+Existing audit events record permission changes and completed checks. Check
+provenance has model/instruction version, source IDs and content fingerprints,
+the proposed source ID (or null), and the initiating actor. There is no copied
+request/source text, generated rationale, or automatic acceptance. Audit writes
+are best effort. There are no confirmed Jev evidence links in this stage; a
+later linking feature must define its owner, confirmation semantics and durable
+provenance before it ships.
+
+## Provider configuration and evaluation
+
+Jev calls the fixed TypeSafe endpoint `https://api.typesafe.ai/v1/systemone` with
+pinned `jev-1.13.0`. Sources: [API](https://docs.typesafe.ai/api) and
+[models](https://docs.typesafe.ai/models). The integration stays off unless all
+three server settings exist:
 
 ```
-JEV_API_KEY=<TypeSafe API key>
+JEV_API_KEY=<TypeSafe key in the host secret store>
 PATTERNPROOF_AI_POLICY_APPROVED=true
 PATTERNPROOF_JEV_POLICY_APPROVED=true
 ```
 
-Do not put the key in a `VITE_` variable or commit it. Complete a separate review
-of TypeSafe's processing, retention and training terms before setting the Jev
-policy flag. The implementation deliberately makes no provider-retention or
-training promises. The general AI policy flag alone does not enable this new
-provider. Every UI invocation also asks for consent to send the named saved text
-to TypeSafe; the server requires literal `aiConsent: true`.
+These host settings are neither survivor authorization nor per-call attorney
+confirmation. Complete provider retention/training review before enabling them;
+the app makes no promise on TypeSafe's behalf. Do not put the key in a `VITE_`
+variable, source control, logs or chat.
 
-If the key or either policy flag is absent, the check fails closed and manual
-review remains available. No deployment, database migration, live-data scan or
-real-record AI call is part of this change. Credentials were not provisioned.
-
-## Data and authorization boundaries
-
-- Attorney functions use the strict attorney portal gate, recheck attorney role
-  and active grant, and intersect with the current case's attachments. They
-  query only the survivor's undeleted records in that scope, and recheck scope
-  after the AI call. Saving a confirmed reference rechecks current scope again.
-- Only `organize` and `all` AI permissions qualify. Unknown/null permissions,
-  sealed files, deleted records, unshared entries and draft incidents stay out.
-- Drafts must belong to the survivor and remain pending. Every source file must
-  still be owned, undeleted, unsealed and AI-eligible; a single disallowed or
-  missing source excludes the whole draft. Other users' drafts stay out.
-- Payloads contain bounded existing text and metadata, not original file bytes,
-  URLs, storage keys, GPS, attorney notes, request responses or sharing IDs.
-  Existing transcripts are used only when ready; otherwise only saved extracted
-  text is used. Text snippets can be incomplete, so manual source review matters.
-- Responses must contain all requested typed answers, valid probabilities and
-  choices from the exact candidate set. Missing/malformed responses fail as a
-  check error, rather than becoming a default match. Timeouts are 20 seconds,
-  redirects are forbidden, and provider error bodies never reach the user.
-- Proposals are session state, dismissed or cleared locally, and absent from
-  exports. Only a confirmed entry reference is stored in the existing review
-  row. No Jev provenance table, new sharing scope or automatic write is created.
-
-## Drive and OneDrive
-
-No Drive/OneDrive integration is configured in this repository change. A chat
-connector does not establish per-user authorization inside PatternProof. A real
-scan needs registered OAuth clients, narrow per-user scopes, encrypted token
-storage, explicit file selection, revocation handling, and a separate provider
-review before sending selected text to Jev. That remains an open roadmap item;
-the app does not claim to scan those services.
-
-## Verification
-
-The Jev suites use fictional records and mocked network I/O:
+The `0.8` confidence cutoff is an uncalibrated pilot filter, not an accuracy
+claim. No model decision authorizes an action. An opt-in fictional evaluation
+uses the exact production question builder, including direct matches, unhelpful
+names, recurring events on different dates, insufficient text, contradictory
+items and instructions embedded in sources:
 
 ```
-npx tsc --noEmit
-npx vitest run src/__tests__/jev-client.test.ts src/__tests__/jev-proposals.test.ts src/__tests__/jev-review-controls.test.tsx src/__tests__/fresh-grant-access.test.ts
-npm test
-npm run build
+# With the server key and policy flags configured; uses fictional fixtures only.
+RUN_JEV_MODEL_EVAL=1 npx vitest run src/__tests__/jev-model-evaluation.test.ts
 ```
 
-They cover no-consent/no-policy behavior, provider contract and failures, scope
-and role removal, revocation during a call, sealed/deleted/no-AI sources, draft
-ownership and source permissions, no automatic writes, separate confirmation,
-dismissal, manual editing and stale request-result suppression. A configured
-host and signed-in test accounts are still needed for live end-to-end proof.
+This suite is skipped during ordinary tests. Run repeated evaluations before a
+pilot, inspect false matches and abstentions, and tune the question/cutoff from
+observed results. Eight fictional cases are a starting regression set, not
+statistical calibration. Then prove the named-account flow on a configured test
+host: survivor authorizes → attorney checks → opens source → survivor turns off AI
+permission → new AI check denied while ordinary shared-file access still works.
+Then revoke sharing and verify both new checks and downloads are denied. No live evaluation, user setting changes or
+real-record provider calls were performed in this implementation session.
+
+## Deferred work
+
+- Group known file formats deterministically; use Jev only for ambiguity.
+- Flag blank/unknown dates and places locally; do not send text outside the app
+  for completeness checks. AI duplicates need source-aware comparison and version
+  checks, including already-confirmed records where appropriate.
+- Entry references need separate private-attorney and survivor-approved semantics.
+- Drive/OneDrive require selected-file read-only OAuth, encrypted token handling,
+  revocation and explicit import. A chat connector does not authorize an in-app
+  scan. Importing must never silently widen attorney sharing.

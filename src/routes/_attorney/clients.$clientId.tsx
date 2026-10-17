@@ -40,11 +40,6 @@ import {
   upsertAttorneyNote,
   createDocRequest,
 } from "@/lib/attorney-portal.functions";
-import {
-  JevEntryLinkSuggestion,
-  JevRecordGrouping,
-} from "@/components/attorney/JevEvidenceSuggestions";
-import { RECORD_GROUPS, type RecordGroup } from "@/lib/jev-proposals";
 import { EvidenceRequestsPanel } from "@/components/attorney/EvidenceRequestsPanel";
 import {
   getCaseNote,
@@ -340,7 +335,7 @@ function ClientCaseView() {
         {tab === "Patterns" && <Patterns data={data} clientId={clientId} />}
         {tab === "Checklist" && <ChecklistTab data={data} />}
         {tab === "Gaps" && <Gaps data={data} />}
-        {tab === "Evidence" && <EvidenceTab key={clientId} data={data} clientId={clientId} />}
+        {tab === "Evidence" && <EvidenceTab data={data} clientId={clientId} />}
         {tab === "Threads" && <ThreadsTab clientId={clientId} />}
         {tab === "Messages" && <MessagesTab linkId={data.link_id} />}
         {tab === "Time" && <TimeTab clientId={clientId} />}
@@ -2459,8 +2454,6 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
   type Cat = "All" | "Photos" | "Screenshots" | "Documents" | "Audio";
   const [cat, setCat] = useState<Cat>("All");
   const [openingId, setOpeningId] = useState<string | null>(null);
-  const [recordGroups, setRecordGroups] = useState<Record<string, RecordGroup>>({});
-  const [recordGroup, setRecordGroup] = useState("all");
   type Review = {
     evidence_id: string;
     status: string;
@@ -2490,11 +2483,12 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
       notes: null,
       linked_incident_id: null,
     };
+    const next = { ...current, ...patch };
+    setReviews((s) => ({ ...s, [evidenceId]: next }));
     try {
       await saveReview({ data: { clientId, evidenceId, ...patch } });
-      setReviews((s) => ({ ...s, [evidenceId]: { ...(s[evidenceId] ?? current), ...patch } }));
-    } catch (error) {
-      toast(error instanceof Error ? error.message : "Couldn't save review.");
+    } catch {
+      toast("Couldn't save review.");
     }
   };
 
@@ -2522,10 +2516,6 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
 
   const items = data.evidence
     .filter((e) => matches(e.file_type, cat))
-    .filter((e) =>
-      recordGroup === "all" ||
-      (recordGroup === "unchecked" ? !recordGroups[e.id] : recordGroups[e.id] === recordGroup),
-    )
     .filter((e) =>
       statusFilter === "all" ? true : (reviews[e.id]?.status ?? "unreviewed") === statusFilter,
     );
@@ -2594,14 +2584,6 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
 
   return (
     <div>
-      <JevRecordGrouping
-        clientId={clientId}
-        evidenceIds={items.map((e) => e.id)}
-        groups={recordGroups}
-        selected={recordGroup}
-        onGroups={setRecordGroups}
-        onSelect={setRecordGroup}
-      />
       <div
         className="att-card"
         style={{
@@ -2784,9 +2766,6 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
                   </span>
                 </div>
                 <h3 style={{ fontSize: 16, marginTop: 8 }}>{e.title}</h3>
-                {recordGroups[e.id] && (
-                  <p className="mt-1 text-xs">Suggested group: {RECORD_GROUPS[recordGroups[e.id]]}</p>
-                )}
                 <div style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 2 }}>
                   {formatEvidenceDate(e)}
                   {e.linked_incident_id ? " · linked to incident" : " · unlinked"}
@@ -2794,32 +2773,6 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
                 {e.description && (
                   <p style={{ fontSize: 12, color: "var(--att-text-2)", marginTop: 8 }}>
                     {e.description.slice(0, 120)}
-                  </p>
-                )}
-                <JevEntryLinkSuggestion
-                  key={clientId + e.id}
-                  clientId={clientId}
-                  evidenceId={e.id}
-                  onApplied={(incidentId) =>
-                    setReviews((previous) => ({
-                      ...previous,
-                      [e.id]: {
-                        ...(previous[e.id] ?? {
-                          evidence_id: e.id,
-                          status: "unreviewed",
-                          exhibit_label: null,
-                          notes: null,
-                        }),
-                        linked_incident_id: incidentId,
-                      },
-                    }))
-                  }
-                />
-                {r?.linked_incident_id && (
-                  <p className="mt-2 text-xs">
-                    Attorney entry reference:{" "}
-                    {data.incidents.find((entry) => entry.id === r.linked_incident_id)
-                      ?.description.slice(0, 100) ?? "Shared entry"}
                   </p>
                 )}
                 {r?.notes && !isEditing && (
@@ -2842,23 +2795,6 @@ function EvidenceTab({ data, clientId }: { data: CaseData; clientId: string }) {
                 )}
                 {isEditing && (
                   <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
-                    <label className="text-xs">
-                      Attorney entry reference
-                      <select
-                        className="att-input"
-                        value={r?.linked_incident_id ?? ""}
-                        onChange={(event) =>
-                          void update(e.id, { linked_incident_id: event.target.value || null })
-                        }
-                      >
-                        <option value="">No entry reference</option>
-                        {data.incidents.map((entry) => (
-                          <option key={entry.id} value={entry.id}>
-                            {entry.date ?? "Date unknown"} · {entry.description.slice(0, 100)}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
                     <select
                       value={r?.status ?? "unreviewed"}
                       onChange={(ev) => update(e.id, { status: ev.target.value })}

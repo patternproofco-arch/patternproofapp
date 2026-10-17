@@ -46,11 +46,13 @@
 ## Oct 16
 - [x] "Enable Supabase for this project" — checked: the backend is already enabled, managed and live (not paused); nothing to turn on, no change made
 ## Oct 16 (later)
-- [x] link_id type errors fixed by aligning with the generated schema (no link_id column on attorney_evidence_reviews; unique key is attorney_user_id+evidence_id); tests updated, typecheck clean
-- [x] Jev AI: attorney entry-link suggestions (file ↔ documented entry, confirm to save a private attorney reference)
-- [x] Jev AI: record-type grouping of shared files in the review queue (display-only; batches of 20)
-- [x] Jev AI: survivor draft tidy-up (possible duplicates, missing date/place review flags; original wording and accept/discard decisions stay with survivor)
-- [x] Jev AI: missing-items nudge on evidence requests (optional request-to-shared-file match; never infers that an item is missing)
-- [ ] Enable Jev on the host after provider-policy review and server key configuration; see docs/jev-proposals.md. Implementation is present; no real-record provider call or deployment performed.
-- [ ] Drive/OneDrive scan: per-user connector (google_drive, microsoft_onedrive) so Jev can identify relevant files even with unhelpful names — needs client configured + per-user OAuth + storage table
-- [x] Preview build error resolved: attorney evidence reviews match the generated schema; no share-link column or database change needed. Notes remain keyed by attorney+file and can reappear when that same file is actively re-shared.
+- [x] Evidence-review schema alignment: preserve upstream PR #245's generated link_id types and grant-specific (link_id,evidence_id) review keys. A new sharing grant does not revive an earlier grant's notes.
+- [ ] Jev AI: entry-reference proposals — deferred until private attorney references and survivor-approved evidence links have explicit, separate semantics and confirmation provenance.
+- [ ] Record grouping — follow-up: deterministic file formats first; Jev only for ambiguous content categories.
+- [ ] Draft tidy-up — follow-up: local date/place completeness checks first; AI duplicate checks only after source/revision handling is proven.
+- [x] First Jev workflow: check already-shared files before sending an evidence request. Search the whole current eligible scope locally, compare relevant excerpts from up to 12 files, show a temporary possible match and a source preview. No request actions or evidence links.
+- [x] Survivor authorization per named attorney/share/provider/purpose, expiring after 30 days and pausing on shared-scope changes; current permissions and source fingerprints checked before/after inference.
+- [ ] Pilot Jev on fictional adversarial fixtures and review precision/abstention results before host enablement. Opt-in evaluation is present, not run without a configured key. See docs/jev-proposals.md.
+- [ ] Enable Jev on the host after provider-policy review and server key configuration. No real-record provider call, live setting change, or deployment performed by this PR.
+- [ ] Drive/OneDrive scan: separate per-user OAuth/import project. Selected files must not automatically expand attorney sharing.
+- [x] Preview type-check blocker: superseded by upstream PR #245's grant-bound review schema/type correction, preserved in this branch.

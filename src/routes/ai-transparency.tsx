@@ -51,20 +51,25 @@ export const Route = createFileRoute("/ai-transparency")({
           in an export.
         </p>
       </Section>
-      <Section title="Optional Jev checks">
+      <Section title="Optional Jev request matching">
         <p>
-          Jev returns a fixed choice or a probability for a review question, rather than generated
-          text. It can suggest entry references, temporary record-type groups, possible duplicate
-          drafts, date/place review flags, and request-to-file matches. A probability is a software
-          signal, not a finding about what happened. No match does not establish that an item is
-          missing.
+          After you authorize a named attorney's current share in Settings, that attorney can ask
+          whether a requested item may already be shared. The app searches eligible shared files
+          locally and sends TypeSafe's Jev service relevant excerpts from up to 12 candidates. Jev
+          returns a fixed choice, including no clear match. It does not generate an account of
+          events or decide that documentation should exist.
         </p>
         <p>
-          Each check names the saved text it sends to TypeSafe and asks first. Records marked no AI
-          and sealed records stay out of checks. Attorney checks use only the current share. Jev
-          results stay in the current view and are not exported; only a confirmed entry reference is
-          saved in the attorney's review. Draft checks keep your wording and leave every edit,
-          accept, and discard decision to you.
+          Results show the file title, source excerpt, and how many files were searched and checked.
+          A possible match needs your attorney's source review. No match does not mean an item is
+          missing. Results expire after five minutes and are not added to exports or saved as
+          evidence links. Minimal activity provenance records the model, instruction version, source
+          IDs and fingerprints without copying the request or source text.
+        </p>
+        <p>
+          Your permission lasts 30 days, pauses if the shared file scope changes, and can be turned
+          off in Settings. Revoked shares and records marked no AI are excluded. Entry linking, AI
+          record grouping and AI draft checks are deferred from this initial Jev rollout.
         </p>
       </Section>
       <Section title="Explanations, not hidden reasoning">
