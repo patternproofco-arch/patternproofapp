@@ -46,10 +46,11 @@
 ## Oct 16
 - [x] "Enable Supabase for this project" — checked: the backend is already enabled, managed and live (not paused); nothing to turn on, no change made
 ## Oct 16 (later)
-- [x] link_id type errors fixed by aligning with the generated schema (no link_id column on attorney_evidence_reviews; unique key is attorney_user_id+evidence_id); tests updated, typecheck clean
+- [x] Typecheck clean and 1,392 tests pass. Code (#245) uses grant-scoped `link_id` on attorney_evidence_reviews (unique on link_id+evidence_id) — the correct design
+- [ ] BLOCKER: live DB (obljoemiijkryjlxihic) is 14 migrations behind the repo (last applied 20261009112208; pending 20261010150854 … 20261014220000). Live has no `link_id` column, so evidence review fails on deploy and the attorney annotation RLS policies are not in production. Dry-run on a Supabase branch, then apply to production with owner approval
 - [ ] Jev AI: attorney entry-link suggestions (file ↔ documented entry, confirm to apply)
 - [ ] Jev AI: record-type grouping of shared files in the review queue (display-only)
 - [ ] Jev AI: survivor draft tidy-up (possible duplicates, missing date/place flags; confirm everything)
 - [ ] Jev AI: missing-items nudge on evidence requests (match request text to shared files)
 - [ ] Drive/OneDrive scan: per-user connector (google_drive, microsoft_onedrive) so Jev can identify relevant files even with unhelpful names — needs client configured + per-user OAuth + storage table
-- [ ] Preview build error: attorney evidence review notes need a share-link field the live database doesn't have — RESOLVED: fixed code-side by aligning with the generated schema; no database change needed
+- [ ] Jev prerequisites: TYPESAFE_API_KEY as a server secret; documented AI policy review (provider retention/training/subprocessors) before PATTERNPROOF_AI_POLICY_APPROVED=true; route Jev calls through the same policy gate; send minimal fields only, within share scope
