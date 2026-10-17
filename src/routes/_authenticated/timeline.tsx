@@ -420,7 +420,7 @@ function TimelinePage() {
             art="dated-sequence"
             eyebrow="Timeline"
             title="Nothing in order yet."
-            body="Notes you accept show up here in date order."
+            body="Notes you save show up here in date order."
             cta={{ label: "Add a Note", to: "/journal", testId: "timeline-empty-cta" }}
             testId="timeline-empty"
           />
