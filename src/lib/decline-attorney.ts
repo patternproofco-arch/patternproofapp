@@ -35,8 +35,16 @@ export async function declineAttorneyApplication(input: {
   // With a reason: one atomic database function (status, shares and reason together).
   // Without a reason: the existing review function, which needs no new columns.
   const { error } = reason
-    ? await db.rpc("decline_attorney_application", { _id: id, _reviewer: reviewer, _reason: reason })
-    : await db.rpc("review_attorney_application", { _id: id, _reviewer: reviewer, _status: "rejected" });
+    ? await db.rpc("decline_attorney_application", {
+        _id: id,
+        _reviewer: reviewer,
+        _reason: reason,
+      })
+    : await db.rpc("review_attorney_application", {
+        _id: id,
+        _reviewer: reviewer,
+        _status: "rejected",
+      });
   if (error) {
     throw new Error(
       reason

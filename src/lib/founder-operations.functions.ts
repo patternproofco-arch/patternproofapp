@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireAccountAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-import { declineAttorneyApplication } from "@/lib/decline-attorney";
+import { declineAttorneyApplication, type DeclineDb } from "@/lib/decline-attorney";
 
 export type AttorneyApplication = {
   id: string;
@@ -265,7 +265,9 @@ export const declineAttorney = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const db = await founder(context.userId);
     return declineAttorneyApplication({
-      db,
+      // The held decline RPC is not in generated database types yet. Keep the
+      // compatibility assertion at this server-only boundary; missing RPCs fail closed.
+      db: db as unknown as DeclineDb,
       id: data.id,
       reviewer: context.userId,
       reason: data.reason,

@@ -4,7 +4,14 @@ import { declineAttorneyApplication, type DeclineDb } from "@/lib/decline-attorn
 const ID = "11111111-1111-4111-8111-111111111111";
 const ADMIN = "22222222-2222-4222-8222-222222222222";
 
-function fakeDb(opts: { app?: unknown; lookupError?: unknown; rpcError?: Record<string, unknown>; stampError?: unknown } = {}) {
+function fakeDb(
+  opts: {
+    app?: unknown;
+    lookupError?: unknown;
+    rpcError?: Record<string, unknown>;
+    stampError?: unknown;
+  } = {},
+) {
   const calls: string[] = [];
   const updates: unknown[] = [];
   const db: DeclineDb = {
@@ -35,14 +42,22 @@ const base = { id: ID, reviewer: ADMIN };
 describe("declineAttorneyApplication", () => {
   it("saves decline and reason in ONE atomic call, with no separate reason update", async () => {
     const { db, calls, updates } = fakeDb();
-    const r = await declineAttorneyApplication({ ...base, db, reason: " Bar number not found ", sendEmail: false, sendEmailFn: vi.fn() });
+    const r = await declineAttorneyApplication({
+      ...base,
+      db,
+      reason: " Bar number not found ",
+      sendEmail: false,
+      sendEmailFn: vi.fn(),
+    });
     expect(calls).toEqual(["decline_attorney_application"]);
     expect(updates).toEqual([]);
     expect(r).toEqual({ ok: true, emailed: false, emailProblem: false });
   });
 
   it("if the atomic call fails, nothing is changed and the error says so", async () => {
-    const { db, calls, updates } = fakeDb({ rpcError: { decline_attorney_application: { message: "boom" } } });
+    const { db, calls, updates } = fakeDb({
+      rpcError: { decline_attorney_application: { message: "boom" } },
+    });
     const send = vi.fn();
     await expect(
       declineAttorneyApplication({ ...base, db, reason: "x", sendEmail: true, sendEmailFn: send }),
@@ -53,23 +68,43 @@ describe("declineAttorneyApplication", () => {
   });
 
   it("never falls back to a plain decline when the reason function is missing", async () => {
-    const { db, calls } = fakeDb({ rpcError: { decline_attorney_application: { code: "PGRST202" } } });
+    const { db, calls } = fakeDb({
+      rpcError: { decline_attorney_application: { code: "PGRST202" } },
+    });
     await expect(
-      declineAttorneyApplication({ ...base, db, reason: "x", sendEmail: false, sendEmailFn: vi.fn() }),
+      declineAttorneyApplication({
+        ...base,
+        db,
+        reason: "x",
+        sendEmail: false,
+        sendEmailFn: vi.fn(),
+      }),
     ).rejects.toThrow();
     expect(calls).not.toContain("review_attorney_application");
   });
 
   it("a decline with no reason uses the existing function and needs no new columns", async () => {
     const { db, calls } = fakeDb();
-    await declineAttorneyApplication({ ...base, db, reason: "  ", sendEmail: false, sendEmailFn: vi.fn() });
+    await declineAttorneyApplication({
+      ...base,
+      db,
+      reason: "  ",
+      sendEmail: false,
+      sendEmailFn: vi.fn(),
+    });
     expect(calls).toEqual(["review_attorney_application"]);
   });
 
   it("refuses to email without a reason, before changing anything", async () => {
     const { db, calls } = fakeDb();
     await expect(
-      declineAttorneyApplication({ ...base, db, reason: "", sendEmail: true, sendEmailFn: vi.fn() }),
+      declineAttorneyApplication({
+        ...base,
+        db,
+        reason: "",
+        sendEmail: true,
+        sendEmailFn: vi.fn(),
+      }),
     ).rejects.toThrow(/reason before/);
     expect(calls).toEqual([]);
   });
@@ -77,7 +112,13 @@ describe("declineAttorneyApplication", () => {
   it("an unknown application changes nothing", async () => {
     const { db, calls } = fakeDb({ app: null });
     await expect(
-      declineAttorneyApplication({ ...base, db, reason: "x", sendEmail: false, sendEmailFn: vi.fn() }),
+      declineAttorneyApplication({
+        ...base,
+        db,
+        reason: "x",
+        sendEmail: false,
+        sendEmailFn: vi.fn(),
+      }),
     ).rejects.toThrow(/Could not find/);
     expect(calls).toEqual([]);
   });
@@ -88,7 +129,13 @@ describe("declineAttorneyApplication", () => {
       expect(calls).toEqual(["decline_attorney_application"]);
       return { sent: true };
     });
-    const r = await declineAttorneyApplication({ ...base, db, reason: "Please resubmit", sendEmail: true, sendEmailFn: send });
+    const r = await declineAttorneyApplication({
+      ...base,
+      db,
+      reason: "Please resubmit",
+      sendEmail: true,
+      sendEmailFn: send,
+    });
     expect(send).toHaveBeenCalledTimes(1);
     expect(r.emailed).toBe(true);
     expect(updates).toHaveLength(1);
@@ -98,8 +145,13 @@ describe("declineAttorneyApplication", () => {
   it("an email failure keeps the decline and is reported, not thrown", async () => {
     const { db, updates } = fakeDb();
     const r = await declineAttorneyApplication({
-      ...base, db, reason: "x", sendEmail: true,
-      sendEmailFn: async () => { throw new Error("smtp down"); },
+      ...base,
+      db,
+      reason: "x",
+      sendEmail: true,
+      sendEmailFn: async () => {
+        throw new Error("smtp down");
+      },
     });
     expect(r).toEqual({ ok: true, emailed: false, emailProblem: true });
     expect(updates).toEqual([]);
@@ -107,7 +159,13 @@ describe("declineAttorneyApplication", () => {
 
   it("an email that was not sent is reported and not recorded as sent", async () => {
     const { db, updates } = fakeDb();
-    const r = await declineAttorneyApplication({ ...base, db, reason: "x", sendEmail: true, sendEmailFn: async () => ({ sent: false }) });
+    const r = await declineAttorneyApplication({
+      ...base,
+      db,
+      reason: "x",
+      sendEmail: true,
+      sendEmailFn: async () => ({ sent: false }),
+    });
     expect(r.emailed).toBe(false);
     expect(r.emailProblem).toBe(true);
     expect(updates).toEqual([]);
