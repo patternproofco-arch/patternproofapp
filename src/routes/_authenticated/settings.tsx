@@ -35,6 +35,7 @@ import {
 import { Download } from "lucide-react";
 import { ChangePasswordCard } from "@/components/ChangePasswordCard";
 import { SignOutButton } from "@/components/UtilityBar";
+import { JevSharePermissions } from "@/components/settings/JevSharePermissions";
 import { AssistantSetup } from "@/components/AssistantSetup";
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -552,6 +553,7 @@ function SettingsPage() {
       </div>
 
       <ConnectedApps />
+      <JevSharePermissions />
 
       <NotesFromAttorney />
 

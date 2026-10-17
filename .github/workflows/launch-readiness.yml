@@ -44,6 +44,8 @@ jobs:
           VITE_SUPABASE_URL: https://example.invalid
           VITE_SUPABASE_PROJECT_ID: ci-placeholder
           VITE_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-not-a-secret
+          # Fictional public token for mocked subscription UI; never a live Stripe account.
+          VITE_PAYMENTS_CLIENT_TOKEN: pk_test_fixture_not_a_real_key
         run: NODE_OPTIONS=--max-old-space-size=4096 npm run build
 
       - name: Record source provenance

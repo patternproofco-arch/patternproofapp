@@ -87,7 +87,7 @@ export function fakeUser(overrides = {}) {
   };
 }
 
-export function fakeSession(user) {
+export function fakeSession(user, { aal = "aal1" } = {}) {
   const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 365; // 1yr out, no refresh needed
   const header = { alg: "HS256", typ: "JWT" };
   const payload = {
@@ -96,8 +96,13 @@ export function fakeSession(user) {
     sub: user.id,
     email: user.email,
     role: "authenticated",
+    iat: Math.floor(Date.now() / 1000),
+    aal,
+    amr: [
+      { method: aal === "aal2" ? "totp" : "password", timestamp: Math.floor(Date.now() / 1000) },
+    ],
   };
-  const access_token = `${b64url(header)}.${b64url(payload)}.fixture-signature`;
+  const access_token = `${b64url(header)}.${b64url(payload)}.${Buffer.from("fixture-signature").toString("base64url")}`;
   return {
     access_token,
     token_type: "bearer",
@@ -109,8 +114,8 @@ export function fakeSession(user) {
 }
 
 /** Seed localStorage with a fake Supabase session before any app JS runs. */
-export async function seedAuth(page, user = fakeUser()) {
-  const session = fakeSession(user);
+export async function seedAuth(page, user = fakeUser(), sessionOptions = {}) {
+  const session = fakeSession(user, sessionOptions);
   await page.addInitScript(
     ([key, value]) => window.localStorage.setItem(key, JSON.stringify(value)),
     [STORAGE_KEY, session],
@@ -237,6 +242,11 @@ function gatekeeperHandlers(persona) {
     listClioMatterLinks: () => ({ links: [] }),
     listSurvivorInvites: () => ({ invites: [] }),
     listContentSuggestions: () => ({ suggestions: [] }),
+    getMyJevSharePermissions: () => ({
+      available: false,
+      requiresPassword: false,
+      shares: [],
+    }),
     getDashboardStats: () => ({
       incident_count: 0,
       unconfirmed_ai_count: 0,
@@ -306,10 +316,16 @@ export async function mockServerFunctions(page, { persona = "survivor", handlers
  *  only if you need finer control over ordering. */
 export async function mockLoggedIn(
   page,
-  { persona = "survivor", user: userOverrides = {}, serverFnHandlers = {}, restHandlers = {} } = {},
+  {
+    persona = "survivor",
+    user: userOverrides = {},
+    mfaLevel = "aal1",
+    serverFnHandlers = {},
+    restHandlers = {},
+  } = {},
 ) {
   const user = fakeUser(userOverrides);
-  const { session } = await seedAuth(page, user);
+  const { session } = await seedAuth(page, user, { aal: mfaLevel });
   await mockSupabaseNetwork(page, { session, handlers: restHandlers });
   await mockServerFunctions(page, { persona, handlers: serverFnHandlers });
   return { user, session };
