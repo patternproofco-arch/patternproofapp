@@ -18,7 +18,7 @@
     "test:security:bringup": "node scripts/run-muy-bringup-test.mjs"
   },
   "dependencies": {
-    "@ai-sdk/openai-compatible": "^2.0.51",
+    "@ai-sdk/openai-compatible": "^3.0.68",
     "@ai-sdk/react": "^4.0.140",
     "@cloudflare/vite-plugin": "^1.63.1",
     "@hookform/resolvers": "^5.9.1",
