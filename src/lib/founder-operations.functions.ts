@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireAccountAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { declineAttorneyApplication } from "@/lib/decline-attorney";
 
 export type AttorneyApplication = {
   id: string;
@@ -263,42 +264,12 @@ export const declineAttorney = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const db = await founder(context.userId);
-    const reason = data.reason?.trim() || null;
-    if (data.sendEmail && !reason) throw new Error("Write a reason before choosing to email it.");
-    const { data: app, error: lookupError } = await (db as any)
-      .from("attorney_access_applications")
-      .select("id,email,full_name")
-      .eq("id", data.id)
-      .maybeSingle();
-    if (lookupError || !app) throw new Error("Could not find that application.");
-    const { error } = await (db as any).rpc("review_attorney_application", {
-      _id: data.id,
-      _reviewer: context.userId,
-      _status: "rejected",
+    return declineAttorneyApplication({
+      db,
+      id: data.id,
+      reviewer: context.userId,
+      reason: data.reason,
+      sendEmail: data.sendEmail,
+      sendEmailFn: alert,
     });
-    if (error) throw new Error("Could not save the review.");
-    let emailed = false;
-    if (reason) {
-      const { error: reasonError } = await (db as any)
-        .from("attorney_access_applications")
-        .update({ decline_reason: reason })
-        .eq("id", data.id);
-      if (reasonError) throw new Error("Declined, but the reason could not be saved.");
-    }
-    if (data.sendEmail && reason) {
-      const result = await alert(
-        "Your PatternProof attorney application",
-        `Hello ${app.full_name},\n\nThank you for applying for attorney access to PatternProof. We are not able to approve your application right now.\n\nReason from our team:\n${reason}\n\nIf something above is out of date or incorrect, you are welcome to reply to this email and we will take another look.\n\n— The PatternProof team`,
-        `attorney-decline-${data.id}`,
-        String(app.email),
-      );
-      emailed = !!result.sent;
-      if (emailed) {
-        await (db as any)
-          .from("attorney_access_applications")
-          .update({ decline_reason_emailed_at: new Date().toISOString() })
-          .eq("id", data.id);
-      }
-    }
-    return { ok: true as const, emailed };
   });

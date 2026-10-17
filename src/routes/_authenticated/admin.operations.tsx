@@ -83,7 +83,9 @@ function OperationsPage() {
       setNotice(
         result.emailed
           ? "Declined. Your reason was emailed to the attorney."
-          : "Declined. No email was sent.",
+          : result.emailProblem
+            ? "Declined and the reason was saved, but the email could not be sent. Contact the attorney another way."
+            : "Declined. No email was sent.",
       );
       setDeclining(null);
       setReason("");
