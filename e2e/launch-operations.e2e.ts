@@ -109,7 +109,9 @@ test("founder can review applications and see support, signup and mail activity"
   expect(declined).toBe(false);
   await page.getByRole("button", { name: "Confirm decline", exact: true }).click();
   await expect(page.getByRole("status")).toHaveText("Declined. No email was sent.");
-  await expect(page.getByText("Reason: Fictional review reason (not emailed)")).toBeVisible();
+  await expect(
+    page.getByText("Reason: Fictional review reason (email not recorded)"),
+  ).toBeVisible();
   await page.getByRole("tab", { name: /^Help requests/ }).click();
   await expect(page.getByText("Fictional support request")).toBeVisible();
   await page.getByRole("tab", { name: /^Signups/ }).click();
@@ -121,6 +123,84 @@ test("founder can review applications and see support, signup and mail activity"
     page.getByRole("status").filter({ hasText: "Submitted 1 of 1 eligible signup alerts" }),
   ).toBeVisible();
 });
+
+for (const outcome of [
+  {
+    name: "email sent but timestamp not saved",
+    emailed: true,
+    notice:
+      "Declined. Your reason was sent to the attorney, but the email record could not be saved.",
+  },
+  {
+    name: "email not sent",
+    emailed: false,
+    notice:
+      "Declined and the reason was saved, but the email could not be sent. Contact the attorney another way.",
+  },
+]) {
+  test(`founder sees an accurate decline status: ${outcome.name}`, async ({ page }, testInfo) => {
+    let declined = false;
+    const pageErrors: string[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error.message));
+    page.on("console", (message) => {
+      if (message.type() === "error") pageErrors.push(message.text());
+    });
+    await mockLoggedIn(page, {
+      persona: "attorney",
+      serverFnHandlers: {
+        ensureSurvivorRole: () => ({
+          roles: ["attorney", "admin"],
+          is_survivor: false,
+          is_org_partner: false,
+          attorney_approved: true,
+        }),
+        getFounderOperations: () => ({
+          applications: [
+            {
+              id: "00000000-0000-4000-8000-000000000001",
+              full_name: "QA Attorney",
+              email: "qa@example.invalid",
+              firm_name: "Fictional QA Firm",
+              bar_number: "QA-000",
+              jurisdiction: "QA jurisdiction",
+              created_at: "2026-10-10T10:00:00Z",
+              status: declined ? "rejected" : "pending_review",
+              decline_reason: declined ? "Fictional review reason" : null,
+              decline_reason_emailed_at: null,
+            },
+          ],
+          pendingAlerts: [],
+          tickets: [],
+          signups: [],
+          emailActivity: [],
+        }),
+        declineAttorney: () => {
+          declined = true;
+          return { ok: true, emailed: outcome.emailed, emailProblem: true };
+        },
+      },
+    });
+    await page.goto("/admin/operations");
+    await expect(page).toHaveURL(/\/admin\/operations$/);
+    await expect(page).toHaveTitle("Founder operations — PatternProof");
+    await expect(page.getByRole("heading", { name: "Founder operations" })).toBeVisible();
+    await page.getByRole("button", { name: "Decline", exact: true }).click();
+    await page.getByLabel("Reason for declining (optional)").fill("Fictional review reason");
+    await page.getByRole("checkbox", { name: "Email this reason to the attorney" }).check();
+    await page.getByRole("button", { name: "Confirm decline", exact: true }).click();
+    await expect(page.getByRole("status")).toHaveText(outcome.notice);
+    const savedReason = page.getByText("Reason: Fictional review reason (email not recorded)");
+    await expect(savedReason).toBeVisible();
+    await page.getByRole("button", { name: "Refresh", exact: true }).click();
+    await expect(savedReason).toBeVisible();
+    await expect(page.locator("vite-error-overlay")).toHaveCount(0);
+    expect(pageErrors).toEqual([]);
+    await testInfo.attach("decline-email-status", {
+      body: await page.screenshot(),
+      contentType: "image/png",
+    });
+  });
+}
 
 test("signup email confirmation returns through the role setup callback", async ({ page }) => {
   // Stub fetch before app startup: WebKit preflights the inert .invalid host

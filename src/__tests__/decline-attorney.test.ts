@@ -10,6 +10,7 @@ function fakeDb(
     lookupError?: unknown;
     rpcError?: Record<string, unknown>;
     stampError?: unknown;
+    stampThrows?: boolean;
   } = {},
 ) {
   const calls: string[] = [];
@@ -26,7 +27,12 @@ function fakeDb(
       }),
       update: (patch: unknown) => {
         updates.push(patch);
-        return { eq: async () => ({ error: opts.stampError ?? null }) };
+        return {
+          eq: async () => {
+            if (opts.stampThrows) throw new Error("Timestamp write interrupted");
+            return { error: opts.stampError ?? null };
+          },
+        };
       },
     }),
     rpc: async (fn: string) => {
@@ -170,4 +176,23 @@ describe("declineAttorneyApplication", () => {
     expect(r.emailProblem).toBe(true);
     expect(updates).toEqual([]);
   });
+
+  it.each([{ stampError: { message: "Timestamp write failed" } }, { stampThrows: true }])(
+    "keeps the sent result when its timestamp cannot be saved: %j",
+    async (failure) => {
+      const { db, calls, updates } = fakeDb(failure);
+      const send = vi.fn(async () => ({ sent: true }));
+      const result = await declineAttorneyApplication({
+        ...base,
+        db,
+        reason: "Fictional review reason",
+        sendEmail: true,
+        sendEmailFn: send,
+      });
+      expect(result).toEqual({ ok: true, emailed: true, emailProblem: true });
+      expect(calls).toEqual(["decline_attorney_application"]);
+      expect(send).toHaveBeenCalledTimes(1);
+      expect(updates).toHaveLength(1);
+    },
+  );
 });

@@ -82,7 +82,9 @@ function OperationsPage() {
       const result = await decline({ data: { id, reason, sendEmail: sendReason } });
       setNotice(
         result.emailed
-          ? "Declined. Your reason was emailed to the attorney."
+          ? result.emailProblem
+            ? "Declined. Your reason was sent to the attorney, but the email record could not be saved."
+            : "Declined. Your reason was emailed to the attorney."
           : result.emailProblem
             ? "Declined and the reason was saved, but the email could not be sent. Contact the attorney another way."
             : "Declined. No email was sent.",
@@ -227,7 +229,7 @@ function OperationsPage() {
                             Reason: {a.decline_reason}
                             {a.decline_reason_emailed_at
                               ? " (emailed to attorney)"
-                              : " (not emailed)"}
+                              : " (email not recorded)"}
                           </p>
                         )}
                         {declining === a.id && (
