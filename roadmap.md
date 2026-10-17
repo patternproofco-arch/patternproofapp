@@ -47,7 +47,7 @@
 - [x] "Enable Supabase for this project" — checked: the backend is already enabled, managed and live (not paused); nothing to turn on, no change made
 ## Oct 16 (later)
 - [x] Typecheck clean and 1,392 tests pass. Code (#245) uses grant-scoped `link_id` on attorney_evidence_reviews (unique on link_id+evidence_id) — the correct design
-- [ ] BLOCKER: live DB (obljoemiijkryjlxihic) is 14 migrations behind the repo (last applied 20261009112208; pending 20261010150854 … 20261014220000). Live has no `link_id` column, so evidence review fails on deploy and the attorney annotation RLS policies are not in production. Dry-run on a Supabase branch, then apply to production with owner approval
+- [x] Production DB is muynotmkcmehxnkhffzl (NOT obljoemiijkryjlxihic, which is an old database and must not receive production migrations). Verified read-only on Oct 17: `link_id` + grant-scoped unique index, the 10 pending-migration tables, private.annotation_record_shared / confirmed_account_email, and both grant policies all exist on muy. Code matches production. Note: supabase_migrations.schema_migrations on muy has no rows >= 20261009 (migrations were applied by SQL paste, not tracked)
 - [ ] Jev AI: attorney entry-link suggestions (file ↔ documented entry, confirm to apply)
 - [ ] Jev AI: record-type grouping of shared files in the review queue (display-only)
 - [ ] Jev AI: survivor draft tidy-up (possible duplicates, missing date/place flags; confirm everything)
